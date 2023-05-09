@@ -1,0 +1,20 @@
+﻿version: 1
+apps:
+  - appID: workflow
+    appDirPath: Workflow/
+    appProtocol: http
+    appPort: 5000
+    daprHTTPPort: 3509
+    command: ["dotnet","run"]
+  - appID: cart
+    appDirPath: Cart/
+    appProtocol: http
+    appPort: 5001
+    daprHTTPPort: 3510
+    command: ["dotnet","run"]
+  - appID: order
+    appDirPath: Order/
+    appProtocol: http
+    appPort: 5002
+    daprHTTPPort: 3511
+    command: ["dotnet","run"]
