@@ -41,17 +41,17 @@ public class StockController : ControllerBase
 
 
     [HttpPost("ReserveInventory")]
-    [Topic(PUBSUB_NAME, nameof(Checkout))]
-    public async void ReserveInventory(Checkout checkout)
+    [Topic(PUBSUB_NAME, nameof(CheckoutReserveRequest))]
+    public async void ReserveInventory(CheckoutReserveRequest checkout)
     {
-        bool resp = this.stockRepository.Reserve(checkout.items.Select(x => x.Value).ToList());
+        bool resp = this.stockRepository.Reserve(checkout.items);
         if (resp)
         {
             // send to order
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, "ProcessCheckout", checkout);
         } else
         {
-            // notify cart and customer
+            // TODO notify cart and customer
         }
     }
 

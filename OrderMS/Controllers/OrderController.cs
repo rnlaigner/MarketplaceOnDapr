@@ -33,7 +33,7 @@ public class OrderController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Invoice>> ProcessCheckout(Checkout checkout)
+    public async Task<ActionResult<Invoice>> ProcessCheckout(CheckoutProcessRequest checkout)
     {
         return Ok(new Invoice(new Order(), new List<OrderItem>()));
         // return Ok(this._eventHandler.ProcessCheckout(checkout));

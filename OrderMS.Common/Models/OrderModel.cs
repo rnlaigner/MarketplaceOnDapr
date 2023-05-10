@@ -22,28 +22,20 @@ namespace OrderMS.Common.Models
 
         public OrderStatus status { get; set; } = OrderStatus.CREATED;
 
-
         public DateTime purchase_date { get; set; }
 
-        
         public DateTime? payment_date { get; set; }
 
-        
         public DateTime? delivered_carrier_date { get; set; }
 
-        
         public DateTime? delivered_customer_date { get; set; }
 
-        
         public DateTime? estimated_delivery_date { get; set; }
 
-        // dev
         public int count_items { get; set; }
 
-        
         public DateTime created_at { get; set; } = DateTime.Now;
 
-        
         public DateTime? updated_at { get; set; }
 
         public decimal total_amount { get; set; } = 0;

@@ -33,7 +33,15 @@ namespace StockMS.Migrations
                     table.CheckConstraint("CK_StockItem_QtyAvailable", "qty_available >= 0");
                     table.CheckConstraint("CK_StockItem_QtyReserved", "qty_reserved >= 0");
                     table.CheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "qty_reserved <= qty_available");
-                });
+                }
+            );
+
+            // set serializable isolation. not working =(
+            // https://stackoverflow.com/questions/62649971/how-to-change-transaction-isolation-level-globally
+            migrationBuilder.Sql(
+                @"
+                    ALTER DATABASE stock SET DEFAULT_TRANSACTION_ISOLATION TO SERIALIZABLE;
+                ");
         }
 
         /// <inheritdoc />

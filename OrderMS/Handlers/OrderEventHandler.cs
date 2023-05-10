@@ -13,7 +13,7 @@ namespace OrderMS.Handlers
 	public class OrderEventHandler
 	{
 
-        // FIXME change to repository so we can test this component with sqlite
+        // TODO change to repository so we can test this component with sqlite
         private readonly OrderDbContext dbContext;
 
         private static readonly decimal[] emptyArray = Array.Empty<decimal>();
@@ -24,7 +24,7 @@ namespace OrderMS.Handlers
         }
 
         // for workflow
-        public Invoice ProcessCheckout(Checkout checkout)
+        public Invoice ProcessCheckout(CheckoutProcessRequest checkout)
 		{
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
             using (var dbContextTransaction = dbContext.Database.BeginTransaction())
@@ -32,13 +32,13 @@ namespace OrderMS.Handlers
 
                 // calculate total freight_value
                 decimal total_freight = 0;
-                foreach (var item in checkout.items.Values)
+                foreach (var item in checkout.items)
                 {
                     total_freight += item.FreightValue;
                 }
 
                 decimal total_amount = 0;
-                foreach (var item in checkout.items.Values)
+                foreach (var item in checkout.items)
                 {
                     total_amount += (item.UnitPrice * item.Quantity);
                 }
@@ -87,7 +87,7 @@ namespace OrderMS.Handlers
                 List<OrderItem> orderItems = new(checkout.items.Count);
 
                 int id = 0;
-                foreach (var item in checkout.items.Values)
+                foreach (var item in checkout.items)
                 {
 
                     OrderItemModel oim = new()

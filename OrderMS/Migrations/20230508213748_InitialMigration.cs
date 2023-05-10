@@ -98,7 +98,7 @@ namespace OrderMS.Migrations
                 table: "order_history",
                 column: "order_id");
 
-            // 
+            // partitioning orders table
             migrationBuilder.Sql(
                 @"
                     ALTER TABLE orders

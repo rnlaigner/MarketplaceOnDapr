@@ -32,12 +32,13 @@ namespace OrderMS.Controllers
         }
 
         [HttpPost("ProcessCheckout")]
-        [Topic(PUBSUB_NAME, nameof(Checkout))]
-        public async void ProcessCheckout(Checkout checkout)
+        [Topic(PUBSUB_NAME, nameof(CheckoutProcessRequest))]
+        public async void ProcessCheckout(CheckoutProcessRequest checkout)
         {
+            this.logger.LogInformation("[CheckoutProcessRequest] received {0}.", checkout.instanceId);
             Invoice invoice = this.eventHandler.ProcessCheckout(checkout);
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, "CheckoutResult", checkout);
-
+            await this.daprClient.PublishEventAsync(PUBSUB_NAME, "CheckoutResult", invoice);
+            this.logger.LogInformation("[CheckoutProcessRequest] processed {0}.", checkout.instanceId);
         }
 
     }

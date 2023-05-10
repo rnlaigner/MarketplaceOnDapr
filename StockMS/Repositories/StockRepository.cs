@@ -41,7 +41,10 @@ namespace StockMS.Repositories
 
             try
             {
-
+                /**
+                 * Can't find a way to express this transaction as serializable. Need to set the isolation level in the migration.
+                 * 
+                 */
                 using (var txCtx = stockDbContext.Database.BeginTransaction())
                 {
 
@@ -49,14 +52,16 @@ namespace StockMS.Repositories
                     // var stockItem = stockDbContext.StockItems.Where(c => c.product_id)
                     foreach (var item in cartitems)
                     {
+                        // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
                         var stockItem = stockDbContext.StockItems.Where(c => c.product_id == item.ProductId).First();
 
-                        if (stockItem is null)
+                        if (stockItem is null || stockItem.qty_available >= (stockItem.qty_reserved + item.Quantity) )
                         {
                             rollback = true;
                             break;
                         }
 
+                        // FIXME blindly increase or check here too (dbms will also check due to the constraint)?
                         stockItem.qty_reserved += item.Quantity;
                         stockItem.updated_at = DateTime.Now;
 
@@ -70,7 +75,7 @@ namespace StockMS.Repositories
                         txCtx.Commit();
                         return true;
                     }
-                   
+
                 }
 
             } catch(Exception e)

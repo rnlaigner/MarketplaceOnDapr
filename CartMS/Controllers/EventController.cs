@@ -48,9 +48,9 @@ public class EventController : ControllerBase
         // CancellationTokenSource source = new CancellationTokenSource();
         // CancellationToken cancellationToken = source.Token;
 
-        Checkout checkout = new Checkout(DateTime.Now, customerCheckout, cart.items);
+        CheckoutReserveRequest checkout = new CheckoutReserveRequest(DateTime.Now, customerCheckout, cart.items.Select(c=>c.Value).ToList() );
 
-        await this.daprClient.PublishEventAsync(PUBSUB_NAME, "ProcessCheckout", checkout); // , cancellationToken);
+        await this.daprClient.PublishEventAsync(PUBSUB_NAME, "ReserveInventory", checkout); // , cancellationToken);
 
     }
 

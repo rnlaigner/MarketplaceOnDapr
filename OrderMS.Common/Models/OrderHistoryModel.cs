@@ -17,6 +17,8 @@ namespace OrderMS.Common.Models
 
         public OrderStatus status { get; set; }
 
+        public OrderHistoryModel() { }
+
     }
 }
 
