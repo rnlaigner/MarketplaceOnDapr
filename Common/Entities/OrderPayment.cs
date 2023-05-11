@@ -9,7 +9,7 @@ namespace Common.Entities
         public int payment_sequential { get; set; }
 
         // coupon, credit card
-        public string payment_type { get; set; }
+        public string? payment_type { get; set; }
 
         // number of times the credit card is charged (usually once a month)
         public int payment_installments { get; set; }

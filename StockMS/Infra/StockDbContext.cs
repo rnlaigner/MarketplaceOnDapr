@@ -20,6 +20,7 @@ namespace StockMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(@"Host=localhost;Port=5432;Database=stock;Username=postgres;Password=password")
+                .AddInterceptors(new TransactionInterceptor())
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b

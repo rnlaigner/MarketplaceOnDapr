@@ -19,21 +19,22 @@ namespace OrderMS.Infra
 
         public OrderDbContext()
         {
-            
+
         }
         
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // connection string can be taken from appsettings:
             // https://jasonwatmore.com/post/2022/06/23/net-6-connect-to-postgresql-database-with-entity-framework-core
-            options.UseNpgsql(@"Host=localhost;Port=5432;Database=order;Username=postgres;Password=password").UseLoggerFactory(
+            options.UseNpgsql(@"Host=localhost;Port=5432;Database=order;Username=postgres;Password=password")
+                .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b
                             .AddConsole()
                             .AddFilter(level => level >= LogLevel.Information)))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-            
+
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 

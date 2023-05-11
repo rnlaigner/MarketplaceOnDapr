@@ -31,7 +31,7 @@ namespace OrderMS.Handlers
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
             using (var dbContextTransaction = dbContext.Database.BeginTransaction())
             {
-
+   
                 // calculate total freight_value
                 decimal total_freight = 0;
                 foreach (var item in checkout.items)

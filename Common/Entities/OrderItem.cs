@@ -15,7 +15,7 @@ namespace Common.Entities
 
         public decimal unit_price { get; set; }
 
-        public string shipping_limit_date { get; set; }
+        public string? shipping_limit_date { get; set; }
 
         public decimal freight_value { get; set; }
 

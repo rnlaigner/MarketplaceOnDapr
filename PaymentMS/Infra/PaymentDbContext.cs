@@ -7,8 +7,9 @@ namespace PaymentMS.Infra
 {
 	public class PaymentDbContext : DbContext
     {
-		
-        public DbSet<OrderPaymentModel> StockItems => Set<OrderPaymentModel>();
+
+        public DbSet<OrderPaymentModel> OrderPayments => Set<OrderPaymentModel>();
+        public DbSet<OrderPaymentCardModel> OrderPaymentCards => Set<OrderPaymentCardModel>();
 
         public PaymentDbContext()
         {

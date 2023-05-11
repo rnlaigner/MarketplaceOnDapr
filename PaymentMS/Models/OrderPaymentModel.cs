@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using Common.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace PaymentMS.Models
@@ -15,13 +16,16 @@ namespace PaymentMS.Models
         public int payment_sequential { get; set; }
 
         // coupon, credit card
-        public string payment_type { get; set; }
+        public PaymentType payment_type { get; set; }
 
         // number of times the credit card is charged (usually once a month)
         public int payment_installments { get; set; }
 
         // respective to this line (ie. coupon)
         public decimal payment_value { get; set; }
+
+        public OrderPaymentModel() { }
+
     }
 }
 

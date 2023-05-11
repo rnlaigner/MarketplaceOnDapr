@@ -41,8 +41,8 @@ public class StockController : ControllerBase
 
 
     [HttpPost("ReserveInventory")]
-    [Topic(PUBSUB_NAME, nameof(ReserveCheckoutRequest))]
-    public async void ReserveInventory(ReserveCheckoutRequest checkout)
+    [Topic(PUBSUB_NAME, nameof(ReserveStockRequest))]
+    public async void ReserveInventory(ReserveStockRequest checkout)
     {
         bool resp = this.stockRepository.Reserve(checkout.items);
         if (resp)
