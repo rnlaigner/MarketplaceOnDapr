@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Xml;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using StockMS.Models;
 
 namespace StockMS.Infra
@@ -9,7 +10,8 @@ namespace StockMS.Infra
     {
 
         public DbSet<StockItemModel> StockItems => Set<StockItemModel>();
-    
+
+        private static readonly TransactionInterceptor _interceptor = new TransactionInterceptor();
 
         public StockDbContext()
 		{
@@ -27,6 +29,8 @@ namespace StockMS.Infra
                 .EnableDetailedErrors();
 
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+
+            options.AddInterceptors(_interceptor);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

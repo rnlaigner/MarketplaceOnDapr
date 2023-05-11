@@ -27,3 +27,11 @@ dapr run -f dapr.yaml
 As a preview feature, it shows a performance gap: it takes some time for all listed applications  to get up running.
 
 In contrast, there is a bash script that simply creates several terminals, one for each application.
+
+if you are in MacOs, run:
+
+```diff
+cmhmod 775 deploy_macos.sh
+./deploy_macos.sh
+```
+

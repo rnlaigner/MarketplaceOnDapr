@@ -53,7 +53,7 @@ namespace Workflow
             var cart = notifyTask.Result;
 
             // sending the instanceId so order service can ensure idempotence
-            Checkout checkout = new Checkout(now, customerCheckout, cart.items, instanceId);
+            var checkout = new ProcessCheckoutRequest(now, customerCheckout, cart.items.Select(c=>c.Value).ToList(), instanceId);
 
             // TODO i believe the workflow should reserve all items before sending to order
             // and the same if payment fails...

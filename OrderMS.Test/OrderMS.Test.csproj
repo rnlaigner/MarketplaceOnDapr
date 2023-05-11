@@ -38,6 +38,6 @@
     <Folder Include="Repositories\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Order.Common\Order.Common.csproj" />
+    <ProjectReference Include="..\OrderMS.Common\OrderMS.Common.csproj" />
   </ItemGroup>
 </Project>

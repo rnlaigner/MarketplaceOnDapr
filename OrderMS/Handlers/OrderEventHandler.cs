@@ -24,8 +24,10 @@ namespace OrderMS.Handlers
         }
 
         // for workflow
-        public Invoice ProcessCheckout(CheckoutProcessRequest checkout)
+        public Invoice ProcessCheckout(ProcessCheckoutRequest checkout)
 		{
+            // multi-key transaction. to ensure atomicity
+
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
             using (var dbContextTransaction = dbContext.Database.BeginTransaction())
             {

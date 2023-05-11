@@ -1,7 +1,7 @@
 ﻿using System;
 using OrderMS.Test.Infra;
-using OrderMS.Repositories;
 using OrderMS.Common.Models;
+using OrderMS.Common.Repositories;
 
 namespace OrderMS.Test.Repositories
 {

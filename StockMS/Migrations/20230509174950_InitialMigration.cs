@@ -37,10 +37,11 @@ namespace StockMS.Migrations
             );
 
             // set serializable isolation. not working =(
+            // ALTER DATABASE stock SET DEFAULT_TRANSACTION_ISOLATION TO SERIALIZABLE;
             // https://stackoverflow.com/questions/62649971/how-to-change-transaction-isolation-level-globally
             migrationBuilder.Sql(
                 @"
-                    ALTER DATABASE stock SET DEFAULT_TRANSACTION_ISOLATION TO SERIALIZABLE;
+                    SET TRANSACTION ISOLATION LEVEL `SERIALIZABLE`;
                 ");
         }
 

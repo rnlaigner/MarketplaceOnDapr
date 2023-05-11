@@ -9,7 +9,7 @@ using Dapr.Client;
 namespace Workflow.Handlers
 {
 
-    class ProcessCheckout : WorkflowActivity<Checkout, Invoice>
+    class ProcessCheckout : WorkflowActivity<ProcessCheckoutRequest, Invoice>
     {
         readonly ILogger logger;
 
@@ -21,7 +21,7 @@ namespace Workflow.Handlers
             // this.daprClient = daprClient;
         }
 
-        public override async Task<Invoice> RunAsync(WorkflowActivityContext context, Checkout checkout)
+        public override async Task<Invoice> RunAsync(WorkflowActivityContext context, ProcessCheckoutRequest checkout)
         {
 
             this.logger.LogInformation("Process checkout has been called!");
@@ -42,7 +42,7 @@ namespace Workflow.Handlers
             // https://docs.dapr.io/developing-applications/building-blocks/service-invocation/howto-invoke-discover-services/
             // https://docs.dapr.io/getting-started/quickstarts/serviceinvocation-quickstart/
             // var message = daprClient.CreateInvokeMethodRequest(HttpMethod.Post, "cart", "checkout", customerCheckout);
-            Invoice invoice = await daprClient.InvokeMethodAsync<Checkout, Invoice>(
+            Invoice invoice = await daprClient.InvokeMethodAsync<ProcessCheckoutRequest, Invoice>(
                 HttpMethod.Post, "order", "checkout", checkout, cancellationToken);
 
             return invoice;
