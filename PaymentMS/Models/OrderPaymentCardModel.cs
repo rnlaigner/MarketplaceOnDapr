@@ -11,11 +11,11 @@ namespace PaymentMS.Models
     public class OrderPaymentCardModel
 	{
 
-        [ForeignKey("OrderPayment")]
         public long order_id { get; set; }
-        public OrderPaymentModel OrderPayment { get; set; }
 
         public int payment_sequential { get; set; }
+
+        public OrderPaymentModel orderPayment { get; set; }
 
         // card info coming from customer checkout
         public string card_number { get; set; }

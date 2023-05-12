@@ -17,18 +17,17 @@ namespace PaymentMS.Services
         {
             await Task.Delay(delay);
 
-            // return an intent if already exists.
-            // what about payment status success/failure?
+            // TODO perform http request to driver
             return new PaymentIntent()
             {
-                    id = "",
-                   amount = options.Amount,
+                  Id = "",
+                  Amount = options.Amount,
                  // example: pi_1GszdL2eZvKYlo2C4nORvwio_secret_F06b3J3jgLq8Ueo5JeZUF79mr
                  client_secret = "",
-                 currency = options.Currency.ToString(),
-                 customer = options.Customer,
-                 description = "",
-                 created = DateTime.Now.Millisecond
+                 Currency = options.Currency.ToString(),
+                 Customer = options.Customer,
+                FailureMessage = "",
+                 Created = DateTime.Now.Millisecond
             };
         }
     }

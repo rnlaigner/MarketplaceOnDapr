@@ -7,7 +7,7 @@ namespace PaymentMS.Models
 {
 
     [Table("order_payments")]
-    [PrimaryKey(nameof(order_id))]
+    [PrimaryKey(nameof(order_id), nameof(payment_sequential))]
     public class OrderPaymentModel
 	{
         public long order_id { get; set; }
@@ -23,6 +23,8 @@ namespace PaymentMS.Models
 
         // respective to this line (ie. coupon)
         public decimal payment_value { get; set; }
+
+        public OrderPaymentCardModel orderPaymentCard { get; set; }
 
         public OrderPaymentModel() { }
 

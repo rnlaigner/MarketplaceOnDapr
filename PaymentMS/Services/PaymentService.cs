@@ -16,9 +16,9 @@ namespace PaymentMS.Services
         private readonly IExternalProvider externalProvider;
         private readonly ILogger<PaymentService> logger;
 
-        public PaymentService(PaymentDbContext paymentDbContext, IExternalProvider externalProvider, ILogger<PaymentService> logger)
+        public PaymentService(PaymentDbContext dbContext, IExternalProvider externalProvider, ILogger<PaymentService> logger)
 		{
-            this.dbContext = paymentDbContext;
+            this.dbContext = dbContext;
             this.externalProvider = externalProvider;
             this.logger = logger;
 		}
@@ -31,8 +31,16 @@ namespace PaymentMS.Services
         public async Task<bool> ProcessPaymentAsync(PaymentRequest paymentRequest)
         {
 
-            // TODO check if this request has been made. if not, send it
-            // create idempotency model/table
+            // check if this request has been made. if not, send it
+            var tracking = dbContext.PaymentTrackings.Where(p => p.instanceId == paymentRequest.instanceId).FirstOrDefault();
+            if(tracking is not null)
+            {
+                if (tracking.status.Equals("succeeded"))
+                {
+                    return true;
+                }
+                return false;
+            }
 
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
             {
@@ -41,10 +49,22 @@ namespace PaymentMS.Services
                 IdempotencyKey = paymentRequest.instanceId
             });
 
-
-
             using (var dbContextTransaction = dbContext.Database.BeginTransaction())
             {
+
+                // save in tracking in the ctx of transaction
+                dbContext.PaymentTrackings.Add(new()
+                {
+                    instanceId = paymentRequest.instanceId,
+                    status = intent.Status
+                });
+                dbContext.SaveChanges();
+
+                if (!intent.Status.Equals("succeeded"))
+                {
+                    dbContextTransaction.Commit();
+                    return false;
+                }
 
                 int seq = 1;
 

@@ -1,6 +1,10 @@
-﻿using PaymentMS.Services;
+﻿using PaymentMS.Infra;
+using PaymentMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<PaymentDbContext>();
+builder.Services.AddDaprClient();
 
 // Add services to the container.
 
@@ -19,6 +23,16 @@ if (!paymentProvider)
 }
 
 var app = builder.Build();
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<PaymentDbContext>();
+    context.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
