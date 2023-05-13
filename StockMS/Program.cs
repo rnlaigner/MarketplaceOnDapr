@@ -5,8 +5,6 @@ using StockMS.Infra;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var appName = "Stock";
-
 // Add services to the container
 
 builder.Services.AddScoped<IStockRepository, StockRepository>();
@@ -14,12 +12,18 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddDbContext<StockDbContext>();
 
 builder.Services.AddDaprClient();
-builder.Services.AddControllers(); //.AddDapr();
+builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 

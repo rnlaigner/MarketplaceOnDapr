@@ -5,9 +5,7 @@ namespace PaymentMS.Services
 {
 	public interface IPaymentService
 	{
-        bool ProcessPayment(PaymentRequest paymentRequest);
-
-        Task<bool> ProcessPaymentAsync(PaymentRequest paymentRequest);
+        Task ProcessPayment(PaymentRequest paymentRequest);
     }
 }
 

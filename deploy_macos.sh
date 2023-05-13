@@ -66,3 +66,15 @@ if `echo "$*" | grep -q payment`; then
         end tell'
     fi
 fi
+
+if `echo "$*" | grep -q shipment`; then
+    p=`dapr list | grep -c payment`
+    if [ $p = $var1 ]
+    then
+        echo "payment already running"
+    else
+        osascript -e 'tell app "Terminal"
+            do script "dapr run --app-port 5005 --app-id payment --app-protocol http --dapr-http-port 3505 -- dotnet run --project '$current_dir'/ShipmentMS/ShipmentMS.csproj"
+        end tell'
+    fi
+fi

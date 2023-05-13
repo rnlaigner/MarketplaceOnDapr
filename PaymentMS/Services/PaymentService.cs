@@ -1,6 +1,7 @@
 ﻿using System;
 using Common.Entities;
 using Common.Events;
+using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
 using PaymentMS.Infra;
 using PaymentMS.Integration;
@@ -12,41 +13,103 @@ namespace PaymentMS.Services
 	public class PaymentService : IPaymentService
 	{
 
+        private const string PUBSUB_NAME = "pubsub";
+
         private readonly PaymentDbContext dbContext;
+        private readonly DaprClient daprClient;
         private readonly IExternalProvider externalProvider;
         private readonly ILogger<PaymentService> logger;
 
-        public PaymentService(PaymentDbContext dbContext, IExternalProvider externalProvider, ILogger<PaymentService> logger)
+        public PaymentService(PaymentDbContext dbContext, DaprClient daprClient, IExternalProvider externalProvider, ILogger<PaymentService> logger)
 		{
             this.dbContext = dbContext;
+            this.daprClient = daprClient;
             this.externalProvider = externalProvider;
             this.logger = logger;
 		}
 
-        public bool ProcessPayment(PaymentRequest paymentRequest)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> ProcessPaymentAsync(PaymentRequest paymentRequest)
+        /**
+         * The code below may commit and crash before sending the
+         * result event.
+         * 
+         * one way to make sure the result event has been sent is
+         * subscribing to it. after receiving the event, can update
+         * a tracking table. if a payment request is made and the
+         * event has not been sent, just send the event without 
+         * processing the payment again (just by checking the 
+         * idempotency key in tracking table)
+         * 
+         * however, this method still has flaws
+         * since this method can also fail after reading
+         * from the queue (and acknowledging the read...).
+         * i.e., without transactional queuing
+         * is difficult to ensure guarantees
+         * 
+         * in this sense, the least effort is employed.
+         * the result event is generated again and 
+         * downstream microservices must ensure 
+         * idempotency by themselves
+         * 
+         */
+        public async Task ProcessPayment(PaymentRequest paymentRequest)
         {
 
             // check if this request has been made. if not, send it
             var tracking = dbContext.PaymentTrackings.Where(p => p.instanceId == paymentRequest.instanceId).FirstOrDefault();
-            if(tracking is not null)
+            bool res = false;
+            if (tracking is not null)
             {
-                if (tracking.status.Equals("succeeded"))
+                res = tracking.status.Equals("succeeded"); // tracking.status
+                this.logger.LogInformation("[ProcessPayment] already processed: {0}. Sending again result payload...", paymentRequest.instanceId); 
+            } else {
+                try
                 {
-                    return true;
+                    res = await this.ProcessPayment_(paymentRequest);
+                } catch(Exception e)
+                {
+                    bool db = e is DbUpdateConcurrencyException || e is DbUpdateException;
+                    this.logger.LogInformation("[ProcessPayment] {0} failed due to a database exception: {1}", paymentRequest.instanceId, e.Message);
+
+                    // TODO put on dead letter queue
+
+                    return;
                 }
-                return false;
             }
+
+            if (res)
+            {
+                var paymentRes = new PaymentResult("succeeded", paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, "PaymentResult", paymentRes);
+                this.logger.LogInformation("[ProcessPayment] processed: {0}.", paymentRequest.instanceId);
+            }
+            else
+            {
+                // https://stackoverflow.com/questions/73732696/dapr-pubsub-messages-only-being-received-by-one-subscriber
+                // https://github.com/dapr/dapr/issues/3176
+                // it seems the problem only happens in k8s:
+                // https://v1-0.docs.dapr.io/operations/components/component-schema/
+                // https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-mqtt3/
+                var paymentRes = new PaymentResult("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, "PaymentResult", paymentRes);
+                this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
+            }
+        }
+
+        public async Task<bool> ProcessPayment_(PaymentRequest paymentRequest)
+        {
 
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
             {
                 Amount = paymentRequest.total_amount,
                 Customer = paymentRequest.customer.CustomerId,
-                IdempotencyKey = paymentRequest.instanceId
+                IdempotencyKey = paymentRequest.instanceId,
+                cardOptions = new()
+                {
+                    Number = paymentRequest.customer.CardNumber,
+                    Cvc = paymentRequest.customer.CardSecurityNumber,
+                    ExpMonth = paymentRequest.customer.CardExpiration, // TODO process
+                    ExpYear = paymentRequest.customer.CardExpiration
+                }
             });
 
             using (var dbContextTransaction = dbContext.Database.BeginTransaction())

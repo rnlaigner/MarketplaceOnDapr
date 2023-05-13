@@ -6,10 +6,10 @@ namespace Common.Events
     public record PaymentResult
     (
         string Status,
-        CustomerCheckout? customer,
+        CustomerCheckout customer,
         long order_id,
-        decimal? total_amount,
-        IList<OrderItem>? items,
+        decimal total_amount,
+        IList<OrderItem> items,
         string instanceId
     );
 }

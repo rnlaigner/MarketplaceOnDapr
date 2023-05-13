@@ -38,7 +38,6 @@ namespace OrderMS.Infra
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
-        // FIXME datetime must contain time in postgresql
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.Properties<decimal>()

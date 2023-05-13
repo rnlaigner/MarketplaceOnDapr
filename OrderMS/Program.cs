@@ -3,6 +3,7 @@ using System.Security.Authentication;
 using Google.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using OrderMS.Common.Models;
 using OrderMS.Common.Repositories;
@@ -11,14 +12,6 @@ using OrderMS.Infra;
 using OrderMS.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var appName = "Order";
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = $"MarketplaceDapr - {appName}", Version = "v1" });
-
-});
 
 // scoped here because db context is scoped
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -32,13 +25,16 @@ builder.Services.AddDbContext<OrderDbContext>();
 builder.Services.AddDaprClient();
 builder.Services.AddControllers();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{appName} V1");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // https://www.npgsql.org/doc/types/datetime.html
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMS", "StockMS\StockMS.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentMS", "PaymentMS\PaymentMS.csproj", "{4FE061BB-3270-42AF-8767-D10205B7ABB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShipmentMS", "ShipmentMS\ShipmentMS.csproj", "{5F3A215D-1DA9-4093-9983-02B40DB9F7C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{4FE061BB-3270-42AF-8767-D10205B7ABB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FE061BB-3270-42AF-8767-D10205B7ABB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FE061BB-3270-42AF-8767-D10205B7ABB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F3A215D-1DA9-4093-9983-02B40DB9F7C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F3A215D-1DA9-4093-9983-02B40DB9F7C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F3A215D-1DA9-4093-9983-02B40DB9F7C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F3A215D-1DA9-4093-9983-02B40DB9F7C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{93A4AF97-A92C-415B-8A60-1382D2139638} = {CF4D73BA-932B-4197-BB21-46A7ABC5F3F5}
