@@ -7,10 +7,9 @@ namespace Common.Entities
         public long order_id { get; set; }
         public long order_item_id { get; set; }
 
-        // FK
         public long product_id { get; set; }
+        public string product_name { get; set; }
 
-        // FK
         public long seller_id { get; set; }
 
         public decimal unit_price { get; set; }

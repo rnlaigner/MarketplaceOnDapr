@@ -1,6 +1,7 @@
 ﻿using System;
 using Google.Api;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ShipmentMS.Infra;
 using ShipmentMS.Models;
@@ -11,7 +12,13 @@ namespace ShipmentMS.Repositories
 	{
 
         public ShipmentRepository(ShipmentDbContext context) : base(context)
-		{
+        {
+        }
+
+        public ShipmentModel? GetShipmentById(long orderId)
+        {
+            // return this.Get(f => f.order_id == orderId).First();
+            return this.GetById(orderId);
         }
 
         /*

@@ -50,7 +50,7 @@ namespace ShipmentMS.Repositories
             }
         }
 
-        public virtual TEntity? GetByID(PK id)
+        public virtual TEntity? GetById(PK id)
         {
             return dbSet.Find(id);
         }
@@ -62,7 +62,7 @@ namespace ShipmentMS.Repositories
 
         public virtual void Delete(PK id)
         {
-            var entityToDelete = this.GetByID(id);
+            var entityToDelete = this.GetById(id);
             if(entityToDelete is not null) Delete(entityToDelete);
         }
 

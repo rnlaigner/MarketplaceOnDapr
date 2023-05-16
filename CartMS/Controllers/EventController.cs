@@ -50,7 +50,7 @@ public class EventController : ControllerBase
 
         ReserveStockRequest checkout = new ReserveStockRequest(DateTime.Now, customerCheckout, cart.items.Select(c=>c.Value).ToList() );
 
-        await this.daprClient.PublishEventAsync(PUBSUB_NAME, "ReserveInventory", checkout); // , cancellationToken);
+        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockRequest), checkout); // , cancellationToken);
 
     }
 

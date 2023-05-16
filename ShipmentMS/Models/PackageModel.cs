@@ -17,6 +17,8 @@ namespace ShipmentMS.Models
 
         public long product_id { get; set; }
 
+        public string product_name { get; set; }
+
         public decimal freight_value { get; set; }
 
         public DateTime shipping_date { get; set; }

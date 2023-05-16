@@ -5,8 +5,11 @@ using Common.Entities;
 
 namespace OrderMS.Common.Models
 {
+    // https://learn.microsoft.com/en-us/ef/core/modeling/indexes?tabs=data-annotations
+
     [Table("order_history")]
     [PrimaryKey(nameof(id))]
+    [Index(nameof(instanceId), IsUnique = false)]
     public class OrderHistoryModel
     {
         public long id { get; set; }
@@ -15,7 +18,12 @@ namespace OrderMS.Common.Models
 
         public DateTime created_at { get; set; }
 
-        public OrderStatus status { get; set; }
+        public OrderStatus? orderStatus { get; set; }
+
+        // for idempotency of delivery updates
+        public string instanceId { get; set; }
+
+        public PackageStatus? packageStatus { get; set; }
 
         public OrderHistoryModel() { }
 

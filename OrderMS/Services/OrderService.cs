@@ -7,29 +7,104 @@ using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
 using OrderMS.Infra;
 using Dapr.Client;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using OrderMS.Common.Repositories;
 
 namespace OrderMS.Handlers
 {
-	public class OrderEventHandler
+	public class OrderService
 	{
+
+        private const string PUBSUB_NAME = "pubsub";
 
         // TODO change to repository so we can test this component with sqlite
         private readonly OrderDbContext dbContext;
+        private readonly IOrderRepository orderRepository;
+        private readonly DaprClient daprClient;
+
+        private readonly ILogger<OrderService> logger;
 
         private static readonly decimal[] emptyArray = Array.Empty<decimal>();
 
-        public OrderEventHandler(OrderDbContext dbContext)
+        public OrderService(OrderDbContext dbContext, IOrderRepository orderRepository, DaprClient daprClient, ILogger<OrderService> logger)
         {
             this.dbContext = dbContext;
+            this.orderRepository = orderRepository;
+            this.daprClient = daprClient;
+            this.logger = logger;
+        }
+
+
+        public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
+        {
+            throw new Exception("Not implemented yet!");
+        }
+
+        /**
+         * Providing exactly-once for this case is tricky. The update transaction in shipment can fail in the middle,
+         * but some events may have already been generated. In case the update is triggered again, the delivery notifications will be generated again
+         * (so we can ensure idempotency here) but if the update never triggers again, the delivery updates generated here will be inconsistent with the shipment.
+         */
+        public void ProcessDeliveryNotification(DeliveryNotification notification)
+        {
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                
+                // check if this event has already been delivered
+                OrderHistoryModel orderHistory = this.dbContext.OrderHistory.Where(c => c.instanceId == notification.instanceId).First();
+                if(orderHistory is not null)
+                {
+                    this.logger.LogInformation("[ProcessDeliveryNotification] Event already processed before. InstanceId {0}", notification.instanceId);
+                    return;
+                }
+
+                DateTime now = DateTime.Now;
+
+                orderHistory = new()
+                {
+                    order_id = notification.orderId,
+                    created_at = now,
+                    instanceId = notification.instanceId,
+                    packageStatus = PackageStatus.delivered,
+
+                };
+
+                this.dbContext.OrderHistory.Add(orderHistory);
+
+                OrderModel order = orderRepository.GetOrderForUpdate(notification.orderId);
+
+                order.count_delivered_items += notification.packageInfo.Count();
+
+                if (order.count_delivered_items == order.count_items)
+                {
+                    order.status = OrderStatus.DELIVERED;
+                    this.dbContext.Orders.Update(order);
+                    OrderHistoryModel orderHistoryStatusUpdate = new()
+                    {
+                        order_id = notification.orderId,
+                        created_at = now,
+                        instanceId = notification.instanceId,
+                        orderStatus = OrderStatus.DELIVERED
+
+                    };
+                    this.dbContext.OrderHistory.Add(orderHistoryStatusUpdate);
+                }
+
+                this.dbContext.SaveChanges();
+                txCtx.Commit();
+
+            }
+            this.logger.LogInformation("[ProcessDeliveryNotification] Event processed. InstanceId {0}", notification.instanceId);
         }
 
         // for workflow
-        public Invoice ProcessCheckout(ProcessCheckoutRequest checkout)
+        public async Task<PaymentRequest> ProcessCheckout(ProcessCheckoutRequest checkout)
 		{
             // multi-key transaction. to ensure atomicity
 
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
-            using (var dbContextTransaction = dbContext.Database.BeginTransaction())
+            using (var txCtx = dbContext.Database.BeginTransaction())
             {
    
                 // calculate total freight_value
@@ -97,6 +172,7 @@ namespace OrderMS.Handlers
                         order_id = orderTrack.Entity.id,
                         order_item_id = id,
                         product_id = item.ProductId,
+                        product_name = item.Name,
                         seller_id = item.SellerId,
                         unit_price = item.UnitPrice,
                         quantity = item.Quantity,
@@ -114,20 +190,21 @@ namespace OrderMS.Handlers
                 // initialize order history
                 this.dbContext.OrderHistory.Add(new OrderHistoryModel()
                 {
-
                     order_id = orderTrack.Entity.id,
                     created_at = newOrder.created_at,
-                    status = OrderStatus.INVOICED,
-
+                    orderStatus = OrderStatus.INVOICED,
                 });
 
                 this.dbContext.SaveChanges();
 
-                Invoice invoice = new Invoice(this.AsOrder(newOrder), orderItems);
+                PaymentRequest paymentRequest = new PaymentRequest(checkout.customerCheckout, orderTrack.Entity.id, total_amount, orderItems, checkout.instanceId);
 
-                dbContextTransaction.Commit();
+                // publish
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentRequest), paymentRequest);
 
-                return invoice;
+                txCtx.Commit();
+
+                return paymentRequest;
             }
 		}
 
@@ -138,6 +215,7 @@ namespace OrderMS.Handlers
                 order_id = orderItem.order_id,
                 order_item_id = orderItem.order_item_id,
                 product_id = orderItem.product_id,
+                product_name = orderItem.product_name,
                 seller_id = orderItem.seller_id,
                 unit_price = orderItem.unit_price,
                 quantity = orderItem.quantity,

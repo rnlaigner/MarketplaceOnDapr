@@ -25,6 +25,10 @@ namespace OrderMS.Test.Repositories
             return this.dbContext.Orders;
         }
 
+        public OrderModel GetOrderForUpdate(long orderId)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

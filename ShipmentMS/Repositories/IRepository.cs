@@ -14,7 +14,7 @@ namespace ShipmentMS.Repositories
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
             string includeProperties = "");
 
-        T? GetByID(PK id);
+        T? GetById(PK id);
 
         void Insert(T value);
 

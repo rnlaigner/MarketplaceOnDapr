@@ -2,6 +2,8 @@
 using Common.Entities;
 using Dapr.Client;
 using CartMS.Controllers;
+using Common.Events;
+using System.Net;
 
 namespace CartMS.Repositories
 {
@@ -30,6 +32,12 @@ namespace CartMS.Repositories
         public async Task<bool> AddProduct(string customerId, CartItem item)
         {
             var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId);
+
+            if (cartEntry.Value.status == CartStatus.CHECKOUT_SENT)
+            {
+                return false;
+            }
+
             if (cartEntry.Value.customerId.Equals(""))
             {
                 this.logger.LogInformation("Creating cart for customer {0}.", customerId);
@@ -44,7 +52,7 @@ namespace CartMS.Repositories
 
             if (cartEntry.Value.items.ContainsKey(item.ProductId))
             {
-                this.logger.LogInformation("Item {0} already added to cart {1}. Item will be updated then.", item.ProductId, customerId);
+                this.logger.LogInformation("Item {0} already added to cart {1}. Item will be overwritten then.", item.ProductId, customerId);
                 cartEntry.Value.items[item.ProductId] = item;
             } else {
                 this.logger.LogInformation("Item {0} added to cart {1}.", item.ProductId, customerId);

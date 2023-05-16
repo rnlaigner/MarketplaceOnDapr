@@ -18,12 +18,12 @@ namespace OrderMS.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly ILogger<OrderController> logger;
-    private readonly OrderEventHandler _eventHandler;
+    private readonly OrderService orderService;
     private readonly IOrderRepository orderRepository;
 
-    public OrderController(OrderEventHandler eventHandler, IOrderRepository orderRepository, ILogger<OrderController> logger)
+    public OrderController(OrderService orderService, IOrderRepository orderRepository, ILogger<OrderController> logger)
     {
-        this._eventHandler = eventHandler;
+        this.orderService = orderService;
         this.orderRepository = orderRepository;
         this.logger = logger;
     }
@@ -43,6 +43,7 @@ public class OrderController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<OrderModel>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<OrderModel>>> GetAll()
     {
+        // TODO parse http to get filters
         return Ok(this.orderRepository.GetAll());
     }
 

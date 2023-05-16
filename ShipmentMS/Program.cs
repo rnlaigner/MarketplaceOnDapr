@@ -1,4 +1,5 @@
 ﻿using Castle.DynamicProxy;
+using Dapr.Client;
 using Google.Api;
 using ShipmentMS.Infra;
 using ShipmentMS.Repositories;
@@ -28,6 +29,7 @@ builder.Services.AddScoped<IShipmentService>(provider =>
 {
     var interceptor = provider.GetRequiredService<TransactionalInterceptor>();
     var generator = provider.GetRequiredService<ProxyGenerator>();
+    var daprClient = provider.GetRequiredService<DaprClient>();
     var dbContext = provider.GetRequiredService<ShipmentDbContext>();
     var shipRepo = provider.GetRequiredService<IShipmentRepository>();
     var packRepo = provider.GetRequiredService<IPackageRepository>();
@@ -35,7 +37,7 @@ builder.Services.AddScoped<IShipmentService>(provider =>
     var loggerfactory = provider.GetRequiredService<ILoggerFactory>();
     var logger = loggerfactory.CreateLogger<ShipmentService>();
 
-    var myClass = new ShipmentService(shipRepo, packRepo, logger); // Instantiate the class directly
+    var myClass = new ShipmentService(shipRepo, packRepo, daprClient, logger); // Instantiate the class directly
 
     // Generate the proxy
     return generator.CreateInterfaceProxyWithTargetInterface(myClass, interceptor);

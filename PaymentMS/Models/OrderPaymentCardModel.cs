@@ -24,6 +24,7 @@ namespace PaymentMS.Models
 
         public DateTime card_expiration { get; set; }
 
+        // for privacy issues, we assume this is not stored, only carried out in the event
         // public string card_security_number { get; set; }
 
         public string card_brand { get; set; }

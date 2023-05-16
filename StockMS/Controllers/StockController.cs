@@ -4,6 +4,7 @@ using Dapr;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using StockMS.Repositories;
+using StockMS.Services;
 
 namespace StockMS.Controllers;
 
@@ -12,17 +13,20 @@ public class StockController : ControllerBase
 {
     private const string PUBSUB_NAME = "pubsub";
 
+    private readonly StockService stockService;
+
     private readonly DaprClient daprClient;
 
     private readonly IStockRepository stockRepository;
 
-    private readonly ILogger<StockController> _logger;
+    private readonly ILogger<StockController> logger;
 
-    public StockController(DaprClient daprClient, IStockRepository stockRepository, ILogger<StockController> logger)
+    public StockController(StockService stockService, IStockRepository stockRepository, DaprClient daprClient,  ILogger<StockController> logger)
     {
+        this.stockService = stockService;
         this.daprClient = daprClient;
         this.stockRepository = stockRepository;
-        this._logger = logger;
+        this.logger = logger;
     }
 
     [HttpGet("/")]
@@ -36,23 +40,14 @@ public class StockController : ControllerBase
             qty_reserved = x.qty_reserved,
             order_count = x.order_count
         });
-        // .ToList();
     }
 
 
-    [HttpPost("ReserveInventory")]
+    [HttpPost("ReserveStock")]
     [Topic(PUBSUB_NAME, nameof(ReserveStockRequest))]
-    public async void ReserveInventory(ReserveStockRequest checkout)
+    public async void ReserveStock(ReserveStockRequest checkout)
     {
-        bool resp = this.stockRepository.Reserve(checkout.items);
-        if (resp)
-        {
-            // send to order
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, "ProcessCheckout", checkout);
-        } else
-        {
-            // TODO notify cart and customer
-        }
+        await this.stockService.ReserveStock(checkout);
     }
 
 }

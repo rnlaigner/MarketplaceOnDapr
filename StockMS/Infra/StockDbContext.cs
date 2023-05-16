@@ -10,8 +10,7 @@ namespace StockMS.Infra
     {
 
         public DbSet<StockItemModel> StockItems => Set<StockItemModel>();
-
-        private static readonly TransactionInterceptor _interceptor = new TransactionInterceptor();
+        public DbSet<StockTracking> StockTracking => Set<StockTracking>();
 
         public StockDbContext()
 		{
@@ -20,7 +19,7 @@ namespace StockMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(@"Host=localhost;Port=5432;Database=stock;Username=postgres;Password=password")
-                .AddInterceptors(new TransactionInterceptor())
+                .AddInterceptors(new TransactionInterceptor()) // even with FOR UPDATE, serializable is important for idempotency? or not?
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b
@@ -30,8 +29,6 @@ namespace StockMS.Infra
                 .EnableDetailedErrors();
 
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-
-            options.AddInterceptors(_interceptor);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

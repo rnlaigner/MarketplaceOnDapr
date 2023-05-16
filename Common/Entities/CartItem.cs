@@ -9,12 +9,13 @@ namespace Common.Entities
      */
      public record CartItem
      (
-         long ProductId ,
-         long SellerId ,
-         decimal UnitPrice ,
-         decimal OldUnitPrice ,
-         decimal FreightValue ,
-         int Quantity 
+         long ProductId,
+         string Name, // will be used downstream
+         long SellerId,
+         decimal UnitPrice,
+         decimal OldUnitPrice,
+         decimal FreightValue,
+         int Quantity
      );
 }
 

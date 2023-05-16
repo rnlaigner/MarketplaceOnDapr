@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
 using OrderMS.Common.Repositories;
 using OrderMS.Infra;
@@ -17,9 +18,9 @@ namespace OrderMS.Repositories
 
         private readonly OrderDbContext dbContext;
 
-        public OrderRepository(OrderDbContext orderingContext)
+        public OrderRepository(OrderDbContext dbContext)
         {
-            this.dbContext = orderingContext ?? throw new ArgumentNullException(nameof(orderingContext));
+            this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
         public IEnumerable<OrderModel> GetAll()
@@ -27,6 +28,12 @@ namespace OrderMS.Repositories
             return this.dbContext.Orders;
         }
 
+        public OrderModel GetOrderForUpdate(long orderId)
+        {
+            return this.dbContext.Orders
+                .FromSqlRaw(String.Format("SELECT * from orders where id = {0} FOR UPDATE", orderId))
+                .FirstAsync().Result;
+        }
     }
 
 }

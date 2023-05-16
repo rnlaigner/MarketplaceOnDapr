@@ -12,10 +12,10 @@ namespace PaymentMS.Models
 	{
         public long order_id { get; set; }
 
-        // 1 - coupon, 2 - coupon, 3 - credit card
+        // e.g., 1 - credit card, 2 - coupon, 3 - coupon
         public int payment_sequential { get; set; }
 
-        // coupon, credit card
+        // e.g., coupon, credit card
         public PaymentType payment_type { get; set; }
 
         // number of times the credit card is charged (usually once a month)

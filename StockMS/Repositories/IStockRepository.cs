@@ -6,8 +6,7 @@ namespace StockMS.Repositories
 {
 	public interface IStockRepository
 	{
-
-		public bool Reserve(List<CartItem> cartitems);
+        public IEnumerable<StockItemModel> GetItemsForUpdate(List<long> ids);
 
         //public void ConfirmReservation(List<CartItem> cartitems);
 

@@ -31,6 +31,9 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     public async Task<ActionResult> AddProduct(string customerId, [FromBody] CartItem item)
     {
+
+        // FIXME check if it is already on the way to checkout.... if so, cannot add product
+
         this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
         if (item.Quantity <= 0)
         {
@@ -42,6 +45,9 @@ public class CartController : ControllerBase
             this.logger.LogInformation("Customer {0} added item successfully.", customerId);
             return Ok();
         }
+
+        // todo maybe a diff message if already checkout
+
         return Conflict();
     }
 
@@ -98,8 +104,7 @@ public class CartController : ControllerBase
         cart.instanceId = checkoutNotification.instanceId;
 
         var res = await this.cartRepository.Checkout(cart);
-        if (res)
-            return Ok(cart);
+        if (res) return Ok(cart);
         return Conflict();
     }
 

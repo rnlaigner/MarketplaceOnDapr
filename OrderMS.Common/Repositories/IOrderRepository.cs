@@ -8,6 +8,8 @@ namespace OrderMS.Common.Repositories
 
         public IEnumerable<OrderModel> GetAll();
 
+        public OrderModel GetOrderForUpdate(long orderId);
+
     }
 }
 

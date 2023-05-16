@@ -19,7 +19,6 @@ namespace PaymentMS.Services
     public interface IExternalProvider
 	{
         Task<PaymentIntent> Create(PaymentIntentCreateOptions options);
-
     }
 }
 

@@ -71,6 +71,7 @@ namespace PaymentMS.Services
                     this.logger.LogInformation("[ProcessPayment] {0} failed due to a database exception: {1}", paymentRequest.instanceId, e.Message);
 
                     // TODO put on dead letter queue
+                    // await this.daprClient.PublishEventAsync(PUBSUB_NAME, "poisonMessages", paymentRes);
 
                     return;
                 }
@@ -78,9 +79,9 @@ namespace PaymentMS.Services
 
             if (res)
             {
-                var paymentRes = new PaymentResult("succeeded", paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, "PaymentResult", paymentRes);
-                this.logger.LogInformation("[ProcessPayment] processed: {0}.", paymentRequest.instanceId);
+                var paymentRes = new PaymentConfirmation(paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmation), paymentRes);
+                this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
             }
             else
             {
@@ -89,8 +90,8 @@ namespace PaymentMS.Services
                 // it seems the problem only happens in k8s:
                 // https://v1-0.docs.dapr.io/operations/components/component-schema/
                 // https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-mqtt3/
-                var paymentRes = new PaymentResult("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, "PaymentResult", paymentRes);
+                var paymentRes = new PaymentFailure("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailure), paymentRes);
                 this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
             }
         }
