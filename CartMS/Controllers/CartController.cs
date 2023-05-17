@@ -31,22 +31,22 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     public async Task<ActionResult> AddProduct(string customerId, [FromBody] CartItem item)
     {
-
-        // FIXME check if it is already on the way to checkout.... if so, cannot add product
+        // check if it is already on the way to checkout.... if so, cannot add product
+        var cart = await this.cartRepository.GetCart(customerId);
+        if (cart != null && cart.status == CartStatus.CHECKOUT_SENT)
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart " + cart.customerId + " already sent for checkout.");
 
         this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
         if (item.Quantity <= 0)
         {
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive value.");
         }
-        bool res = await this.cartRepository.AddProduct(customerId, item);
+        bool res = await this.cartRepository.AddItem(customerId, item);
         if (res)
         {
             this.logger.LogInformation("Customer {0} added item successfully.", customerId);
             return Ok();
         }
-
-        // todo maybe a diff message if already checkout
 
         return Conflict();
     }
@@ -61,16 +61,6 @@ public class CartController : ControllerBase
             return NotFound();
         return Ok(cart);
     }
-
-    /* not working
-    [HttpGet("{customerId}")]
-    public ActionResult<Common.Entities.Cart> Get([FromState(StoreName, ("customerId"))] StateEntry<Common.Entities.Cart> cart) //(string customerId)
-    {
-        // 
-        if(cart.Value is null) return this.NotFound();
-        return cart.Value;
-    }
-    */
 
     /*
      * API for workflow

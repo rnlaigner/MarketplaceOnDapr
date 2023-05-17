@@ -15,11 +15,13 @@
     <None Remove="Handlers\" />
     <None Remove="Properties\" />
     <None Remove="Infra\" />
+    <None Remove="Workflows\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Handlers\" />
     <Folder Include="Properties\" />
     <Folder Include="Infra\" />
+    <Folder Include="Workflows\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />

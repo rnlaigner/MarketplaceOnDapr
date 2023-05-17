@@ -15,7 +15,7 @@ builder.Services.AddSwaggerGen();
 
 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-7.0
 // mock esp
-var paymentProvider = Boolean.Parse( builder.Configuration["PaymentProvider:active"]?? "false" );
+var paymentProvider = Boolean.Parse( builder.Configuration["PaymentProvider:Active"]?? "false" );
 
 if (!paymentProvider)
 {

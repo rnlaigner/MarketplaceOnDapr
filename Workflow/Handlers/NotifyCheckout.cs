@@ -15,7 +15,7 @@ using Workflow.Infra;
 namespace Workflow.Handlers
 {
 
-    class NotifyCheckout : WorkflowActivity<CheckoutNotification, Cart>
+    class NotifyCheckoutActivity : WorkflowActivity<CheckoutNotification, Cart>
     {
         readonly ILogger logger;
 
@@ -24,9 +24,9 @@ namespace Workflow.Handlers
 
         // private readonly DaprClient daprClient;
 
-        public NotifyCheckout(ILoggerFactory loggerFactory) //DaprClient daprClient
+        public NotifyCheckoutActivity(ILoggerFactory loggerFactory) //DaprClient daprClient
         {
-            this.logger = loggerFactory.CreateLogger<NotifyCheckout>();
+            this.logger = loggerFactory.CreateLogger<NotifyCheckoutActivity>();
             // this.daprClient = daprClient;
             this.httpClient = new HttpClient();
             this.httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));

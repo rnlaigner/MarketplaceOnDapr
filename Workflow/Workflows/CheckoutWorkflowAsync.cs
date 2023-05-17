@@ -7,7 +7,7 @@ using Common.Entities;
 using Dapr.Workflow;
 using Microsoft.Extensions.Logging;
 
-namespace Workflow
+namespace Workflows
 {
     /*
      * Instead of HTTP APIs, the workflow always starts (and restarts)
@@ -35,7 +35,7 @@ namespace Workflow
             CheckoutNotification checkoutNotification = new CheckoutNotification(customerCheckout.CustomerId, instanceId);
 
             Task<Cart> notifyTask = context.CallActivityAsync<Cart>(
-                nameof(NotifyCheckout),
+                nameof(NotifyCheckoutActivity),
                 checkoutNotification);
 
             this.logger.LogInformation("Activity notify checkout has been called");
@@ -53,7 +53,7 @@ namespace Workflow
             var cart = notifyTask.Result;
 
             // sending the instanceId so order service can ensure idempotence
-            var checkout = new ProcessCheckoutRequest(now, customerCheckout, cart.items.Select(c=>c.Value).ToList(), instanceId);
+            var checkout = new Common.Events.ProcessCheckout(now, customerCheckout, cart.items.Select(c => c.Value).ToList(), instanceId);
 
             // TODO i believe the workflow should reserve all items before sending to order
             // and the same if payment fails...

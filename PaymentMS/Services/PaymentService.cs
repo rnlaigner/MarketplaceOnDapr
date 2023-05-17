@@ -51,7 +51,7 @@ namespace PaymentMS.Services
          * idempotency by themselves
          * 
          */
-        public async Task ProcessPayment(PaymentRequest paymentRequest)
+        public async Task ProcessPayment(ProcessPayment paymentRequest)
         {
 
             // check if this request has been made. if not, send it
@@ -96,7 +96,7 @@ namespace PaymentMS.Services
             }
         }
 
-        public async Task<bool> ProcessPayment_(PaymentRequest paymentRequest)
+        public async Task<bool> ProcessPayment_(ProcessPayment paymentRequest)
         {
 
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()

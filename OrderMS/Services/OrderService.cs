@@ -99,7 +99,7 @@ namespace OrderMS.Handlers
         }
 
         // for workflow
-        public async Task<PaymentRequest> ProcessCheckout(ProcessCheckoutRequest checkout)
+        public async Task<ProcessPayment> ProcessCheckout(ProcessCheckout checkout)
 		{
             // multi-key transaction. to ensure atomicity
 
@@ -197,10 +197,10 @@ namespace OrderMS.Handlers
 
                 this.dbContext.SaveChanges();
 
-                PaymentRequest paymentRequest = new PaymentRequest(checkout.customerCheckout, orderTrack.Entity.id, total_amount, orderItems, checkout.instanceId);
+                ProcessPayment paymentRequest = new ProcessPayment(checkout.customerCheckout, orderTrack.Entity.id, total_amount, orderItems, checkout.instanceId);
 
                 // publish
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentRequest), paymentRequest);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessPayment), paymentRequest);
 
                 txCtx.Commit();
 

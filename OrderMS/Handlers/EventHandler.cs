@@ -32,11 +32,11 @@ namespace OrderMS.Controllers
         }
 
         [HttpPost("ProcessCheckout")]
-        [Topic(PUBSUB_NAME, nameof(ProcessCheckoutRequest))]
-        public async void ProcessCheckout(ProcessCheckoutRequest checkout)
+        [Topic(PUBSUB_NAME, nameof(global::Common.Events.ProcessCheckout))]
+        public async void ProcessCheckout(ProcessCheckout checkout)
         {
             this.logger.LogInformation("[ProcessCheckoutRequest] received {0}.", checkout.instanceId);
-            PaymentRequest paymentRequest = await this.orderService.ProcessCheckout(checkout);
+            ProcessPayment paymentRequest = await this.orderService.ProcessCheckout(checkout);
             this.logger.LogInformation("[ProcessCheckoutRequest] processed {0}.", checkout.instanceId);
         }
 

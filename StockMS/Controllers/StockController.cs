@@ -44,10 +44,12 @@ public class StockController : ControllerBase
 
 
     [HttpPost("ReserveStock")]
-    [Topic(PUBSUB_NAME, nameof(ReserveStockRequest))]
-    public async void ReserveStock(ReserveStockRequest checkout)
+    [Topic(PUBSUB_NAME, nameof(Common.Events.ReserveStock))]
+    public async void ReserveStock(ReserveStock checkout)
     {
+        this.logger.LogInformation("[ReserveStock] received for instanceId {0}", checkout.instanceId);
         await this.stockService.ReserveStock(checkout);
+        this.logger.LogInformation("[ReserveStock] completed for instanceId {0}", checkout.instanceId);
     }
 
 }

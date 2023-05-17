@@ -29,7 +29,7 @@ namespace CartMS.Repositories
             this.logger = logger;
         }
 
-        public async Task<bool> AddProduct(string customerId, CartItem item)
+        public async Task<bool> AddItem(string customerId, CartItem item)
         {
             var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId);
 
@@ -52,6 +52,7 @@ namespace CartMS.Repositories
 
             if (cartEntry.Value.items.ContainsKey(item.ProductId))
             {
+                // probably for cases where there are price divergence
                 this.logger.LogInformation("Item {0} already added to cart {1}. Item will be overwritten then.", item.ProductId, customerId);
                 cartEntry.Value.items[item.ProductId] = item;
             } else {

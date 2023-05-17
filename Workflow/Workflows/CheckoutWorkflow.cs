@@ -7,7 +7,7 @@ using Common.Entities;
 using Dapr.Workflow;
 using Microsoft.Extensions.Logging;
 
-namespace Workflow
+namespace Workflows
 {
 
     record CheckoutResult(bool Processed);
@@ -27,6 +27,9 @@ namespace Workflow
             this.logger = new LoggerFactory().CreateLogger<CheckoutWorkflow>();
         }
 
+        /**
+         * https://docs.dapr.io/developing-applications/building-blocks/workflow/workflow-patterns/#async-http-apis
+         */
         public override async Task<CheckoutResult> RunAsync(WorkflowContext context, CustomerCheckout customerCheckout)
         {
 
@@ -39,7 +42,7 @@ namespace Workflow
             CheckoutNotification checkoutNotification = new CheckoutNotification(customerCheckout.CustomerId, instanceId);
 
             Task<Cart> notifyTask = context.CallActivityAsync<Cart>(
-                nameof(NotifyCheckout),
+                nameof(NotifyCheckoutActivity),
                 checkoutNotification);
 
             this.logger.LogInformation("Activity notify checkout has been called");
@@ -57,8 +60,8 @@ namespace Workflow
             var cart = notifyTask.Result;
 
             // sending the instanceId so order service can ensure idempotence
-            ProcessCheckoutRequest checkout = new ProcessCheckoutRequest(
-                now, customerCheckout, cart.items.Select(c=>c.Value).ToList(), instanceId);
+            Common.Events.ProcessCheckout checkout = new Common.Events.ProcessCheckout(
+                now, customerCheckout, cart.items.Select(c => c.Value).ToList(), instanceId);
 
             // TODO i believe the workflow should reserve all items before sending to order
             // and the same if payment fails...

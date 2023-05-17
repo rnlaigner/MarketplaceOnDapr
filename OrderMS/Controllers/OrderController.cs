@@ -33,15 +33,15 @@ public class OrderController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Invoice>> ProcessCheckout(ProcessCheckoutRequest checkout)
+    public async Task<ActionResult<Invoice>> ProcessCheckout(ProcessCheckout checkout)
     {
         return Ok(new Invoice(new Order(), new List<OrderItem>()));
         // return Ok(this._eventHandler.ProcessCheckout(checkout));
     }
 
     [HttpGet("/")]
-    [ProducesResponseType(typeof(IEnumerable<OrderModel>), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<IEnumerable<OrderModel>>> GetAll()
+    [ProducesResponseType(typeof(IEnumerable<Order>), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<IEnumerable<Order>>> GetAll()
     {
         // TODO parse http to get filters
         return Ok(this.orderRepository.GetAll());

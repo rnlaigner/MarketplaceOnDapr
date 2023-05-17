@@ -27,7 +27,7 @@ namespace StockMS.Services
             this.logger = logger;
         }
 
-        public async Task ReserveStock(ReserveStockRequest checkout)
+        public async Task ReserveStock(ReserveStock checkout)
         {
             // https://stackoverflow.com/questions/31273933/setting-transaction-isolation-level-in-net-entity-framework-for-sql-server
             bool commit = true;
@@ -87,8 +87,8 @@ namespace StockMS.Services
                             this.dbContext.SaveChanges();
 
                             // send to order
-                            ProcessCheckoutRequest checkoutRequest = new ProcessCheckoutRequest(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
-                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessCheckoutRequest), checkoutRequest);
+                            ProcessCheckout checkoutRequest = new ProcessCheckout(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
+                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessCheckout), checkoutRequest);
 
                         }
                         else
@@ -109,8 +109,8 @@ namespace StockMS.Services
                         // send event again depending on the outcome
                         if (tracking.success)
                         {
-                            ProcessCheckoutRequest checkoutRequest = new ProcessCheckoutRequest(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
-                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessCheckoutRequest), checkoutRequest);
+                            ProcessCheckout checkoutRequest = new ProcessCheckout(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
+                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessCheckout), checkoutRequest);
                         } else
                         {
                             ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.createdAt, checkout.customerCheckout, checkout.instanceId);

@@ -1,5 +1,4 @@
-﻿using System.Security.Authentication;
-using StockMS.Repositories;
+﻿using StockMS.Repositories;
 using Microsoft.OpenApi.Models;
 using StockMS.Infra;
 
@@ -34,16 +33,11 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<StockDbContext>();
     // context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
-
-    // context.SaveChanges();
 }
 
 // Configure the HTTP request pipeline.
 
 app.MapControllers();
-
-// not needed unless using pub/sub
 app.MapSubscribeHandler();
 
 app.Run();
-

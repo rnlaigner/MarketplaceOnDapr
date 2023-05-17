@@ -7,7 +7,7 @@ namespace CartMS.Repositories
     {
         Task<Cart> GetCart(string customerId);
 
-        Task<bool> AddProduct(string customerId, CartItem item);
+        Task<bool> AddItem(string customerId, CartItem item);
 
         Task<bool> Checkout(Cart cart);
 

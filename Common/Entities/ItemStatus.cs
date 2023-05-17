@@ -1,6 +1,9 @@
 ﻿using System;
 namespace Common.Entities
 {
+	/**
+	 * Refers to cart or stock item
+	 */
 	public enum ItemStatus
 	{
 		DELETED, // deleted from DB

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Workflow;
+using Workflows;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 using Microsoft.Extensions.Hosting;
 
@@ -30,8 +30,8 @@ builder.Services.AddDaprWorkflow(options =>
     options.RegisterWorkflow<CheckoutWorkflow>();
 
     // These are the activities that get invoked by the workflow(s).
-    options.RegisterActivity<NotifyCheckout>();
-    options.RegisterActivity<ProcessCheckout>();
+    options.RegisterActivity<NotifyCheckoutActivity>();
+    options.RegisterActivity<ProcessCheckoutActivity>();
     // options.RegisterActivity<ProcessPaymentActivity>();
 });
 
