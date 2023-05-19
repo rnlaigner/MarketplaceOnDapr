@@ -8,6 +8,7 @@ namespace Common.Events
         string Status,
         CustomerCheckout customer,
         long order_id,
+        IList<OrderItem> items,
         decimal total_amount,
         string instanceId
     );

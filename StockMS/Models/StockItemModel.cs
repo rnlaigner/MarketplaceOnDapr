@@ -1,8 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Common.Entities;
-using Common.Events;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace StockMS.Models
@@ -28,9 +24,10 @@ namespace StockMS.Models
         public int ytd { get; set; } = 0;
 
         public DateTime created_at { get; set; }
+
         public DateTime? updated_at { get; set; }
 
-        // public bool active { get; set; } = true;
+        public bool active { get; set; }
 
         public string? data { get; set; }
 
@@ -42,6 +39,7 @@ namespace StockMS.Models
             this.seller_id = seller_id;
             this.qty_available = qty;
             this.created_at = created_at;
+            this.active = true;
 		}
 	}
 }

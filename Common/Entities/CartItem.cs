@@ -10,7 +10,8 @@ namespace Common.Entities
      public record CartItem
      (
          long ProductId,
-         string Name, // will be used downstream
+         string Name, // will be used downstream by customer
+         string Sku, // used to match the replicated products  
          long SellerId,
          decimal UnitPrice,
          decimal OldUnitPrice,

@@ -1,6 +1,5 @@
 ﻿using Castle.DynamicProxy;
 using Dapr.Client;
-using Google.Api;
 using ShipmentMS.Infra;
 using ShipmentMS.Repositories;
 using ShipmentMS.Service;

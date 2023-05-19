@@ -1,12 +1,7 @@
 ﻿using System.Net;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
-using System.Transactions;
 using CartMS.Repositories;
 using Common.Entities;
 using Common.Events;
-using Dapr;
-using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartMS.Controllers;
@@ -52,9 +47,9 @@ public class CartController : ControllerBase
     }
 
     [HttpGet("{customerId}")]
-    [ProducesResponseType(typeof(Common.Entities.Cart), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Common.Entities.Cart>> Get(string customerId)
+    public async Task<ActionResult<Cart>> Get(string customerId)
     {
         var cart = await this.cartRepository.GetCart(customerId);
         if (cart is null)
@@ -68,11 +63,11 @@ public class CartController : ControllerBase
      */
     [Route("{customerId}/checkout")]
     [HttpPatch]
-    [ProducesResponseType(typeof(Common.Entities.Cart), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Common.Entities.Cart>> NotifyCheckout(CheckoutNotification checkoutNotification)
+    public async Task<ActionResult<Cart>> NotifyCheckout(CheckoutNotification checkoutNotification)
     {
         var cart = await this.cartRepository.GetCart(checkoutNotification.customerId);
         if (cart is null)

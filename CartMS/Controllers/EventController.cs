@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Net;
+﻿using System.Linq;
 using System.Text.Json;
 using CartMS.Infra;
 using CartMS.Repositories;
@@ -39,6 +37,7 @@ public class EventController : ControllerBase
     /*
      * Based on the docs:
      * https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/
+     * TODO separate delete and upserts...
      */
     [BulkSubscribe("BulkProductStreaming")]
     [Topic(PUBSUB_NAME, nameof(Product))]
@@ -69,7 +68,7 @@ public class EventController : ControllerBase
 
     [HttpPost("ProductStreaming")]
     [Topic(PUBSUB_NAME, nameof(Product))]
-    public async Task<IActionResult> ProcessProductStream([FromBody] Product priceUpdate)
+    public async Task<IActionResult> ProcessProductStream([FromBody] Product product)
     {
         // this.logger.LogInformation("[ProcessProductStream] received for instanceId {0}", priceUpdate.instanceId);
 
@@ -77,16 +76,14 @@ public class EventController : ControllerBase
         // lookup by sku to differentiate from customer id
         // check if dapr supports this: https://redis.io/commands/select/
         // https://stackoverflow.com/questions/35621324/how-to-create-own-database-in-redis
-        Product product = await productRepository.GetProduct(priceUpdate.sku);
+        // Product product_ = await productRepository.GetProduct(product.sku);
 
-        // TODO also in bulk https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/
-
-        if (priceUpdate.active)
+        if (product.active)
         {
-            await this.productRepository.Upsert(priceUpdate);
+            await this.productRepository.Upsert(product);
         } else
         {
-            await this.productRepository.Delete(priceUpdate);
+            await this.productRepository.Delete(product);
         }
 
         return Ok();
@@ -112,10 +109,11 @@ public class EventController : ControllerBase
             return Ok();
         }
 
+        IList<Product>? products = null;
         if (config.CheckPriceUpdateOnCheckout)
         {
-            var ids = (IReadOnlyList<string>) cart.items.Select(i => i.Value.ProductId).ToList();
-            var products = await productRepository.GetProducts( ids );
+            var ids = (IReadOnlyList<string>) cart.items.Select(i => i.Value.Sku).ToList();
+            products = await productRepository.GetProducts( ids );
 
             var divergencies = new List<ProductStatus>();
             foreach(var product in products)
@@ -136,6 +134,35 @@ public class EventController : ControllerBase
 
         }
 
+        if (config.CheckIfProductExistsOnCheckout)
+        {
+            if(products == null)
+            {
+                var ids = (IReadOnlyList<string>)cart.items.Select(i => i.Value.Sku).ToList();
+                products = await productRepository.GetProducts(ids);
+            }
+
+            if(cart.items.Count() > products.Count())
+            {
+                var dict = products.ToDictionary(c => c.sku, c => c);
+                // find missing products
+                var divergencies = new List<ProductStatus>();
+                foreach (var item in cart.items)
+                {
+                    
+                    if (!dict.ContainsKey(item.Value.Sku))
+                    {
+                        divergencies.Add(new ProductStatus(item.Value.ProductId, ItemStatus.DELETED));
+                    }
+                }
+
+                CustomerCheckoutFailed checkoutFailed = new CustomerCheckoutFailed(customerCheckout.CustomerId, divergencies);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(CustomerCheckoutFailed), checkoutFailed);
+                return Ok();
+            }
+
+        }
+
         cart.status = CartStatus.CHECKOUT_SENT;
         bool res = await this.cartRepository.Checkout(cart);
         if (!res)
@@ -147,7 +174,7 @@ public class EventController : ControllerBase
         // CancellationTokenSource source = new CancellationTokenSource();
         // CancellationToken cancellationToken = source.Token;
 
-        ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cart.items.Select(c=>c.Value).ToList() );
+        ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cart.items.Select(c=>c.Value).ToList());
 
         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout); // , cancellationToken);
 

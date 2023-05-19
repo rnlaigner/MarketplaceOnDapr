@@ -1,6 +1,4 @@
-﻿using System;
-using Common.Entities;
-using StockMS.Models;
+﻿using StockMS.Models;
 
 namespace StockMS.Repositories
 {
@@ -8,9 +6,7 @@ namespace StockMS.Repositories
 	{
         public IEnumerable<StockItemModel> GetItemsForUpdate(List<long> ids);
 
-        //public void ConfirmReservation(List<CartItem> cartitems);
-
-        public void CancelReservation(List<CartItem> cartitems);
+        public StockItemModel? GetItemForUpdate(long id);
 
         public void IncreaseStock(long productId, int quantity);
 

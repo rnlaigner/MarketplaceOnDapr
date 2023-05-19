@@ -18,28 +18,31 @@ namespace CartMS.Repositories
             this.logger = logger;
         }
 
-        public Task<bool> Delete(Product product)
+        public async Task<bool> Delete(Product product)
         {
-            throw new NotImplementedException();
+            Task task = daprClient.DeleteStateAsync(StoreName, product.sku);
+            await task;
+            return task.IsCompletedSuccessfully;
         }
 
-        public async Task<Product> GetProduct(string id)
+        public async Task<Product> GetProduct(string sku)
         {
-            return await daprClient.GetStateAsync<Product>(StoreName, id, ConsistencyMode.Strong);
+            return await daprClient.GetStateAsync<Product>(StoreName, sku);
         }
 
         // private static readonly List<String> emptyList = new (){};
 
-        public async Task<IList<Product>> GetProducts(IReadOnlyList<string> ids)
+        public async Task<IList<Product>> GetProducts(IReadOnlyList<string> skus)
         {
-            IReadOnlyList<BulkStateItem> mulitpleStateResult = await daprClient.GetBulkStateAsync(StoreName, ids, parallelism: 1);
+            IReadOnlyList<BulkStateItem> mulitpleStateResult = await daprClient.GetBulkStateAsync(StoreName, skus, parallelism: 1);
             return (IList<Product>)mulitpleStateResult.Select(b => b.Value).ToList();
         }
 
         public async Task<bool> Upsert(Product product)
         {
-            await daprClient.SaveStateAsync(StoreName, product.sku, product);
-            return true;
+            Task task = daprClient.SaveStateAsync(StoreName, product.sku, product);
+            await task;
+            return task.IsCompletedSuccessfully;
         }
     }
 }

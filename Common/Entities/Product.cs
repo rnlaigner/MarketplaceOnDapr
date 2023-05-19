@@ -1,5 +1,4 @@
-﻿using System;
-namespace Common.Entities
+﻿namespace Common.Entities
 {
     /**
      * Product is based on info found in:
@@ -30,8 +29,7 @@ namespace Common.Entities
         public string created_at { get; set; } = "";
         public string updated_at { get; set; } = "";
 
-        // tag whether the product has been deleted or not in the product ms
-        public bool active { get; set; } = true;
+        public bool active { get; set; }
 
         // https://dev.olist.com/docs/products
         // approved by default

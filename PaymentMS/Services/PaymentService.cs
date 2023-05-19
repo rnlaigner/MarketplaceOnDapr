@@ -90,7 +90,7 @@ namespace PaymentMS.Services
                 // it seems the problem only happens in k8s:
                 // https://v1-0.docs.dapr.io/operations/components/component-schema/
                 // https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-mqtt3/
-                var paymentRes = new PaymentFailure("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.instanceId);
+                var paymentRes = new PaymentFailure("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.items, paymentRequest.total_amount, paymentRequest.instanceId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailure), paymentRes);
                 this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
             }

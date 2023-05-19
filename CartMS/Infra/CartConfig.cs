@@ -8,7 +8,7 @@ namespace CartMS.Infra
     public class CartConfig
 	{
         public bool CheckPriceUpdateOnCheckout { get; set; }
-        // public int Version { get; set; }
+        public bool CheckIfProductExistsOnCheckout { get; set; }
     }
 }
 

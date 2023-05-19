@@ -1,12 +1,12 @@
 ﻿using System;
 namespace Common.Entities
 {
-    public struct ProductStatus
+    public class ProductStatus
     {
-        public long Id { get; }
-        public ItemStatus Status { get; }
-        public decimal UnitPrice { get; }
-        public decimal OldUnitPrice { get; }
+        public long Id { get; set; }
+        public ItemStatus Status { get; set; }
+        public decimal UnitPrice { get; set; } = 0;
+        public decimal OldUnitPrice { get; set; } = 0;
 
         public ProductStatus(long id, ItemStatus status, decimal price, decimal oldPrice)
         {
@@ -15,6 +15,13 @@ namespace Common.Entities
             this.UnitPrice = price;
             this.OldUnitPrice = oldPrice;
         }
+
+        public ProductStatus(long id, ItemStatus status)
+        {
+            this.Id = id;
+            this.Status = status;
+        }
+
     }
 }
 

@@ -1,6 +1,8 @@
-﻿using Common.Entities;
+﻿using System.Text.Json;
+using Common.Entities;
 using Common.Events;
 using Dapr;
+using Dapr.AspNetCore;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using StockMS.Repositories;
@@ -13,18 +15,15 @@ public class StockController : ControllerBase
 {
     private const string PUBSUB_NAME = "pubsub";
 
-    private readonly StockService stockService;
-
-    private readonly DaprClient daprClient;
+    private readonly IStockService stockService;
 
     private readonly IStockRepository stockRepository;
 
     private readonly ILogger<StockController> logger;
 
-    public StockController(StockService stockService, IStockRepository stockRepository, DaprClient daprClient,  ILogger<StockController> logger)
+    public StockController(IStockService stockService, IStockRepository stockRepository, ILogger<StockController> logger)
     {
         this.stockService = stockService;
-        this.daprClient = daprClient;
         this.stockRepository = stockRepository;
         this.logger = logger;
     }
@@ -42,15 +41,40 @@ public class StockController : ControllerBase
         });
     }
 
-
     [HttpPost("ReserveStock")]
     [Topic(PUBSUB_NAME, nameof(Common.Events.ReserveStock))]
     public async void ReserveStock(ReserveStock checkout)
     {
         this.logger.LogInformation("[ReserveStock] received for instanceId {0}", checkout.instanceId);
-        await this.stockService.ReserveStock(checkout);
+        await this.stockService.ReserveStockAsync(checkout);
         this.logger.LogInformation("[ReserveStock] completed for instanceId {0}", checkout.instanceId);
     }
+
+    [HttpPost("ProductStreaming")]
+    [Topic(PUBSUB_NAME, nameof(Product))]
+    public async Task<IActionResult> ProcessProductStream([FromBody] Product product)
+    {
+        this.stockService.ProcessProductUpdate(product);
+        return Ok();
+        // this.logger.LogInformation("[UpdatePrice] completed for instanceId {0}", priceUpdate.instanceId);
+    }
+
+    [BulkSubscribe("BulkProductStreaming")]
+    [Topic(PUBSUB_NAME, nameof(Product))]
+    public async Task<ActionResult<BulkSubscribeAppResponse>> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages)
+    {
+
+        this.stockService.ProcessProductUpdates(bulkMessages.Entries.Select(e=>e.Event.Data).ToList());
+
+        List<BulkSubscribeAppResponseEntry> 
+            responseEntries = bulkMessages.Entries.Select(message => new BulkSubscribeAppResponseEntry(message.EntryId, BulkSubscribeAppResponseStatus.SUCCESS)).ToList();
+      
+        return new BulkSubscribeAppResponse(responseEntries);
+    }
+
+    // TODO seller ms, with relational dbms. will replicate data from several services. seller dashboard. too much data, not beneficial to do it via workflow, data may not fit in memory.
+    // the report generation 
+    // TODO customer ms. also relational. notifications.store behavior of customer over time. customer dashboard
 
 }
 
