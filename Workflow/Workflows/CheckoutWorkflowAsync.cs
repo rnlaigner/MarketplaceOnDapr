@@ -53,19 +53,19 @@ namespace Workflows
             var cart = notifyTask.Result;
 
             // sending the instanceId so order service can ensure idempotence
-            var checkout = new Common.Events.ProcessCheckout(now, customerCheckout, cart.items.Select(c => c.Value).ToList(), instanceId);
+            var checkout = new StockConfirmed(now, customerCheckout, cart.items.Select(c => c.Value).ToList(), instanceId);
 
             // TODO i believe the workflow should reserve all items before sending to order
             // and the same if payment fails...
             // to code a call to the stock and only after confirm all the stock, then I proceed withthe order procesisng
 
-            Task<Invoice> invoiceTask = context.CallActivityAsync<Invoice>(
-                nameof(ProcessCheckout),
+            Task<InvoiceIssued> invoiceIssuedTask = context.CallActivityAsync<InvoiceIssued>(
+                nameof(StockConfirmed),
                 checkout);
 
             this.logger.LogInformation("Activity process checkout has been called");
 
-            Invoice invoice = invoiceTask.Result;
+            InvoiceIssued InvoiceIssued = invoiceIssuedTask.Result;
 
             return new CheckoutResult(Processed: true);
         }

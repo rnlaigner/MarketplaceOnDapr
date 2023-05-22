@@ -5,11 +5,8 @@ namespace OrderMS.Common.Repositories
 {
 	public interface IOrderRepository
 	{
-
         public IEnumerable<OrderModel> GetAll();
-
         public OrderModel GetOrderForUpdate(long orderId);
-
     }
 }
 

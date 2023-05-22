@@ -77,7 +77,7 @@ namespace StockMS.Services
             }
         }
 
-        public void CancelReservation(PaymentFailure payment)
+        public void CancelReservation(PaymentFailed payment)
         {
             List<long> ids = payment.items.Select(c => c.product_id).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
@@ -112,7 +112,7 @@ namespace StockMS.Services
             }
         }
 
-        public void ConfirmReservation(PaymentConfirmation payment)
+        public void ConfirmReservation(PaymentConfirmed payment)
         {
             List<long> ids = payment.items.Select(c => c.product_id).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
@@ -248,27 +248,33 @@ namespace StockMS.Services
 
                         var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(c => c.product_id, c => c);
 
+                        List<ProductStatus> unavailable = new();
+
                         foreach (var item in checkout.items)
                         {
 
                             if (!stockItems.ContainsKey(item.ProductId) || !stockItems[item.ProductId].active)
                             {
                                 commit = false;
-                                break;
+                                unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
+                                continue;
                             }
 
                             var stockItem = stockItems[item.ProductId];
 
-                            // blindly increase or check here too (dbms will also check due to the constraint)?
+                            // blindly increase or check here too?
+                            // dbms will also check due to the constraint
                             if (stockItem.qty_available >= (stockItem.qty_reserved + item.Quantity))
                             {
                                 commit = false;
-                                break;
+                                unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
+                                continue;
                             }
-
+                            
                             // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
                             stockItem.qty_reserved += item.Quantity;
                             stockItem.updated_at = DateTime.Now;
+                            
                         }
 
                         if (commit)
@@ -282,8 +288,8 @@ namespace StockMS.Services
                             this.dbContext.SaveChanges();
 
                             // send to order
-                            ProcessCheckout checkoutRequest = new ProcessCheckout(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
-                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessCheckout), checkoutRequest);
+                            StockConfirmed checkoutRequest = new StockConfirmed(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
+                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
                         }
                         else
                         {
@@ -292,7 +298,7 @@ namespace StockMS.Services
                             this.dbContext.SaveChanges();
 
                             // notify cart and customer
-                            ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.createdAt, checkout.customerCheckout, checkout.instanceId);
+                            ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.createdAt, checkout.customerCheckout, unavailable, checkout.instanceId);
                             await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
                         }
 
@@ -303,11 +309,11 @@ namespace StockMS.Services
                         // send event again depending on the outcome
                         if (tracking.success)
                         {
-                            ProcessCheckout checkoutRequest = new ProcessCheckout(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
-                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessCheckout), checkoutRequest);
+                            StockConfirmed checkoutRequest = new StockConfirmed(checkout.createdAt, checkout.customerCheckout, checkout.items, checkout.instanceId);
+                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
                         } else
                         {
-                            ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.createdAt, checkout.customerCheckout, checkout.instanceId);
+                            ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.createdAt, checkout.customerCheckout, Enumerable.Empty<ProductStatus>().ToList(), checkout.instanceId);
                             await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
                         }
                     }

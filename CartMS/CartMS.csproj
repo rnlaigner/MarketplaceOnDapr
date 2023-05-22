@@ -14,10 +14,12 @@
   <ItemGroup>
     <None Remove="Repositories\" />
     <None Remove="Infra\" />
+    <None Remove="Services\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Repositories\" />
     <Folder Include="Infra\" />
+    <Folder Include="Services\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

@@ -9,6 +9,7 @@ namespace OrderMS.Common.Models
 {
     [Table("orders")]
     [PrimaryKey(nameof(id))]
+    [Index(nameof(customer_id), IsUnique = false)]
     public class OrderModel
 	{
 
@@ -17,6 +18,9 @@ namespace OrderMS.Common.Models
          * but may leave holes if tx fails
          */
         public long id { get; set; }
+
+        // https://finom.co/en-fr/blog/invoice-number/
+        public string invoice_number { get; set; }
 
         public string customer_id { get; set; }
 

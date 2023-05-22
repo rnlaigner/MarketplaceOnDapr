@@ -51,7 +51,7 @@ namespace PaymentMS.Services
          * idempotency by themselves
          * 
          */
-        public async Task ProcessPayment(ProcessPayment paymentRequest)
+        public async Task ProcessPayment(InvoiceIssued paymentRequest)
         {
 
             // check if this request has been made. if not, send it
@@ -79,8 +79,8 @@ namespace PaymentMS.Services
 
             if (res)
             {
-                var paymentRes = new PaymentConfirmation(paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmation), paymentRes);
+                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
                 this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
             }
             else
@@ -90,13 +90,13 @@ namespace PaymentMS.Services
                 // it seems the problem only happens in k8s:
                 // https://v1-0.docs.dapr.io/operations/components/component-schema/
                 // https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-mqtt3/
-                var paymentRes = new PaymentFailure("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.items, paymentRequest.total_amount, paymentRequest.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailure), paymentRes);
+                var paymentRes = new PaymentFailed("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.items, paymentRequest.total_amount, paymentRequest.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), paymentRes);
                 this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
             }
         }
 
-        public async Task<bool> ProcessPayment_(ProcessPayment paymentRequest)
+        public async Task<bool> ProcessPayment_(InvoiceIssued paymentRequest)
         {
 
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()

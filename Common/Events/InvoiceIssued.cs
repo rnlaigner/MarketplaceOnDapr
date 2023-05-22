@@ -3,13 +3,14 @@ using Common.Entities;
 
 namespace Common.Events
 {
-    public record PaymentFailure
+    // an invoice is a request for payment
+    public record InvoiceIssued
     (
-        string Status,
         CustomerCheckout customer,
         long order_id,
-        IList<OrderItem> items,
+        string invoice_number,
         decimal total_amount,
+        IList<OrderItem> items,
         string instanceId
     );
 }

@@ -9,9 +9,9 @@ namespace StockMS.Services
 
         public bool ReserveStock(ReserveStock checkout);
 
-        public void ConfirmReservation(PaymentConfirmation payment);
+        public void ConfirmReservation(PaymentConfirmed payment);
 
-        public void CancelReservation(PaymentFailure paymentFailure);
+        public void CancelReservation(PaymentFailed paymentFailure);
 
         public void ProcessProductUpdate(Product product);
 

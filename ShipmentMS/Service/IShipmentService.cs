@@ -5,7 +5,7 @@ namespace ShipmentMS.Service
 {
 	public interface IShipmentService
 	{
-        public Task ProcessShipment(PaymentConfirmation paymentResult);
+        public Task ProcessShipment(PaymentConfirmed paymentResult);
 
         public void UpdateShipment(string instanceId = "");
     }

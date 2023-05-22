@@ -11,7 +11,8 @@ namespace Common.Entities
      (
          long ProductId,
          string Name, // will be used downstream by customer
-         string Sku, // used to match the replicated products  
+         string Sku, // used to match the replicated products in cart
+         string Category, // used by seller for dashboard
          long SellerId,
          decimal UnitPrice,
          decimal OldUnitPrice,

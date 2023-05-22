@@ -9,6 +9,7 @@ namespace CartMS.Infra
 	{
         public bool CheckPriceUpdateOnCheckout { get; set; }
         public bool CheckIfProductExistsOnCheckout { get; set; }
+        public bool SealAfterCheckout { get; set; }
     }
 }
 

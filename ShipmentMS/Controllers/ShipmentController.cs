@@ -24,14 +24,14 @@ public class ShipmentController : ControllerBase
     }
 
     [HttpPost("ProcessShipment")]
-    [Topic(PUBSUB_NAME, nameof(PaymentConfirmation), "poisonMessages", false)]
-    public void ProcessShipment(PaymentConfirmation paymentRequest)
+    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed), "poisonMessages", false)]
+    public void ProcessShipment([FromBody] PaymentConfirmed paymentRequest)
     {
         this.shipmentService.ProcessShipment(paymentRequest);
     }
 
     [HttpPost("UpdateShipment")]
-    [Topic(PUBSUB_NAME, nameof(PaymentConfirmation))]
+    [Topic(PUBSUB_NAME, "UpdateShipment")]
     public void UpdateShipment([FromBody] long instanceId)
     {
         this.shipmentService.UpdateShipment();

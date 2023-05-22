@@ -72,9 +72,5 @@ public class StockController : ControllerBase
         return new BulkSubscribeAppResponse(responseEntries);
     }
 
-    // TODO seller ms, with relational dbms. will replicate data from several services. seller dashboard. too much data, not beneficial to do it via workflow, data may not fit in memory.
-    // the report generation 
-    // TODO customer ms. also relational. notifications.store behavior of customer over time. customer dashboard
-
 }
 

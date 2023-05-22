@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using CartMS.Repositories;
+using CartMS.Services;
 using Common.Entities;
 using Common.Events;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ public class CartController : ControllerBase
 {
 
     private readonly ILogger<CartController> logger;
+    private readonly CartService cartService;
     private readonly ICartRepository cartRepository;
 
-    public CartController(ICartRepository cartRepository, ILogger<CartController> logger)
+    public CartController(CartService cartService, ICartRepository cartRepository, ILogger<CartController> logger)
     {
+        this.cartService = cartService;
         this.cartRepository = cartRepository;
         this.logger = logger;
     }
@@ -34,7 +37,7 @@ public class CartController : ControllerBase
         this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
         if (item.Quantity <= 0)
         {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive value.");
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
         }
         bool res = await this.cartRepository.AddItem(customerId, item);
         if (res)
@@ -61,8 +64,8 @@ public class CartController : ControllerBase
      * API for workflow
      * The workflow program will build the Checkout object
      */
-    [Route("{customerId}/checkout")]
-    [HttpPatch]
+    [Route("checkout")]
+    [HttpPost]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
@@ -72,6 +75,12 @@ public class CartController : ControllerBase
         var cart = await this.cartRepository.GetCart(checkoutNotification.customerId);
         if (cart is null)
             return NotFound();
+
+        if(cart.items.Count() == 0)
+        {
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed,
+                "Cart for customer " + checkoutNotification.customerId + " shows no items to checkout!");
+        }
 
         // workflow calling again
         if (checkoutNotification.instanceId.Equals(cart.instanceId) && cart.status == CartStatus.CHECKOUT_SENT)
@@ -85,11 +94,24 @@ public class CartController : ControllerBase
                 "Cart for customer " + checkoutNotification.customerId + " is on checkout process already!");
         }
 
-        cart.status = CartStatus.CHECKOUT_SENT;
-        cart.instanceId = checkoutNotification.instanceId;
-
-        var res = await this.cartRepository.Checkout(cart);
-        if (res) return Ok(cart);
+        var divergencies = await cartService.CheckCartForDivergencies(cart);
+        if (divergencies.Count() > 0)
+        {
+            cart.divergencies = divergencies;
+            await this.cartRepository.Save(cart);
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, cart);
+        }
+        else
+        {
+            cart.instanceId = checkoutNotification.instanceId;
+            cart.status = CartStatus.CHECKOUT_SENT;
+        }
+        var res = await this.cartRepository.SafeSave(cart);
+        if (res)
+        {
+            await cartService.SealIfNecessary(cart);
+            return Ok(cart);
+        }
         return Conflict();
     }
 
@@ -104,7 +126,10 @@ public class CartController : ControllerBase
         {
             return StatusCode((int)HttpStatusCode.MethodNotAllowed);
         }
-        await this.cartRepository.Seal(cart);
+        /**
+         * Seal is a terminal state, so no need to check for concurrent operation
+         */
+        await this.cartService.SealIfNecessary(cart);
         return Ok();
     }
 

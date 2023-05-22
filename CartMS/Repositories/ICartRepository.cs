@@ -9,9 +9,9 @@ namespace CartMS.Repositories
 
         Task<bool> AddItem(string customerId, CartItem item);
 
-        Task<bool> Checkout(Cart cart);
+        Task<bool> SafeSave(Cart cart);
 
-        Task Seal(Cart cart);
+        Task Save(Cart cart);
     }
 }
 

@@ -10,11 +10,23 @@ using Dapr.Client;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using OrderMS.Common.Repositories;
+using System.Text;
+using System.Globalization;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace OrderMS.Handlers
 {
-	public class OrderService
-	{
+    public class OrderService
+    {
+
+        private static readonly CultureInfo enUS = CultureInfo.CreateSpecificCulture("en-US");
+        private static readonly DateTimeFormatInfo dtfi = enUS.DateTimeFormat;
+        static OrderService()
+        {
+            // https://learn.microsoft.com/en-us/dotnet/api/system.globalization.datetimeformatinfo?view=net-7.0
+            dtfi.ShortDatePattern = "yyyyMMdd";
+        }
 
         private const string PUBSUB_NAME = "pubsub";
 
@@ -29,6 +41,7 @@ namespace OrderMS.Handlers
 
         public OrderService(OrderDbContext dbContext, IOrderRepository orderRepository, DaprClient daprClient, ILogger<OrderService> logger)
         {
+            
             this.dbContext = dbContext;
             this.orderRepository = orderRepository;
             this.daprClient = daprClient;
@@ -99,7 +112,7 @@ namespace OrderMS.Handlers
         }
 
         // for workflow
-        public async Task<ProcessPayment> ProcessCheckout(ProcessCheckout checkout)
+        public async Task<InvoiceIssued> ProcessCheckout(StockConfirmed checkout)
 		{
             // multi-key transaction. to ensure atomicity
 
@@ -139,14 +152,46 @@ namespace OrderMS.Handlers
                     }
                 }
 
+                // https://finom.co/en-fr/blog/invoice-number/
+                // postresql does not give us sequence ids. it is interesting for the analyst to get
+                // a sense of how much orders this customer has made by simply looking at patterns in
+                // the invoice. the format <customer_id>-<long_date>-total_orders+1 can be represented like:
+                // 50-20220928-001
+                // it is inefficient to get count(*) on customer orders. better to have a table
+
+                var customer_order = this.dbContext.CustomerOrders
+                                    .FromSqlRaw(String.Format("SELECT * from customer_orders where customer_id = {0} FOR UPDATE", checkout.customerCheckout.CustomerId))
+                                    // .Select(q=>q.next_order_id)
+                                    .FirstOrDefault();
+                if (customer_order is null)
+                {
+                    customer_order = new()
+                    {
+                        customer_id = checkout.customerCheckout.CustomerId,
+                        next_order_id = 1
+                    };
+                    this.dbContext.CustomerOrders.Add(customer_order);
+                }
+                else
+                {
+                    customer_order.next_order_id += 1;
+                    this.dbContext.CustomerOrders.Update(customer_order);
+                }
+
+                var now = System.DateTime.Now;
+                StringBuilder stringBuilder = new StringBuilder().Append(checkout.customerCheckout.CustomerId)
+                                                                 .Append("-").Append(now.ToString("d", enUS))
+                                                                 .Append("-").Append(customer_order.next_order_id);
+
                 OrderModel newOrder = new()
                 {
                     customer_id = checkout.customerCheckout.CustomerId,
+                    invoice_number = stringBuilder.ToString(),
                     // olist have seller acting in the approval process
                     // here we approve automatically
                     // besides, invoice is a request for payment, so it makes sense to use this status now
                     status = OrderStatus.INVOICED,
-                    created_at = System.DateTime.Now,
+                    created_at = now,
                     purchase_date = checkout.createdAt,
                     total_amount = total_amount,
                     total_items = total_items,
@@ -173,6 +218,7 @@ namespace OrderMS.Handlers
                         order_item_id = id,
                         product_id = item.ProductId,
                         product_name = item.Name,
+                        product_category = item.Category,
                         seller_id = item.SellerId,
                         unit_price = item.UnitPrice,
                         quantity = item.Quantity,
@@ -193,14 +239,16 @@ namespace OrderMS.Handlers
                     order_id = orderTrack.Entity.id,
                     created_at = newOrder.created_at,
                     orderStatus = OrderStatus.INVOICED,
+                    data = JsonSerializer.Serialize(checkout.customerCheckout)
                 });
 
                 this.dbContext.SaveChanges();
 
-                ProcessPayment paymentRequest = new ProcessPayment(checkout.customerCheckout, orderTrack.Entity.id, total_amount, orderItems, checkout.instanceId);
+                InvoiceIssued paymentRequest = new InvoiceIssued(checkout.customerCheckout, orderTrack.Entity.id, newOrder.invoice_number,
+                    total_amount, orderItems, checkout.instanceId);
 
                 // publish
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProcessPayment), paymentRequest);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(InvoiceIssued), paymentRequest);
 
                 txCtx.Commit();
 

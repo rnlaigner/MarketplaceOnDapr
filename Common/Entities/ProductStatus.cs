@@ -7,6 +7,7 @@ namespace Common.Entities
         public ItemStatus Status { get; set; }
         public decimal UnitPrice { get; set; } = 0;
         public decimal OldUnitPrice { get; set; } = 0;
+        public int QtyAvailable { get; set; } = 0;
 
         public ProductStatus(long id, ItemStatus status, decimal price, decimal oldPrice)
         {
@@ -20,6 +21,13 @@ namespace Common.Entities
         {
             this.Id = id;
             this.Status = status;
+        }
+
+        public ProductStatus(long id, ItemStatus status, int qtyAvailable)
+        {
+            this.Id = id;
+            this.Status = status;
+            this.QtyAvailable = qtyAvailable;
         }
 
     }

@@ -26,12 +26,23 @@ public class ProductController : ControllerBase
         this.productRepository = productRepository;
     }
 
+
+    [HttpGet]
+    [Route("/")]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
+    public ActionResult<List<Product>> GetAll()
+    {
+        return Ok();
+    }
+
     [HttpGet]
     [Route("{id:int}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> ProductById(long id)
+    public ActionResult<Product> GetById(long id)
     {
         if (id <= 0)
         {

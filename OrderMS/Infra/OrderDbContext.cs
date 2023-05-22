@@ -16,6 +16,7 @@ namespace OrderMS.Infra
         public DbSet<OrderModel> Orders => Set<OrderModel>();
         public DbSet<OrderItemModel> OrderItems => Set<OrderItemModel>();
         public DbSet<OrderHistoryModel> OrderHistory => Set<OrderHistoryModel>();
+        public DbSet<CustomerOrderModel> CustomerOrders => Set<CustomerOrderModel>();
 
         public OrderDbContext()
         {

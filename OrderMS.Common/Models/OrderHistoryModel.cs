@@ -25,6 +25,8 @@ namespace OrderMS.Common.Models
 
         public PackageStatus? packageStatus { get; set; }
 
+        public string? data { get; set; }
+
         public OrderHistoryModel() { }
 
     }

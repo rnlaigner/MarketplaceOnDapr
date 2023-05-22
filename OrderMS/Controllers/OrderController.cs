@@ -29,13 +29,13 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost("/checkout")]
-    [ProducesResponseType(typeof(Invoice), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(InvoiceIssued), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Invoice>> ProcessCheckout(ProcessCheckout checkout)
+    public async Task<ActionResult<InvoiceIssued>> ProcessCheckout(StockConfirmed checkout)
     {
-        return Ok(new Invoice(new Order(), new List<OrderItem>()));
+        return Ok();
         // return Ok(this._eventHandler.ProcessCheckout(checkout));
     }
 

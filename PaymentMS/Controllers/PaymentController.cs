@@ -23,8 +23,8 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("ProcessPayment")]
-    [Topic(PUBSUB_NAME, nameof(Common.Events.ProcessPayment), "poisonMessages", false)]
-    public async void ProcessPayment(ProcessPayment paymentRequest)
+    [Topic(PUBSUB_NAME, nameof(Common.Events.InvoiceIssued), "poisonMessages", false)]
+    public async void ProcessPayment(InvoiceIssued paymentRequest)
     {
         this.logger.LogInformation("[ProcessPayment] received: {0}.", paymentRequest.instanceId);
         await this.paymentService.ProcessPayment(paymentRequest);

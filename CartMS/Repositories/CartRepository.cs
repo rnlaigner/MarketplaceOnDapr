@@ -68,7 +68,7 @@ namespace CartMS.Repositories
             return await this.daprClient.GetStateAsync<Cart>(StoreName, customerId);
         }
 
-        public async Task<bool> Checkout(Cart cart)
+        public async Task<bool> SafeSave(Cart cart)
         {
             var (_, ETag) = await this.daprClient.GetStateAndETagAsync<Cart>(StoreName, cart.customerId);
             bool res = await this.daprClient.TrySaveStateAsync<Cart>(StoreName,
@@ -78,10 +78,7 @@ namespace CartMS.Repositories
             return res;
         }
 
-        /**
-         * Seal is confluent so no need to check for concurrent operation
-         */
-        public async Task Seal(Cart cart)
+        public async Task Save(Cart cart)
         {
             await this.daprClient.SaveStateAsync<Cart>(StoreName,
                     cart.customerId,

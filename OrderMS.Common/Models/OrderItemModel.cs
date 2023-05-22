@@ -27,6 +27,8 @@ namespace OrderMS.Common.Models
 
         public string product_name { get; set; }
 
+        public string product_category { get; set; }
+
         public long seller_id { get; set; }
 
         public decimal unit_price { get; set; }

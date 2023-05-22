@@ -29,7 +29,7 @@ namespace ShipmentMS.Service
 
         // https://twitter.com/hnasr/status/1657569218609684480
         [Transactional]
-        public async Task ProcessShipment(PaymentConfirmation paymentResult)
+        public async Task ProcessShipment(PaymentConfirmed paymentResult)
         {
             int package_id = 1;
 

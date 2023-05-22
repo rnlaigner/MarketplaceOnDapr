@@ -2,6 +2,7 @@
 using System.Text.Json;
 using CartMS.Infra;
 using CartMS.Repositories;
+using CartMS.Services;
 using Common.Entities;
 using Common.Events;
 using Dapr;
@@ -21,17 +22,17 @@ public class EventController : ControllerBase
     private readonly ICartRepository cartRepository;
     private readonly IProductRepository productRepository;
 
-    private readonly CartConfig config;
     private readonly ILogger<EventController> logger;
-    
-    public EventController(DaprClient daprClient, ICartRepository cartRepository, IProductRepository productRepository,
-                            IOptions<CartConfig> config, ILogger<EventController> logger)
+    private readonly CartService cartService;
+
+    public EventController(CartService cartService, DaprClient daprClient, ICartRepository cartRepository, IProductRepository productRepository,
+                           ILogger<EventController> logger)
     {
         this.daprClient = daprClient;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
-        this.config = config.Value;
         this.logger = logger;
+        this.cartService = cartService;
     }
 
     /*
@@ -101,83 +102,8 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(CustomerCheckout))]
     public async Task<IActionResult> NotifyCheckout([FromBody] CustomerCheckout customerCheckout)
     {
-
-        Cart cart = await this.cartRepository.GetCart(customerCheckout.CustomerId);
-        if (cart.status == CartStatus.CHECKOUT_SENT)
-        {
-            this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
-            return Ok();
-        }
-
-        IList<Product>? products = null;
-        if (config.CheckPriceUpdateOnCheckout)
-        {
-            var ids = (IReadOnlyList<string>) cart.items.Select(i => i.Value.Sku).ToList();
-            products = await productRepository.GetProducts( ids );
-
-            var divergencies = new List<ProductStatus>();
-            foreach(var product in products)
-            {
-                var currPrice = cart.items[product.id].UnitPrice;
-                if (currPrice != product.price)
-                {
-                    divergencies.Add(new ProductStatus(product.id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
-                }
-            }
-
-            if(divergencies.Count() > 0)
-            {
-                CustomerCheckoutFailed checkoutFailed = new CustomerCheckoutFailed(customerCheckout.CustomerId, divergencies);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(CustomerCheckoutFailed), checkoutFailed);
-                return Ok();
-            }
-
-        }
-
-        if (config.CheckIfProductExistsOnCheckout)
-        {
-            if(products == null)
-            {
-                var ids = (IReadOnlyList<string>)cart.items.Select(i => i.Value.Sku).ToList();
-                products = await productRepository.GetProducts(ids);
-            }
-
-            if(cart.items.Count() > products.Count())
-            {
-                var dict = products.ToDictionary(c => c.sku, c => c);
-                // find missing products
-                var divergencies = new List<ProductStatus>();
-                foreach (var item in cart.items)
-                {
-                    
-                    if (!dict.ContainsKey(item.Value.Sku))
-                    {
-                        divergencies.Add(new ProductStatus(item.Value.ProductId, ItemStatus.DELETED));
-                    }
-                }
-
-                CustomerCheckoutFailed checkoutFailed = new CustomerCheckoutFailed(customerCheckout.CustomerId, divergencies);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(CustomerCheckoutFailed), checkoutFailed);
-                return Ok();
-            }
-
-        }
-
-        cart.status = CartStatus.CHECKOUT_SENT;
-        bool res = await this.cartRepository.Checkout(cart);
-        if (!res)
-        {
-            this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
-            return Ok();
-        }
-
-        // CancellationTokenSource source = new CancellationTokenSource();
-        // CancellationToken cancellationToken = source.Token;
-
-        ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cart.items.Select(c=>c.Value).ToList());
-
-        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout); // , cancellationToken);
-
+        Task task = this.cartService.NotifyCheckoutAsync(customerCheckout);
+        await task;
         return Ok();
     }
 

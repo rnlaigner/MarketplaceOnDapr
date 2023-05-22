@@ -5,7 +5,7 @@ namespace PaymentMS.Services
 {
 	public interface IPaymentService
 	{
-        Task ProcessPayment(ProcessPayment paymentRequest);
+        Task ProcessPayment(InvoiceIssued paymentRequest);
     }
 }
 

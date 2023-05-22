@@ -15,6 +15,9 @@ namespace Common.Entities
 
         public string instanceId { get; set; } = "";
 
+        // to return
+        public List<ProductStatus>? divergencies { get; set; }
+
         // for dapr
         public Cart() { }
 

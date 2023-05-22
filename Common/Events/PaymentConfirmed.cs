@@ -3,7 +3,7 @@ using Common.Entities;
 
 namespace Common.Events
 {
-    public record PaymentConfirmation
+    public record PaymentConfirmed
     (
         CustomerCheckout customer,
         long order_id,

@@ -32,11 +32,11 @@ namespace OrderMS.Controllers
         }
 
         [HttpPost("ProcessCheckout")]
-        [Topic(PUBSUB_NAME, nameof(global::Common.Events.ProcessCheckout))]
-        public async void ProcessCheckout(ProcessCheckout checkout)
+        [Topic(PUBSUB_NAME, nameof(global::Common.Events.StockConfirmed))]
+        public async void ProcessCheckout(StockConfirmed checkout)
         {
             this.logger.LogInformation("[ProcessCheckoutRequest] received {0}.", checkout.instanceId);
-            ProcessPayment paymentRequest = await this.orderService.ProcessCheckout(checkout);
+            InvoiceIssued paymentRequest = await this.orderService.ProcessCheckout(checkout);
             this.logger.LogInformation("[ProcessCheckoutRequest] processed {0}.", checkout.instanceId);
         }
 
@@ -59,8 +59,8 @@ namespace OrderMS.Controllers
         }
 
         [HttpPost("ProcessPaymentConfirmation")]
-        [Topic(PUBSUB_NAME, nameof(PaymentConfirmation))]
-        public void ProcessPaymentConfirmation(PaymentConfirmation paymentConfirmation)
+        [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
+        public void ProcessPaymentConfirmation(PaymentConfirmed paymentConfirmation)
         {
             this.logger.LogInformation("[PaymentConfirmation] received {0}.", paymentConfirmation.instanceId);
             // this.orderService.ProcessShipmentNotification(shipmentNotification);
@@ -68,8 +68,8 @@ namespace OrderMS.Controllers
         }
 
         [HttpPost("ProcessPaymentFailure")]
-        [Topic(PUBSUB_NAME, nameof(PaymentFailure))]
-        public void ProcessPaymentFailure(PaymentFailure paymentFailure)
+        [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
+        public void ProcessPaymentFailure(PaymentFailed paymentFailure)
         {
             this.logger.LogInformation("[PaymentFailure] received {0}.", paymentFailure.instanceId);
             // this.orderService.ProcessShipmentNotification(shipmentNotification);
