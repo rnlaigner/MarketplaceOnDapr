@@ -1,7 +1,12 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SellerMS.Models
 {
-	public class OrderViewModel
+    [Table("order_view")]
+    [PrimaryKey(nameof(seller_id))]
+    public class OrderViewModel
 	{
 		public long seller_id { get; set; }
 

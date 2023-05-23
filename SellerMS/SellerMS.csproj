@@ -26,10 +26,12 @@
     <None Remove="Models\" />
     <None Remove="Services\" />
     <None Remove="Repositories\" />
+    <None Remove="Infra\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Services\" />
     <Folder Include="Repositories\" />
+    <Folder Include="Infra\" />
   </ItemGroup>
 </Project>

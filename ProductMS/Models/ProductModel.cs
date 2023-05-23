@@ -17,7 +17,7 @@ namespace ProductMS.Models
 
         public string sku { get; set; }
 
-        public string category_name { get; set; }
+        public string category { get; set; }
 
         public string description { get; set; }
 
