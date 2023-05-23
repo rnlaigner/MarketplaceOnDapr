@@ -17,6 +17,7 @@ namespace StockMS.Services
 
         public void ProcessProductUpdates(List<Product> products);
 
+        void CreateStockItem(StockItem stockItem);
     }
 }
 

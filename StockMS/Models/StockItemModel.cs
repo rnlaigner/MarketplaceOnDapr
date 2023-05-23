@@ -27,11 +27,11 @@ namespace StockMS.Models
 
         public DateTime? updated_at { get; set; }
 
-        public bool active { get; set; }
+        public bool active { get; set; } = true;
 
         public string? data { get; set; }
 
-        private StockItemModel() { }
+        public StockItemModel() { }
 
         public StockItemModel(long product_id, long seller_id, int qty, DateTime created_at)
 		{

@@ -107,6 +107,12 @@ namespace ShipmentMS.Service
             ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
             if (shipment is null) throw new Exception("Shipment ID " + orderId + " cannot be found in the database!");
 
+            if(shipment.status == ShipmentStatus.approved)
+            {
+                shipment.status = ShipmentStatus.delivery_in_progress;
+                this.shipmentRepository.Update(shipment);
+            }
+
             // aggregate operation
             int countDelivered = this.packageRepository.GetTotalDeliveredPackagesForOrder(orderId);
 
@@ -124,14 +130,13 @@ namespace ShipmentMS.Service
             }
 
             DeliveryNotification deliveryNotification = new DeliveryNotification(
-                shipment.customer_id, orderId, packageInfos, PackageStatus.delivered, DateTime.Now, instanceId);
+                shipment.customer_id, orderId, sellerId, packageInfos, PackageStatus.delivered, DateTime.Now, instanceId);
 
-            Task task = this.daprClient.PublishEventAsync(PUBSUB_NAME, "DeliveryNotification", deliveryNotification);
+            Task task = this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(DeliveryNotification), deliveryNotification);
             
             if (shipment.package_count == countDelivered + sellerPackages.Count())
             {
                 this.logger.LogWarning("Delivery concluded for shipment id {1}", shipment.order_id);
-
                 shipment.status = ShipmentStatus.concluded;
                 this.shipmentRepository.Update(shipment);
             }

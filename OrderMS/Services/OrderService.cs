@@ -49,11 +49,17 @@ namespace OrderMS.Handlers
         }
 
 
-        public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
+        public void ProcessShipmentNotification(ShipmentNotification notification)
         {
-            throw new Exception("Not implemented yet!");
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                OrderModel order = orderRepository.GetOrderForUpdate(notification.orderId);
+                order.status = OrderStatus.IN_TRANSIT;
+                order.updated_at = DateTime.Now;
+                this.dbContext.SaveChanges();
+                txCtx.Commit();
+            }
         }
-
         /**
          * Providing exactly-once for this case is tricky. The update transaction in shipment can fail in the middle,
          * but some events may have already been generated. In case the update is triggered again, the delivery notifications will be generated again
@@ -244,15 +250,15 @@ namespace OrderMS.Handlers
 
                 this.dbContext.SaveChanges();
 
-                InvoiceIssued paymentRequest = new InvoiceIssued(checkout.customerCheckout, orderTrack.Entity.id, newOrder.invoice_number,
+                InvoiceIssued invoice = new InvoiceIssued(checkout.customerCheckout, orderTrack.Entity.id,  newOrder.invoice_number,
                     total_amount, orderItems, checkout.instanceId);
 
                 // publish
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(InvoiceIssued), paymentRequest);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(InvoiceIssued), invoice);
 
                 txCtx.Commit();
 
-                return paymentRequest;
+                return invoice;
             }
 		}
 

@@ -17,8 +17,6 @@ namespace SellerMS.Models
 
 		// avg lateness per order and item?
 
-		// payment. total used payment method. card, boleto, coupon, debit credit
-
         public ShipmentViewModel()
 		{
 		}

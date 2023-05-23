@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using Common.Entities;
 using Common.Events;
 using Dapr;
@@ -41,8 +42,18 @@ public class StockController : ControllerBase
         });
     }
 
+    [HttpPost]
+    [ProducesResponseType((int)HttpStatusCode.Created)]
+    public IActionResult CreateStockItem([FromBody] StockItem stockItem, [FromHeader(Name = "instanceId")] string instanceId)
+    {
+        this.logger.LogInformation("[CreateStockItem] received for instanceId {0}", instanceId);
+        this.stockService.CreateStockItem(stockItem);
+        this.logger.LogInformation("[CreateStockItem] completed for instanceId {0}.", instanceId);
+        return StatusCode((int)HttpStatusCode.Created);
+    }
+
     [HttpPost("ReserveStock")]
-    [Topic(PUBSUB_NAME, nameof(Common.Events.ReserveStock))]
+    [Topic(PUBSUB_NAME, nameof(ReserveStock))]
     public async void ReserveStock(ReserveStock checkout)
     {
         this.logger.LogInformation("[ReserveStock] received for instanceId {0}", checkout.instanceId);
@@ -52,7 +63,7 @@ public class StockController : ControllerBase
 
     [HttpPost("ProductStreaming")]
     [Topic(PUBSUB_NAME, nameof(Product))]
-    public async Task<IActionResult> ProcessProductStream([FromBody] Product product)
+    public IActionResult ProcessProductStream([FromBody] Product product)
     {
         this.stockService.ProcessProductUpdate(product);
         return Ok();

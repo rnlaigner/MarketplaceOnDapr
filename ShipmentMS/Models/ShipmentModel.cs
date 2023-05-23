@@ -20,6 +20,7 @@ namespace ShipmentMS.Models
 
         public ShipmentStatus status { get; set; }
 
+        // customer
         public string first_name { get; set; }
 
         public string last_name { get; set; }

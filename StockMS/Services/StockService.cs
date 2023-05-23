@@ -45,7 +45,6 @@ namespace StockMS.Services
                     stockItem.active = false;
                 }
 
-                
                 this.dbContext.UpdateRange(stockItems);
 
                 txCtx.Commit();
@@ -94,12 +93,9 @@ namespace StockMS.Services
 
                 foreach (var item in payment.items)
                 {
-
                     var stockItem = stockItems[item.product_id];
-
                     stockItem.qty_reserved -= item.quantity;
                     stockItem.updated_at = DateTime.Now;
-
                 }
 
                 this.dbContext.UpdateRange(stockItems);
@@ -129,13 +125,10 @@ namespace StockMS.Services
 
                 foreach (var item in payment.items)
                 {
-
                     var stockItem = stockItems[item.product_id];
-
                     stockItem.qty_available -= item.quantity;
                     stockItem.qty_reserved -= item.quantity;
                     stockItem.updated_at = DateTime.Now;
-
                 }
 
                 this.dbContext.UpdateRange(stockItems);
@@ -330,6 +323,31 @@ namespace StockMS.Services
             }
         }
 
-    }
-}
+        public async void CreateStockItem(StockItem stockItem)
+        {
+            DateTime now = DateTime.Now;
+            var stockItemModel = new StockItemModel()
+            {
+                product_id = stockItem.product_id,
+                seller_id = stockItem.seller_id,
+                qty_available = stockItem.qty_available,
+                // qty_reserved = stockItem.qty_reserved,
+                order_count = stockItem.order_count,
+                created_at = now,
+                updated_at = now,
+                data = stockItem.data,
 
+            };
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                dbContext.StockItems.Add(stockItemModel);
+                dbContext.SaveChanges();
+                // publish stock info
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
+                txCtx.Commit();
+            }
+
+        }
+    }
+
+}

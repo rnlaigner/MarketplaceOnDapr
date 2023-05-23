@@ -6,7 +6,8 @@ namespace SellerMS.Models
 {
 
     [Table("product_entry_view")]
-    [PrimaryKey(nameof(seller_id))]
+    [PrimaryKey(nameof(product_id))]
+    [Index(nameof(seller_id))]
     public class ProductEntryViewModel
 	{
         public long seller_id { get; set; }

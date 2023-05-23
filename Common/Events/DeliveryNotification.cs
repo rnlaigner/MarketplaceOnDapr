@@ -7,9 +7,10 @@ namespace Common.Events
     (
         string customerId,
         long orderId,
+        long sellerId,
         IEnumerable<PackageInfo> packageInfo,
         PackageStatus status,
-        DateTime createdAt,
+        DateTime deliveryDate,
         string instanceId
     );
 

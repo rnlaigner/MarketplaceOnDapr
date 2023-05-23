@@ -27,21 +27,56 @@ public class EventController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpPost("ProcessPaymentConfirmation")]
+    [HttpPost("ProcessPaymentConfirmed")]
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-    public void ProcessPaymentConfirmation([FromBody] PaymentConfirmed paymentRequest)
+    public void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
+    {
+
+    }
+
+    [HttpPost("ProcessPaymentFailed")]
+    [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
+    public void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
     {
 
     }
 
     [HttpPost("ProcessNewInvoice")]
-    [Topic(PUBSUB_NAME, nameof(Common.Events.InvoiceIssued))]
-    public async void ProcessNewInvoice(InvoiceIssued paymentRequest)
+    [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
+    public async void ProcessNewInvoice([FromBody] InvoiceIssued paymentRequest)
     {
 
     }
 
-    // TODO customer ms. also relational. notifications.store behavior of customer over time. customer dashboard
+    [HttpPost("ProcessProductUpdate")]
+    [Topic(PUBSUB_NAME, nameof(Product))]
+    public void ProcessProductUpdate([FromBody] Product product)
+    {
+
+    }
+
+    [HttpPost("ProcessStockItem")]
+    [Topic(PUBSUB_NAME, nameof(StockItem))]
+    public void ProcessStockItem([FromBody] StockItem stockItem)
+    {
+
+    }
+
+    [HttpPost("ProcessShipmentNotification")]
+    [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
+    public void ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
+    {
+
+    }
+
+    [HttpPost("ProcessShipmentNotification")]
+    [Topic(PUBSUB_NAME, nameof(DeliveryNotification))]
+    public void ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
+    {
+
+    }
+
+    // TODO customer ms. also relational. notifications.store behavior of customer over time. customer dashboard?
 
 }
 

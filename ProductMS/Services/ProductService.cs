@@ -65,6 +65,9 @@ namespace ProductMS.Services
             }
         }
 
+        /*
+         * Maybe use postgresql UPSERT: https://stackoverflow.com/questions/1109061/
+         */
         public async Task<bool> Upsert(Product productToUpdate)
         {
             try
@@ -72,19 +75,19 @@ namespace ProductMS.Services
                 using (var txCtx = this.dbContext.Database.BeginTransaction()) {
 
                     ProductModel? product = this.productRepository.GetProduct(productToUpdate.id);
+                    var product_ = Utils.AsProductModel(productToUpdate);
 
-                    if(product is null)
+                    if (product is null)
                     {
-                        product = Utils.AsProductModel(productToUpdate);
-                        this.productRepository.Insert(product);
+                        this.productRepository.Insert(product_);
                     } else
                     {
-                        this.productRepository.Insert(product);
+                        this.productRepository.Update(product_);
                     }
 
                     this.dbContext.SaveChanges();
 
-                    if (config.ProductStreaming)
+                    if (config.ProductStreaming) // TODO should we handle the commit exception with cancellation token?
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), productToUpdate);
                 
                     txCtx.Commit();
