@@ -44,11 +44,11 @@ public class StockController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public IActionResult CreateStockItem([FromBody] StockItem stockItem, [FromHeader(Name = "instanceId")] string instanceId)
+    public IActionResult AddStockItem([FromBody] StockItem stockItem, [FromHeader(Name = "instanceId")] string instanceId)
     {
-        this.logger.LogInformation("[CreateStockItem] received for instanceId {0}", instanceId);
+        this.logger.LogInformation("[AddStockItem] received for instanceId {0}", instanceId);
         this.stockService.CreateStockItem(stockItem);
-        this.logger.LogInformation("[CreateStockItem] completed for instanceId {0}.", instanceId);
+        this.logger.LogInformation("[AddStockItem] completed for instanceId {0}.", instanceId);
         return StatusCode((int)HttpStatusCode.Created);
     }
 

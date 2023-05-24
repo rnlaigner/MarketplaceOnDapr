@@ -1,17 +1,13 @@
-﻿using System;
-using System.Net;
-using CartMS.Controllers;
-using CartMS.Infra;
+﻿using CartMS.Infra;
 using CartMS.Repositories;
 using Common.Entities;
 using Common.Events;
 using Dapr.Client;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace CartMS.Services
 {
-	public class CartService
+	public class CartService : ICartService
 	{
 
         private const string PUBSUB_NAME = "pubsub";
@@ -54,7 +50,7 @@ namespace CartMS.Services
             }
         }
 
-        public async Task NotifyCheckoutAsync(CustomerCheckout customerCheckout)
+        public async Task NotifyCheckout(CustomerCheckout customerCheckout)
         {
             Cart cart = await this.cartRepository.GetCart(customerCheckout.CustomerId);
             if (cart.status == CartStatus.CHECKOUT_SENT)

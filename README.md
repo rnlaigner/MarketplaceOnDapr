@@ -69,3 +69,5 @@ cmhmod 775 deploy_macos.sh
 ./deploy_macos.sh
 ```
 
+## How to trigger transactions
+

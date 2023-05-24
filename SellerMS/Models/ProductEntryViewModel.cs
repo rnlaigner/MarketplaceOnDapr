@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SellerMS.Models
@@ -26,7 +25,6 @@ namespace SellerMS.Models
 
         public decimal total_revenue { get; set; } = 0;
         public decimal total_discount { get; set; } = 0;
-
 
         public ProductEntryViewModel()
 		{

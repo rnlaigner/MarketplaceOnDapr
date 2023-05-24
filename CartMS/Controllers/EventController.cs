@@ -23,9 +23,9 @@ public class EventController : ControllerBase
     private readonly IProductRepository productRepository;
 
     private readonly ILogger<EventController> logger;
-    private readonly CartService cartService;
+    private readonly ICartService cartService;
 
-    public EventController(CartService cartService, DaprClient daprClient, ICartRepository cartRepository, IProductRepository productRepository,
+    public EventController(ICartService cartService, DaprClient daprClient, ICartRepository cartRepository, IProductRepository productRepository,
                            ILogger<EventController> logger)
     {
         this.daprClient = daprClient;
@@ -102,7 +102,7 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(CustomerCheckout))]
     public async Task<IActionResult> NotifyCheckout([FromBody] CustomerCheckout customerCheckout)
     {
-        Task task = this.cartService.NotifyCheckoutAsync(customerCheckout);
+        Task task = this.cartService.NotifyCheckout(customerCheckout);
         await task;
         return Ok();
     }

@@ -1,5 +1,4 @@
-﻿using System;
-namespace SellerMS.Repositories
+﻿namespace SellerMS.Repositories
 {
 	public interface ISellerRepository
 	{

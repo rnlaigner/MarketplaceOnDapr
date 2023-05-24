@@ -1,16 +1,10 @@
-﻿using System.Linq;
-using System.Text.Json;
-using Common.Entities;
+﻿using Common.Entities;
 using Common.Events;
 using Dapr;
-using Dapr.AspNetCore;
-using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using SellerMS.Repositories;
 using SellerMS.Services;
 
-namespace CartMS.Controllers;
+namespace SellerMS.Controllers;
 
 [ApiController]
 public class EventController : ControllerBase
@@ -29,54 +23,52 @@ public class EventController : ControllerBase
 
     [HttpPost("ProcessPaymentConfirmed")]
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-    public void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
+    public async void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
     {
-
+        await this.sellerService.ProcessPaymentConfirmed(paymentConfirmed);
     }
 
     [HttpPost("ProcessPaymentFailed")]
     [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
-    public void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
+    public async void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
     {
-
+        await this.sellerService.ProcessPaymentFailed(paymentFailed);
     }
 
     [HttpPost("ProcessNewInvoice")]
     [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
-    public async void ProcessNewInvoice([FromBody] InvoiceIssued paymentRequest)
+    public async void ProcessNewInvoice([FromBody] InvoiceIssued invoiceIssued)
     {
-
+        await this.sellerService.ProcessNewInvoice(invoiceIssued);
     }
 
     [HttpPost("ProcessProductUpdate")]
     [Topic(PUBSUB_NAME, nameof(Product))]
-    public void ProcessProductUpdate([FromBody] Product product)
+    public async void ProcessProductUpdate([FromBody] Product product)
     {
-
+        await this.sellerService.ProcessProductUpdate(product);
     }
 
     [HttpPost("ProcessStockItem")]
     [Topic(PUBSUB_NAME, nameof(StockItem))]
-    public void ProcessStockItem([FromBody] StockItem stockItem)
+    public async void ProcessStockItem([FromBody] StockItem stockItem)
     {
-
+        await this.sellerService.ProcessStockItem(stockItem);
     }
 
     [HttpPost("ProcessShipmentNotification")]
     [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
-    public void ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
+    public async void ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
     {
-
+        await this.sellerService.ProcessShipmentNotification(shipmentNotification);
     }
 
     [HttpPost("ProcessShipmentNotification")]
     [Topic(PUBSUB_NAME, nameof(DeliveryNotification))]
-    public void ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
+    public async void ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
     {
-
+        await this.sellerService.ProcessDeliveryNotification(deliveryNotification);
     }
-
-    // TODO customer ms. also relational. notifications.store behavior of customer over time. customer dashboard?
 
 }
 

@@ -1,19 +1,17 @@
-﻿using System.Security.Authentication;
-using CartMS.Infra;
+﻿using CartMS.Infra;
 using CartMS.Repositories;
-using Google.Api;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using CartMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
+builder.Services.AddDaprClient();
 
 builder.Services.AddSingleton<ICartRepository, CartRepository>();
 builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 
-builder.Services.AddDaprClient();
+builder.Services.AddSingleton<ICartService, CartService>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();

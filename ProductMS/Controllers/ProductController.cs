@@ -59,15 +59,15 @@ public class ProductController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<IActionResult> CreateProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)
+    [ProducesResponseType((int)HttpStatusCode.Created)]
+    public async Task<IActionResult> AddProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)
     {
-        this.logger.LogInformation("[UpdateProduct] received for instanceId {0}", instanceId);
+        this.logger.LogInformation("[AddProduct] received for instanceId {0}", instanceId);
         bool res = await this.productService.Upsert(product);
-        this.logger.LogInformation("[UpdateProduct] completed for instanceId {0}. Returning {res}", instanceId, res);
+        this.logger.LogInformation("[AddProduct] completed for instanceId {0}. Returning {res}", instanceId, res);
         if (res)
         {
-            return Accepted();
+            return StatusCode((int)HttpStatusCode.Created);
         }
         return NotFound();
     }

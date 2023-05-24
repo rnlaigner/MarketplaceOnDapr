@@ -1,7 +1,4 @@
-﻿using System;
-using System.Xml;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
 using ProductMS.Models;
 
 namespace ProductMS.Infra

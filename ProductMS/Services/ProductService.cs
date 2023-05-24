@@ -1,6 +1,4 @@
-﻿using System;
-using Common.Entities;
-using Common.Events;
+﻿using Common.Entities;
 using Dapr.Client;
 using Microsoft.Extensions.Options;
 using ProductMS.Infra;

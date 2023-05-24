@@ -12,10 +12,10 @@ public class CartController : ControllerBase
 {
 
     private readonly ILogger<CartController> logger;
-    private readonly CartService cartService;
+    private readonly ICartService cartService;
     private readonly ICartRepository cartRepository;
 
-    public CartController(CartService cartService, ICartRepository cartRepository, ILogger<CartController> logger)
+    public CartController(ICartService cartService, ICartRepository cartRepository, ILogger<CartController> logger)
     {
         this.cartService = cartService;
         this.cartRepository = cartRepository;
@@ -72,7 +72,9 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult<Cart>> NotifyCheckout(CheckoutNotification checkoutNotification)
     {
+        // querying the kv store
         var cart = await this.cartRepository.GetCart(checkoutNotification.customerId);
+        // in the database, this would be like: select count(*) from cart where cart.instanceId = ?
         if (cart is null)
             return NotFound();
 

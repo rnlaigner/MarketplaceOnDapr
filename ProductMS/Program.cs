@@ -1,5 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
-using ProductMS.Infra;
+﻿using ProductMS.Infra;
 using ProductMS.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +14,7 @@ builder.Services.AddOptions();
 IConfigurationSection configSection = builder.Configuration.GetSection("ProductConfig");
 builder.Services.Configure<ProductConfig>(configSection);
 
-bool sharedState = Boolean.Parse(configSection["SharedState"] != null ? configSection["SharedState"] : "false");
+bool sharedState = bool.Parse(configSection["SharedState"] != null ? configSection["SharedState"] : "false");
 
 // Add services to the container
 if (sharedState)

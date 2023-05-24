@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StockMS.Models
@@ -12,10 +11,9 @@ namespace StockMS.Models
     [PrimaryKey(nameof(instanceId))]
     public record StockTracking
 	(
-		string instanceId,
-		OperationType operation,
+		string instanceId, // workflow id
+		OperationType operation, // reserve, cancel, confirm, add stock
 		bool success = true
-
 	);
 }
 

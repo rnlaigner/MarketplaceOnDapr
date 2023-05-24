@@ -68,13 +68,37 @@ if `echo "$*" | grep -q payment`; then
 fi
 
 if `echo "$*" | grep -q shipment`; then
-    p=`dapr list | grep -c payment`
+    p=`dapr list | grep -c shipment`
     if [ $p = $var1 ]
     then
-        echo "payment already running"
+        echo "shipment already running"
     else
         osascript -e 'tell app "Terminal"
             do script "dapr run --app-port 5005 --app-id payment --app-protocol http --dapr-http-port 3505 -- dotnet run --project '$current_dir'/ShipmentMS/ShipmentMS.csproj"
+        end tell'
+    fi
+fi
+
+if `echo "$*" | grep -q seller`; then
+    p=`dapr list | grep -c seller`
+    if [ $p = $var1 ]
+    then
+        echo "seller already running"
+    else
+        osascript -e 'tell app "Terminal"
+            do script "dapr run --app-port 5006 --app-id payment --app-protocol http --dapr-http-port 3506 -- dotnet run --project '$current_dir'/SellerMS/SellerMS.csproj"
+        end tell'
+    fi
+fi
+
+if `echo "$*" | grep -q customer`; then
+    p=`dapr list | grep -c customer`
+    if [ $p = $var1 ]
+    then
+        echo "customer already running"
+    else
+        osascript -e 'tell app "Terminal"
+            do script "dapr run --app-port 5007 --app-id payment --app-protocol http --dapr-http-port 3507 -- dotnet run --project '$current_dir'/CustomerMS/CustomerMS.csproj"
         end tell'
     fi
 fi

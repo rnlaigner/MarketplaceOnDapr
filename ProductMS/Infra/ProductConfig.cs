@@ -1,5 +1,4 @@
-﻿using System;
-namespace ProductMS.Infra
+﻿namespace ProductMS.Infra
 {
 	public class ProductConfig
 	{

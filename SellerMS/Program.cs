@@ -1,8 +1,19 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using Microsoft.EntityFrameworkCore;
+using SellerMS.Infra;
+using SellerMS.Repositories;
+using SellerMS.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<SellerDbContext>();
+builder.Services.AddScoped<ISellerRepository, SellerRepository>();
+builder.Services.AddScoped<ISellerService, SellerService>();
+
 
 // Add services to the container.
-
+builder.Services.AddDaprClient();
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -16,9 +27,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseAuthorization();
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<SellerDbContext>();
+    context.Database.EnsureDeleted();
+    context.Database.EnsureCreated();
+
+    // order view model is being created as a table... besides, the following statement is not executing...
+    context.Database.ExecuteSqlRaw(SellerDbContext.OrderViewSql);
+    context.Database.ExecuteSqlRaw(SellerDbContext.OrderViewSqlIndex);
+}
 
 app.MapControllers();
+app.MapSubscribeHandler();
 
 app.Run();
 

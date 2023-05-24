@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SellerMS.Models
@@ -16,6 +15,8 @@ namespace SellerMS.Models
 		public decimal avg_shipment_value_per_item { get; set; }
 
 		// avg lateness per order and item?
+
+		// select avg, count, from shipments 
 
         public ShipmentViewModel()
 		{
