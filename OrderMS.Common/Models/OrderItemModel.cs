@@ -43,8 +43,11 @@ namespace OrderMS.Common.Models
         // without freight value
         public decimal total_items { get; set; }
 
-        // with freight value
+        // without freight value
         public decimal total_amount { get; set; }
+
+        // can be derived from total_items - total_amount
+        // public decimal total_incentive { get; set; }
 
         public OrderItemModel() { }
 

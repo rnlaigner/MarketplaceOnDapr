@@ -8,8 +8,8 @@ namespace Common.Entities
         public long order_item_id { get; set; }
 
         public long product_id { get; set; }
-        public string product_name { get; set; }
-        public string product_category { get; set; }
+        public string product_name { get; set; } = "";
+        public string product_category { get; set; } = "";
 
         public long seller_id { get; set; }
 
@@ -25,7 +25,7 @@ namespace Common.Entities
         // without freight value
         public decimal total_items { get; set; }
 
-        // with freight value
+        // without freight value
         public decimal total_amount { get; set; }
     }
 }

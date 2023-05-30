@@ -71,8 +71,8 @@ app.MapGet("/test", async (WorkflowEngineClient client) =>
                 "",
                 "",
                 "",
-                 1,
-                Array.Empty<decimal>()
+                 1
+                // Array.Empty<decimal>()
             );
 
     // Randomly generated order ID that is 8 characters long.

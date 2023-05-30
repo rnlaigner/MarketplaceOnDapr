@@ -8,9 +8,11 @@
   <ItemGroup>
     <None Remove="Entities\" />
     <None Remove="Events\" />
+    <None Remove="Utils\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Entities\" />
     <Folder Include="Events\" />
+    <Folder Include="Utils\" />
   </ItemGroup>
 </Project>

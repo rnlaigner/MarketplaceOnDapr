@@ -47,12 +47,8 @@ namespace Common.Entities
         string CardBrand,
 
         // if no credit card, must be null
-        int Installments,
+        int Installments
 
-        // Vouchers to be applied
-        // coupons for different sellers, usually attached to products
-        // but we don't track these in the benchmark
-        decimal[] Vouchers
     );
     
 }

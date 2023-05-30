@@ -178,9 +178,10 @@ namespace PaymentMS.Services
                 }
 
                 // then one line for each voucher
-                if (paymentRequest.customer.Vouchers != null)
+                foreach(var item in paymentRequest.items)
                 {
-                    foreach (var voucher in paymentRequest.customer.Vouchers)
+                    // discount was applied
+                    if(item.total_items > item.total_amount)
                     {
                         paymentLines.Add(new OrderPaymentModel()
                         {
@@ -188,7 +189,7 @@ namespace PaymentMS.Services
                             payment_sequential = seq,
                             payment_type = PaymentType.VOUCHER,
                             payment_installments = 1,
-                            payment_value = voucher
+                            payment_value = item.total_items - item.total_amount
                         });
                         seq++;
                     }

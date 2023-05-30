@@ -14,10 +14,11 @@ using System.Text;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using OrderMS.Services;
 
 namespace OrderMS.Handlers
 {
-    public class OrderService
+    public class OrderService : IOrderService
     {
 
         private static readonly CultureInfo enUS = CultureInfo.CreateSpecificCulture("en-US");
@@ -47,7 +48,6 @@ namespace OrderMS.Handlers
             this.daprClient = daprClient;
             this.logger = logger;
         }
-
 
         public void ProcessShipmentNotification(ShipmentNotification notification)
         {
@@ -93,7 +93,7 @@ namespace OrderMS.Handlers
 
                 OrderModel order = orderRepository.GetOrderForUpdate(notification.orderId);
 
-                order.count_delivered_items += notification.packageInfo.Count();
+                order.count_delivered_items += 1;
 
                 if (order.count_delivered_items == order.count_items)
                 {
@@ -139,23 +139,29 @@ namespace OrderMS.Handlers
                     total_amount += (item.UnitPrice * item.Quantity);
                 }
 
+                // total before discounts
                 decimal total_items = total_amount;
 
-                // apply vouchers, but only until total >= 0
-                int v_idx = 0;
-                decimal[] vouchers = checkout.customerCheckout.Vouchers == null ? emptyArray : checkout.customerCheckout.Vouchers;
+                // apply vouchers per product, but only until total >= 0 for each item
+                Dictionary<long, decimal> totalPerItem = new();
                 decimal total_incentive = 0;
-                while (total_amount > 0 && v_idx < vouchers.Length)
-                {
-                    if (total_amount - vouchers[v_idx] >= 0)
+                foreach(var item in checkout.items) {
+                    decimal total_item = item.UnitPrice * item.Quantity;
+                    int v_idx = 0;
+                    while (total_item > 0 && v_idx < item.Vouchers.Count())
                     {
-                        total_amount -= vouchers[v_idx];
-                        total_incentive += vouchers[v_idx];
+                        if (total_item - item.Vouchers[v_idx] >= 0)
+                        {
+                            total_item -= item.Vouchers[v_idx];
+                            total_amount -= item.Vouchers[v_idx];
+                            total_incentive += item.Vouchers[v_idx];
+                        }
+                        else
+                        {
+                            total_item = 0;
+                        }
                     }
-                    else
-                    {
-                        total_amount = 0;
-                    }
+                    totalPerItem.Add(item.ProductId, total_item);
                 }
 
                 // https://finom.co/en-fr/blog/invoice-number/
@@ -169,6 +175,7 @@ namespace OrderMS.Handlers
                                     .FromSqlRaw(String.Format("SELECT * from customer_orders where customer_id = {0} FOR UPDATE", checkout.customerCheckout.CustomerId))
                                     // .Select(q=>q.next_order_id)
                                     .FirstOrDefault();
+
                 if (customer_order is null)
                 {
                     customer_order = new()
@@ -229,7 +236,9 @@ namespace OrderMS.Handlers
                         unit_price = item.UnitPrice,
                         quantity = item.Quantity,
                         total_items = item.UnitPrice * item.Quantity,
-                        total_amount = (item.Quantity * item.FreightValue) + (item.Quantity * item.UnitPrice)
+                        total_amount = totalPerItem[item.ProductId],
+                        freight_value = item.FreightValue,
+                        shipping_limit_date = now.AddDays(3)
                     };
 
                     dbContext.OrderItems.Add(oim);

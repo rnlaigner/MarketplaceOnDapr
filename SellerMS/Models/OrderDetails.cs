@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 namespace SellerMS.Models
 {
 
-    [Table("order_entry_details")]
+    [Table("order_details")]
     [PrimaryKey(nameof(order_id))]
-    public class OrderEntryDetails
+    public class OrderDetails
 	{
         public long order_id { get; set; }
 
@@ -39,7 +39,7 @@ namespace SellerMS.Models
 
         // payment. total used payment method. card, boleto, coupon, debit credit
 
-        public OrderEntryDetails()
+        public OrderDetails()
 		{
 		}
 	}

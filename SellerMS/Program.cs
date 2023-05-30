@@ -35,9 +35,11 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
 
-    // order view model is being created as a table... besides, the following statement is not executing...
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderViewSql);
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderViewSqlIndex);
+
+    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentViewSql);
+    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentViewSqlIndex);
 }
 
 app.MapControllers();

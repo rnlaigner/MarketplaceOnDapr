@@ -27,13 +27,15 @@ namespace ShipmentMS.Service
             this.logger = logger;
         }
 
-        // https://twitter.com/hnasr/status/1657569218609684480
+        /*
+         * https://twitter.com/hnasr/status/1657569218609684480
+         */
         [Transactional]
-        public async Task ProcessShipment(PaymentConfirmed paymentResult)
+        public async Task ProcessShipment(PaymentConfirmed paymentConfirmed)
         {
             int package_id = 1;
 
-            var items = paymentResult.items
+            var items = paymentConfirmed.items
                         .GroupBy(x => x.seller_id)
                         .OrderByDescending(g => g.Count())
                         .SelectMany(x => x).ToList();
@@ -42,29 +44,29 @@ namespace ShipmentMS.Service
 
             ShipmentModel shipment = new()
             {
-                order_id = paymentResult.order_id,
-                customer_id = paymentResult.customer.CustomerId,
+                order_id = paymentConfirmed.order_id,
+                customer_id = paymentConfirmed.customer.CustomerId,
                 package_count = items.Count,
                 total_freight_value = items.Sum(i => i.freight_value),
                 request_date = now,
                 status = ShipmentStatus.approved,
-                first_name = paymentResult.customer.FirstName,
-                last_name = paymentResult.customer.LastName,
-                street = paymentResult.customer.Street,
-                complement = paymentResult.customer.Complement,
-                zip_code_prefix = paymentResult.customer.ZipCode,
-                city = paymentResult.customer.City,
-                state = paymentResult.customer.State
+                first_name = paymentConfirmed.customer.FirstName,
+                last_name = paymentConfirmed.customer.LastName,
+                street = paymentConfirmed.customer.Street,
+                complement = paymentConfirmed.customer.Complement,
+                zip_code_prefix = paymentConfirmed.customer.ZipCode,
+                city = paymentConfirmed.customer.City,
+                state = paymentConfirmed.customer.State
             };
 
-            shipmentRepository.Insert(shipment);
+            this.shipmentRepository.Insert(shipment);
 
             foreach (var item in items)
             {
 
                 PackageModel package = new()
                 {
-                    order_id = paymentResult.order_id,
+                    order_id = paymentConfirmed.order_id,
                     package_id = package_id,
                     status = PackageStatus.shipped,
                     freight_value = item.freight_value,
@@ -75,18 +77,18 @@ namespace ShipmentMS.Service
                     quantity = item.quantity
                 };
 
-                packageRepository.Insert(package);
+                this.packageRepository.Insert(package);
                 package_id++;
 
             }
 
             // enqueue shipment notification
-            ShipmentNotification shipmentNotification = new ShipmentNotification(paymentResult.customer.CustomerId, paymentResult.order_id, paymentResult.instanceId);
+            ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.order_id, now, paymentConfirmed.instanceId);
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
         }
 
         [Transactional(IsolationLevel.Serializable)]
-        public void UpdateShipment(string instanceId = "")
+        public async void UpdateShipment(string instanceId = "")
         {
             // perform a sql query to query the objects. write lock...
             var q = packageRepository.GetOldestOpenShipmentPerSeller();
@@ -97,9 +99,11 @@ namespace ShipmentMS.Service
                 var packages_ = this.packageRepository.GetShippedPackagesByOrderAndSeller(kv.Value, kv.Key).ToList();
                 tasks.Add(UpdatePackageDelivery(packages_, instanceId));
             }
+
+            await Task.WhenAll(tasks);
         }
 
-        private Task UpdatePackageDelivery(List<PackageModel> sellerPackages, string instanceId)
+        private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, string instanceId)
         {
             long orderId = sellerPackages.ElementAt(0).order_id;
             long sellerId = sellerPackages.ElementAt(0).seller_id;
@@ -119,25 +123,29 @@ namespace ShipmentMS.Service
             this.logger.LogWarning("Count delivery for shipment id {1}: {2} total of {3}",
                  shipment.order_id, countDelivered, shipment.package_count);
 
-            List<PackageInfo> packageInfos = new(sellerPackages.Count());
+            List<Task> tasks = new(sellerPackages.Count());
             var now = DateTime.Now;
             foreach (var package in sellerPackages)
             {
                 package.status = PackageStatus.delivered;
                 package.delivery_date = now;
 
-                packageInfos.Add(new PackageInfo(package.package_id, package.product_name));
+                var delivery = new DeliveryNotification(
+                    shipment.customer_id, package.order_id, package.package_id, package.seller_id,
+                    package.product_id, package.product_name, PackageStatus.delivered, now, instanceId);
+
+                tasks.Add(this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(DeliveryNotification), delivery));
             }
 
-            DeliveryNotification deliveryNotification = new DeliveryNotification(
-                shipment.customer_id, orderId, sellerId, packageInfos, PackageStatus.delivered, DateTime.Now, instanceId);
-
-            Task task = this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(DeliveryNotification), deliveryNotification);
-            
             if (shipment.package_count == countDelivered + sellerPackages.Count())
             {
                 this.logger.LogWarning("Delivery concluded for shipment id {1}", shipment.order_id);
                 shipment.status = ShipmentStatus.concluded;
+
+                ShipmentNotification shipmentNotification = new ShipmentNotification(
+                    shipment.customer_id, shipment.order_id, now, instanceId, ShipmentStatus.concluded);
+                tasks.Add( this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification) );
+
                 this.shipmentRepository.Update(shipment);
             }
             else
@@ -146,7 +154,7 @@ namespace ShipmentMS.Service
                      shipment.order_id, countDelivered + sellerPackages.Count(), shipment.package_count);
             }
 
-            return task;
+            await Task.WhenAll(tasks);
         }
 
     }

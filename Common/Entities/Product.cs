@@ -25,6 +25,8 @@
 
         public decimal price { get; set; }
 
+        public decimal freight_value { get; set; }
+
         // "2017-10-06T01:40:58.172415Z"
         public string created_at { get; set; } = "";
         public string updated_at { get; set; } = "";

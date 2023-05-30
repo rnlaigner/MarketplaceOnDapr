@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace SellerMS.Models
 {
 
-    [Table("product_entry_view")]
+    [Table("product_entries")]
     [PrimaryKey(nameof(product_id))]
     [Index(nameof(seller_id))]
-    public class ProductEntryViewModel
+    public class ProductEntry
 	{
         public long seller_id { get; set; }
 
@@ -26,7 +26,7 @@ namespace SellerMS.Models
         public decimal total_revenue { get; set; } = 0;
         public decimal total_discount { get; set; } = 0;
 
-        public ProductEntryViewModel()
+        public ProductEntry()
 		{
 		}
 	}

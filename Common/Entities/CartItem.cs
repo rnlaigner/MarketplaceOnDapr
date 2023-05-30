@@ -17,7 +17,11 @@ namespace Common.Entities
          decimal UnitPrice,
          decimal OldUnitPrice,
          decimal FreightValue,
-         int Quantity
+         int Quantity,
+        // Vouchers to be applied
+        // coupons for different sellers, usually attached to products
+        // but we don't formally track these in the benchmark
+        decimal[] Vouchers
      );
 }
 

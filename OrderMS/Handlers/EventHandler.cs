@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using OrderMS.Common.Repositories;
 using Microsoft.Extensions.Logging;
 using OrderMS.Handlers;
+using OrderMS.Services;
 
 namespace OrderMS.Controllers
 {
@@ -18,13 +19,13 @@ namespace OrderMS.Controllers
         private const string PUBSUB_NAME = "pubsub";
 
         private readonly DaprClient daprClient;
-        private readonly OrderService orderService;
+        private readonly IOrderService orderService;
 
         private readonly ILogger<EventHandler> logger;
 
-        public EventHandler(OrderService eventHandler,
-                                DaprClient daprClient,
-                                ILogger<EventHandler> logger)
+        public EventHandler(IOrderService eventHandler,
+                            DaprClient daprClient,
+                            ILogger<EventHandler> logger)
         {
             this.orderService = eventHandler;
             this.daprClient = daprClient;

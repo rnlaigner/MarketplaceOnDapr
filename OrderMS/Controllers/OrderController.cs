@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using OrderMS.Common.Repositories;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using OrderMS.Services;
 
 namespace OrderMS.Controllers;
 
@@ -18,10 +19,10 @@ namespace OrderMS.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly ILogger<OrderController> logger;
-    private readonly OrderService orderService;
+    private readonly IOrderService orderService;
     private readonly IOrderRepository orderRepository;
 
-    public OrderController(OrderService orderService, IOrderRepository orderRepository, ILogger<OrderController> logger)
+    public OrderController(IOrderService orderService, IOrderRepository orderRepository, ILogger<OrderController> logger)
     {
         this.orderService = orderService;
         this.orderRepository = orderRepository;

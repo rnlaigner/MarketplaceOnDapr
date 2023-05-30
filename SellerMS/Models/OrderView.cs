@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SellerMS.Models
 {
-	/*
-    [Table("order_view")]
-    [Index(nameof(seller_id), IsUnique = true, Name = "seller_index")]
-	*/
-    public class OrderViewModel
+
+    public class OrderView
 	{
 		public long seller_id { get; set; }
 
@@ -19,9 +16,9 @@ namespace SellerMS.Models
 		public decimal avg_order_value { get; set; }
 		public decimal avg_order_revenue { get; set; }
 
-        public OrderViewModel()
+        public OrderView()
 		{
 		}
 	}
-}
 
+}
