@@ -1,6 +1,8 @@
 ﻿using System;
 using Common.Entities;
 using Common.Events;
+using SellerMS.DTO;
+using SellerMS.Models;
 
 namespace SellerMS.Services
 {
@@ -13,6 +15,8 @@ namespace SellerMS.Services
         Task ProcessProductUpdate(Product product);
         Task ProcessShipmentNotification(ShipmentNotification shipmentNotification);
         Task ProcessStockItem(StockItem stockItem);
+
+        SellerDashboard QueryDashboard(long sellerId);
     }
 }
 

@@ -7,11 +7,12 @@ namespace Common.Events
     public record InvoiceIssued
     (
         CustomerCheckout customer,
-        long order_id,
-        string invoice_number,
-        decimal total_amount,
+        long orderId,
+        string invoiceNumber,
+        DateTime issueDate,
+        decimal totalAmount,
         IList<OrderItem> items,
-        string instanceId
+        string instanceId = ""
     );
 }
 

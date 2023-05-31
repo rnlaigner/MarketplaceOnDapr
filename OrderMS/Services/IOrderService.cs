@@ -12,7 +12,9 @@ namespace OrderMS.Services
 
         public Task<InvoiceIssued> ProcessCheckout(StockConfirmed checkout);
 
+        public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
 
+        public void ProcessPaymentFailed(PaymentFailed paymentFailed);
     }
 }
 

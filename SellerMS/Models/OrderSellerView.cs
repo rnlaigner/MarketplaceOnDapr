@@ -4,10 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace SellerMS.Models
 {
 
-    [Table("order_sellers")]
-    [PrimaryKey(nameof(order_id),nameof(seller_id))]
-    [Index(nameof(seller_id))]
-    public class OrderSeller
+    /**
+     * View
+     * Overview of orders in progress
+     * 
+     */
+    public class OrderSellerView
     {
         public long order_id { get; set; }
 
@@ -25,11 +27,7 @@ namespace SellerMS.Models
         public decimal total_invoice { get; set; } = 0;
         public decimal total_items { get; set; } = 0;
 
-        // from down below, all the same. could be normalized.... e.g., order_details table, shared across sellers
-        [ForeignKey("order_id")]
-        public OrderDetails details { get; set; }
-
-        public OrderSeller()
+        public OrderSellerView()
 		{
 		}
 	}

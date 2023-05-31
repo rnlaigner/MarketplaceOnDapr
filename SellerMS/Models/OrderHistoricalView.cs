@@ -4,7 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace SellerMS.Models
 {
 
-    public class OrderView
+    /**
+	 * Materialized view
+	 * Historical overview of orders
+	 * 
+	 */
+    public class OrderHistoricalView
 	{
 		public long seller_id { get; set; }
 
@@ -16,7 +21,7 @@ namespace SellerMS.Models
 		public decimal avg_order_value { get; set; }
 		public decimal avg_order_revenue { get; set; }
 
-        public OrderView()
+        public OrderHistoricalView()
 		{
 		}
 	}

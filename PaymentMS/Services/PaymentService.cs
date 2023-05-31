@@ -79,7 +79,7 @@ namespace PaymentMS.Services
 
             if (res)
             {
-                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.order_id, paymentRequest.total_amount, paymentRequest.items, paymentRequest.instanceId);
+                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalAmount, paymentRequest.items, paymentRequest.instanceId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
                 this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
             }
@@ -90,7 +90,7 @@ namespace PaymentMS.Services
                 // it seems the problem only happens in k8s:
                 // https://v1-0.docs.dapr.io/operations/components/component-schema/
                 // https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-mqtt3/
-                var paymentRes = new PaymentFailed("payment_failed", paymentRequest.customer, paymentRequest.order_id, paymentRequest.items, paymentRequest.total_amount, paymentRequest.instanceId);
+                var paymentRes = new PaymentFailed("payment_failed", paymentRequest.customer, paymentRequest.orderId, paymentRequest.items, paymentRequest.totalAmount, paymentRequest.instanceId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), paymentRes);
                 this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
             }
@@ -101,14 +101,14 @@ namespace PaymentMS.Services
 
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
             {
-                Amount = paymentRequest.total_amount,
+                Amount = paymentRequest.totalAmount,
                 Customer = paymentRequest.customer.CustomerId,
                 IdempotencyKey = paymentRequest.instanceId,
                 cardOptions = new()
                 {
                     Number = paymentRequest.customer.CardNumber,
                     Cvc = paymentRequest.customer.CardSecurityNumber,
-                    ExpMonth = paymentRequest.customer.CardExpiration, // TODO process
+                    ExpMonth = paymentRequest.customer.CardExpiration, // TODO parse
                     ExpYear = paymentRequest.customer.CardExpiration
                 }
             });
@@ -138,17 +138,17 @@ namespace PaymentMS.Services
                 {
                     var cardPaymentLine = new OrderPaymentModel()
                     {
-                        order_id = paymentRequest.order_id,
+                        order_id = paymentRequest.orderId,
                         payment_sequential = seq,
                         payment_type = cc ? PaymentType.CREDIT_CARD : PaymentType.DEBIT_CARD,
                         payment_installments = paymentRequest.customer.Installments,
-                        payment_value = paymentRequest.total_amount
+                        payment_value = paymentRequest.totalAmount
                     };
 
                     // create an entity for credit card payment details with FK to order payment
                     OrderPaymentCardModel card = new()
                     {
-                        order_id = paymentRequest.order_id,
+                        order_id = paymentRequest.orderId,
                         payment_sequential = seq,
                         card_number = paymentRequest.customer.CardNumber,
                         card_holder_name = paymentRequest.customer.CardHolderName,
@@ -168,11 +168,11 @@ namespace PaymentMS.Services
                 {
                     paymentLines.Add(new OrderPaymentModel()
                     {
-                        order_id = paymentRequest.order_id,
+                        order_id = paymentRequest.orderId,
                         payment_sequential = seq,
                         payment_type = PaymentType.BOLETO,
                         payment_installments = 1,
-                        payment_value = paymentRequest.total_amount
+                        payment_value = paymentRequest.totalAmount
                     });
                     seq++;
                 }
@@ -180,16 +180,15 @@ namespace PaymentMS.Services
                 // then one line for each voucher
                 foreach(var item in paymentRequest.items)
                 {
-                    // discount was applied
-                    if(item.total_items > item.total_amount)
+                    foreach(var voucher in item.vouchers)
                     {
                         paymentLines.Add(new OrderPaymentModel()
                         {
-                            order_id = paymentRequest.order_id,
+                            order_id = paymentRequest.orderId,
                             payment_sequential = seq,
                             payment_type = PaymentType.VOUCHER,
                             payment_installments = 1,
-                            payment_value = item.total_items - item.total_amount
+                            payment_value = voucher
                         });
                         seq++;
                     }

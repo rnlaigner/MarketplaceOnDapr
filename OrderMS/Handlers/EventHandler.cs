@@ -59,22 +59,22 @@ namespace OrderMS.Controllers
             this.logger.LogInformation("[ProcessCheckoutRequest] processed {0}.", shipmentNotification.instanceId);
         }
 
-        [HttpPost("ProcessPaymentConfirmation")]
+        [HttpPost("ProcessPaymentConfirmed")]
         [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-        public void ProcessPaymentConfirmation(PaymentConfirmed paymentConfirmation)
+        public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
-            this.logger.LogInformation("[PaymentConfirmation] received {0}.", paymentConfirmation.instanceId);
-            // this.orderService.ProcessShipmentNotification(shipmentNotification);
-            this.logger.LogInformation("[PaymentConfirmation] processed {0}.", paymentConfirmation.instanceId);
+            this.logger.LogInformation("[PaymentConfirmation] received {0}.", paymentConfirmed.instanceId);
+            this.orderService.ProcessPaymentConfirmed(paymentConfirmed);
+            this.logger.LogInformation("[PaymentConfirmation] processed {0}.", paymentConfirmed.instanceId);
         }
 
-        [HttpPost("ProcessPaymentFailure")]
+        [HttpPost("ProcessPaymentFailed")]
         [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
-        public void ProcessPaymentFailure(PaymentFailed paymentFailure)
+        public void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
-            this.logger.LogInformation("[PaymentFailure] received {0}.", paymentFailure.instanceId);
-            // this.orderService.ProcessShipmentNotification(shipmentNotification);
-            this.logger.LogInformation("[PaymentFailure] processed {0}.", paymentFailure.instanceId);
+            this.logger.LogInformation("[PaymentFailure] received {0}.", paymentFailed.instanceId);
+            this.orderService.ProcessPaymentFailed(paymentFailed);
+            this.logger.LogInformation("[PaymentFailure] processed {0}.", paymentFailed.instanceId);
         }
 
     }

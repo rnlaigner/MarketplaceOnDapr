@@ -28,11 +28,13 @@
     <None Remove="Services\" />
     <None Remove="Repositories\" />
     <None Remove="Infra\" />
+    <None Remove="DTO\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Services\" />
     <Folder Include="Repositories\" />
     <Folder Include="Infra\" />
+    <Folder Include="DTO\" />
   </ItemGroup>
 </Project>

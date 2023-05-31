@@ -13,9 +13,10 @@ namespace Common.Entities
 
         public long seller_id { get; set; }
 
+        // prices change over time
         public decimal unit_price { get; set; }
 
-        public string? shipping_limit_date { get; set; }
+        public DateTime? shipping_limit_date { get; set; }
 
         public decimal freight_value { get; set; }
 
@@ -27,6 +28,10 @@ namespace Common.Entities
 
         // without freight value
         public decimal total_amount { get; set; }
+
+        //
+        public decimal[] vouchers { get; set; } = Array.Empty<decimal>();
+
     }
 }
 

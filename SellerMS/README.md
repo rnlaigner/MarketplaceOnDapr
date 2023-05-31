@@ -1,4 +1,19 @@
-﻿Two approaches for maintaining the seller views:
+﻿Seller views:
+
+OrderSellerView -> Orders in progress...
+INVOICED and IN_TRANSIT
+
+OrderEntries -> Packages in progress...
+created, shipped
+
+ProductView -> most popular products... can take items from here to update price...
+Products that may need replenishment
+
+Historical:
+Overall historical orders
+Overall historical shipments
+
+Two approaches for maintaining the seller views:
 
 1. calculating average in memory (customized code) and saving in the db. pushing count to the database
     we can do fully optimized code, that is not what we are competing with

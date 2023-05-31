@@ -169,7 +169,7 @@ namespace OrderMS.Handlers
                 // a sense of how much orders this customer has made by simply looking at patterns in
                 // the invoice. the format <customer_id>-<long_date>-total_orders+1 can be represented like:
                 // 50-20220928-001
-                // it is inefficient to get count(*) on customer orders. better to have a table
+                // it is inefficient to get count(*) on customer orders. better to have a table like tpc-c does for next_order_id
 
                 var customer_order = this.dbContext.CustomerOrders
                                     .FromSqlRaw(String.Format("SELECT * from customer_orders where customer_id = {0} FOR UPDATE", checkout.customerCheckout.CustomerId))
@@ -243,7 +243,8 @@ namespace OrderMS.Handlers
 
                     dbContext.OrderItems.Add(oim);
 
-                    orderItems.Add(AsOrderItem(oim));
+                    // vouchers to payment can process
+                    orderItems.Add(AsOrderItem(oim, item.Vouchers));
 
                     id++;
                 }
@@ -260,7 +261,7 @@ namespace OrderMS.Handlers
                 this.dbContext.SaveChanges();
 
                 InvoiceIssued invoice = new InvoiceIssued(checkout.customerCheckout, orderTrack.Entity.id,  newOrder.invoice_number,
-                    total_amount, orderItems, checkout.instanceId);
+                    now, total_amount, orderItems, checkout.instanceId);
 
                 // publish
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(InvoiceIssued), invoice);
@@ -271,7 +272,7 @@ namespace OrderMS.Handlers
             }
 		}
 
-        private OrderItem AsOrderItem(OrderItemModel orderItem)
+        private OrderItem AsOrderItem(OrderItemModel orderItem, decimal[] vouchers)
         {
             return new()
             {
@@ -283,7 +284,9 @@ namespace OrderMS.Handlers
                 unit_price = orderItem.unit_price,
                 quantity = orderItem.quantity,
                 total_items = orderItem.total_items,
-                total_amount = orderItem.total_amount
+                total_amount = orderItem.total_amount,
+                shipping_limit_date = orderItem.shipping_limit_date,
+                vouchers = vouchers
             };
         }
 
@@ -302,6 +305,28 @@ namespace OrderMS.Handlers
                 total_invoice = orderModel.total_invoice,
                 count_items = orderModel.count_items,
             }; 
+        }
+
+        public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
+        {
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                OrderModel order = orderRepository.GetOrderForUpdate(paymentConfirmed.orderId);
+                order.status = OrderStatus.PAYMENT_PROCESSED;
+                this.dbContext.SaveChanges();
+                txCtx.Commit();
+            }
+        }
+
+        public void ProcessPaymentFailed(PaymentFailed paymentFailed)
+        {
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                OrderModel order = orderRepository.GetOrderForUpdate(paymentFailed.orderId);
+                order.status = OrderStatus.PAYMENT_FAILED;
+                this.dbContext.SaveChanges();
+                txCtx.Commit();
+            }
         }
 
     }

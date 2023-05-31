@@ -44,7 +44,7 @@ namespace ShipmentMS.Service
 
             ShipmentModel shipment = new()
             {
-                order_id = paymentConfirmed.order_id,
+                order_id = paymentConfirmed.orderId,
                 customer_id = paymentConfirmed.customer.CustomerId,
                 package_count = items.Count,
                 total_freight_value = items.Sum(i => i.freight_value),
@@ -54,7 +54,7 @@ namespace ShipmentMS.Service
                 last_name = paymentConfirmed.customer.LastName,
                 street = paymentConfirmed.customer.Street,
                 complement = paymentConfirmed.customer.Complement,
-                zip_code_prefix = paymentConfirmed.customer.ZipCode,
+                zip_code = paymentConfirmed.customer.ZipCode,
                 city = paymentConfirmed.customer.City,
                 state = paymentConfirmed.customer.State
             };
@@ -66,7 +66,7 @@ namespace ShipmentMS.Service
 
                 PackageModel package = new()
                 {
-                    order_id = paymentConfirmed.order_id,
+                    order_id = paymentConfirmed.orderId,
                     package_id = package_id,
                     status = PackageStatus.shipped,
                     freight_value = item.freight_value,
@@ -83,7 +83,7 @@ namespace ShipmentMS.Service
             }
 
             // enqueue shipment notification
-            ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.order_id, now, paymentConfirmed.instanceId);
+            ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
         }
 
@@ -111,10 +111,14 @@ namespace ShipmentMS.Service
             ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
             if (shipment is null) throw new Exception("Shipment ID " + orderId + " cannot be found in the database!");
 
-            if(shipment.status == ShipmentStatus.approved)
+            var now = DateTime.Now;
+            if (shipment.status == ShipmentStatus.approved)
             {
                 shipment.status = ShipmentStatus.delivery_in_progress;
                 this.shipmentRepository.Update(shipment);
+                ShipmentNotification shipmentNotification = new ShipmentNotification(
+                        shipment.customer_id, shipment.order_id, now, instanceId, shipment.status);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
             }
 
             // aggregate operation
@@ -124,7 +128,6 @@ namespace ShipmentMS.Service
                  shipment.order_id, countDelivered, shipment.package_count);
 
             List<Task> tasks = new(sellerPackages.Count());
-            var now = DateTime.Now;
             foreach (var package in sellerPackages)
             {
                 package.status = PackageStatus.delivered;
@@ -141,12 +144,11 @@ namespace ShipmentMS.Service
             {
                 this.logger.LogWarning("Delivery concluded for shipment id {1}", shipment.order_id);
                 shipment.status = ShipmentStatus.concluded;
+                this.shipmentRepository.Update(shipment);
 
                 ShipmentNotification shipmentNotification = new ShipmentNotification(
                     shipment.customer_id, shipment.order_id, now, instanceId, ShipmentStatus.concluded);
                 tasks.Add( this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification) );
-
-                this.shipmentRepository.Update(shipment);
             }
             else
             {

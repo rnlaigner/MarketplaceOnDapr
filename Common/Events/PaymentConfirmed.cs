@@ -6,8 +6,8 @@ namespace Common.Events
     public record PaymentConfirmed
     (
         CustomerCheckout customer,
-        long order_id,
-        decimal total_amount,
+        long orderId,
+        decimal totalAmount,
         IList<OrderItem> items,
         string instanceId
     );

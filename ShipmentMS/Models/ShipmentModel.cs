@@ -29,7 +29,7 @@ namespace ShipmentMS.Models
 
         public string complement { get; set; }
 
-        public string zip_code_prefix { get; set; }
+        public string zip_code { get; set; }
 
         public string city { get; set; }
 

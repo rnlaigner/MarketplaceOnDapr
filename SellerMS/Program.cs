@@ -35,11 +35,15 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
 
-    context.Database.ExecuteSqlRaw(SellerDbContext.OrderViewSql);
-    context.Database.ExecuteSqlRaw(SellerDbContext.OrderViewSqlIndex);
+    /*
+    context.Database.ExecuteSqlRaw(SellerDbContext.OrderHistoricalViewSql);
+    context.Database.ExecuteSqlRaw(SellerDbContext.OrderHistoricalViewSqlIndex);
 
-    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentViewSql);
-    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentViewSqlIndex);
+    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentHistoricalViewSql);
+    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentHistoricalViewSqlIndex);
+    */
+    context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSql);
+    context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSqlIndex);
 }
 
 app.MapControllers();

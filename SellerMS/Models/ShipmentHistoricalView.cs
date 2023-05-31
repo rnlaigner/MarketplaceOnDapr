@@ -4,7 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace SellerMS.Models
 {
 
-    public class ShipmentView
+	/**
+	 * Materialized view
+	 * Historical overview of shipments
+	 */
+    public class ShipmentHistoricalView
 	{
 		public long seller_id { get; set; }
 
@@ -15,7 +19,7 @@ namespace SellerMS.Models
 		public decimal total_freight_amount { get; set; }
         // avg lateness per order and item?
 
-        public ShipmentView()
+        public ShipmentHistoricalView()
 		{
 		}
 	}

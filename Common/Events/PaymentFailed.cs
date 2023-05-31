@@ -5,11 +5,11 @@ namespace Common.Events
 {
     public record PaymentFailed
     (
-        string Status,
+        string status,
         CustomerCheckout customer,
-        long order_id,
+        long orderId,
         IList<OrderItem> items,
-        decimal total_amount,
+        decimal totalAmount,
         string instanceId
     );
 }

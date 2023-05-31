@@ -2,10 +2,12 @@
 namespace Common.Entities
 {
     /**
-     * Entity not present in olist original data set
-     * Thus, the basket item entity is derived from
-     * the needs to process the order.
-     * This could include the freight value...
+     * Ideally it would be nice to separate the cart item submitted by the customer worker
+     * and the actual data object stored by the cart. In other words,
+     * some data is not necessary for the customer to know about, such as
+     * oldunitprice, sellerid, sku, these are assembled on checkout based on the stored/replicated product information
+     * The customer must submit an object with:
+     * vouchers, productid, unitprice, 
      */
      public record CartItem
      (
