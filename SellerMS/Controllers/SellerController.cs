@@ -1,4 +1,6 @@
-﻿using Common.Events;
+﻿using Common.Entities;
+using System.Net;
+using Common.Events;
 using Microsoft.AspNetCore.Mvc;
 using SellerMS.DTO;
 using SellerMS.Services;
@@ -16,6 +18,28 @@ public class SellerController : ControllerBase
     {
         this.sellerService = sellerService;
         this.logger = logger;
+    }
+
+    [HttpPost]
+    [ProducesResponseType((int)HttpStatusCode.Created)]
+    public IActionResult AddSeller([FromBody] Seller seller)
+    {
+        this.logger.LogInformation("[AddCustomer] received for seller {0}", seller.id);
+        this.sellerService.AddSeller(seller);
+        this.logger.LogInformation("[AddCustomer] completed for seller {0}.", seller.id);
+        return StatusCode((int)HttpStatusCode.Created);
+    }
+
+    [HttpGet(Name = "GetSeller")]
+    [ProducesResponseType((int)HttpStatusCode.Found)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public ActionResult<Seller> GetSeller([FromBody] long id)
+    {
+        this.logger.LogInformation("[GetSeller] received for seller {0}", id);
+        var seller = this.sellerService.GetSeller(id);
+        this.logger.LogInformation("[GetSeller] completed for seller {0}.", id);
+        if(seller is not null) return StatusCode((int)HttpStatusCode.Found, seller);
+        return NotFound();
     }
 
     [HttpGet]

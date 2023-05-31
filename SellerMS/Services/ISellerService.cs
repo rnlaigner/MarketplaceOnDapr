@@ -8,6 +8,9 @@ namespace SellerMS.Services
 {
     public interface ISellerService
     {
+        void AddSeller(Seller seller);
+        Seller GetSeller(long id);
+
         Task ProcessDeliveryNotification(DeliveryNotification deliveryNotification);
         Task ProcessNewInvoice(InvoiceIssued invoiceIssued);
         Task ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);

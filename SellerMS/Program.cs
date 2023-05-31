@@ -5,7 +5,7 @@ using SellerMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<SellerDbContext>();
+builder.Services.AddDbContextFactory<SellerDbContext>();
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 builder.Services.AddScoped<ISellerService, SellerService>();
 

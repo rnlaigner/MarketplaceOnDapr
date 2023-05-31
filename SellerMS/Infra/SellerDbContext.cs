@@ -12,14 +12,16 @@ namespace SellerMS.Infra
     public class SellerDbContext : DbContext
     {
 
+        public DbSet<SellerModel> Sellers => Set<SellerModel>();
+
         public DbSet<OrderEntry> OrderEntries => Set<OrderEntry>();
         public DbSet<OrderEntryDetails> OrderEntryDetails => Set<OrderEntryDetails>();
 
-        public DbSet<OrderHistoricalView> OrderHistoricalView => Set<OrderHistoricalView>();
+        // public DbSet<OrderHistoricalView> OrderHistoricalView => Set<OrderHistoricalView>();
 
         public DbSet<OrderSellerView> OrderSellerView => Set<OrderSellerView>();
         
-        public DbSet<ShipmentHistoricalView> ShipmentHistoricalView => Set<ShipmentHistoricalView>();
+        // public DbSet<ShipmentHistoricalView> ShipmentHistoricalView => Set<ShipmentHistoricalView>();
         
         // public DbSet<ProductEntry> ProductEntries => Set<ProductEntry>();
 
@@ -88,6 +90,7 @@ namespace SellerMS.Infra
                        .HasConversion<string>();
             });
 
+            // https://stackoverflow.com/questions/7437952/map-string-column-in-entity-framework-to-enum
             modelBuilder.Entity<OrderEntryDetails>().Property(e => e.status).HasConversion<string>();
 
             // modelBuilder.Entity<OrderEntryViewModel>
