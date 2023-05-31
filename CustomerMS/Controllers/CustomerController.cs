@@ -22,7 +22,7 @@ public class CustomerController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpPost]
+    [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public IActionResult AddCustomer([FromBody] Customer customer)
     {
@@ -32,7 +32,7 @@ public class CustomerController : ControllerBase
         return StatusCode((int)HttpStatusCode.Created);
     }
 
-    [HttpGet(Name = "GetCustomer")]
+    [HttpGet("/")]
     [ProducesResponseType((int)HttpStatusCode.Found)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult<Customer>> GetCustomerAsync([FromBody] long id)

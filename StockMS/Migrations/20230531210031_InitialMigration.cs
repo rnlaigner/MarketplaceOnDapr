@@ -25,6 +25,7 @@ namespace StockMS.Migrations
                     ytd = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    active = table.Column<bool>(type: "boolean", nullable: false),
                     data = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -33,9 +34,20 @@ namespace StockMS.Migrations
                     table.CheckConstraint("CK_StockItem_QtyAvailable", "qty_available >= 0");
                     table.CheckConstraint("CK_StockItem_QtyReserved", "qty_reserved >= 0");
                     table.CheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "qty_reserved <= qty_available");
-                }
-            );
+                });
 
+            migrationBuilder.CreateTable(
+                name: "stock_tracking",
+                columns: table => new
+                {
+                    instanceId = table.Column<string>(type: "text", nullable: false),
+                    operation = table.Column<int>(type: "integer", nullable: false),
+                    success = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_stock_tracking", x => x.instanceId);
+                });
         }
 
         /// <inheritdoc />
@@ -43,6 +55,9 @@ namespace StockMS.Migrations
         {
             migrationBuilder.DropTable(
                 name: "stock_items");
+
+            migrationBuilder.DropTable(
+                name: "stock_tracking");
         }
     }
 }

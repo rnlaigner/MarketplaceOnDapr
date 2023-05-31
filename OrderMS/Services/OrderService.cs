@@ -49,72 +49,39 @@ namespace OrderMS.Handlers
             this.logger = logger;
         }
 
-        public void ProcessShipmentNotification(ShipmentNotification notification)
+        public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
         {
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                OrderModel order = orderRepository.GetOrderForUpdate(notification.orderId);
-                order.status = OrderStatus.IN_TRANSIT;
-                order.updated_at = DateTime.Now;
-                this.dbContext.SaveChanges();
-                txCtx.Commit();
-            }
-        }
-        /**
-         * Providing exactly-once for this case is tricky. The update transaction in shipment can fail in the middle,
-         * but some events may have already been generated. In case the update is triggered again, the delivery notifications will be generated again
-         * (so we can ensure idempotency here) but if the update never triggers again, the delivery updates generated here will be inconsistent with the shipment.
-         */
-        public void ProcessDeliveryNotification(DeliveryNotification notification)
-        {
-            using (var txCtx = dbContext.Database.BeginTransaction())
-            {
-                
-                // check if this event has already been delivered
-                OrderHistoryModel orderHistory = this.dbContext.OrderHistory.Where(c => c.instanceId == notification.instanceId).First();
-                if(orderHistory is not null)
-                {
-                    this.logger.LogInformation("[ProcessDeliveryNotification] Event already processed before. InstanceId {0}", notification.instanceId);
-                    return;
-                }
+                OrderModel order = orderRepository.GetOrderForUpdate(shipmentNotification.orderId);
 
                 DateTime now = DateTime.Now;
 
-                orderHistory = new()
-                {
-                    order_id = notification.orderId,
-                    created_at = now,
-                    instanceId = notification.instanceId,
-                    packageStatus = PackageStatus.delivered,
+                OrderStatus orderStatus = OrderStatus.READY_FOR_SHIPMENT;
+                if (shipmentNotification.status == ShipmentStatus.delivery_in_progress) orderStatus = OrderStatus.IN_TRANSIT;
+                if (shipmentNotification.status == ShipmentStatus.concluded) orderStatus = OrderStatus.DELIVERED;
 
+                OrderHistoryModel orderHistory = new()
+                {
+                    order_id = shipmentNotification.orderId,
+                    created_at = now,
+                    orderStatus = orderStatus
                 };
 
-                this.dbContext.OrderHistory.Add(orderHistory);
+                order.status = orderStatus;
+                order.updated_at = now;
 
-                OrderModel order = orderRepository.GetOrderForUpdate(notification.orderId);
-
-                order.count_delivered_items += 1;
-
-                if (order.count_delivered_items == order.count_items)
+                if(order.status == OrderStatus.DELIVERED)
                 {
-                    order.status = OrderStatus.DELIVERED;
-                    this.dbContext.Orders.Update(order);
-                    OrderHistoryModel orderHistoryStatusUpdate = new()
-                    {
-                        order_id = notification.orderId,
-                        created_at = now,
-                        instanceId = notification.instanceId,
-                        orderStatus = OrderStatus.DELIVERED
-
-                    };
-                    this.dbContext.OrderHistory.Add(orderHistoryStatusUpdate);
+                    order.delivered_customer_date = shipmentNotification.eventDate;
                 }
+
+                dbContext.Orders.Update(order);
+                dbContext.OrderHistory.Add(orderHistory);
 
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
-
             }
-            this.logger.LogInformation("[ProcessDeliveryNotification] Event processed. InstanceId {0}", notification.instanceId);
         }
 
         // for workflow
@@ -255,7 +222,7 @@ namespace OrderMS.Handlers
                     order_id = orderTrack.Entity.id,
                     created_at = newOrder.created_at,
                     orderStatus = OrderStatus.INVOICED,
-                    data = JsonSerializer.Serialize(checkout.customerCheckout)
+                    // data = JsonSerializer.Serialize(checkout.customerCheckout)
                 });
 
                 this.dbContext.SaveChanges();
@@ -313,6 +280,8 @@ namespace OrderMS.Handlers
             {
                 OrderModel order = orderRepository.GetOrderForUpdate(paymentConfirmed.orderId);
                 order.status = OrderStatus.PAYMENT_PROCESSED;
+                order.payment_date = paymentConfirmed.date;
+                dbContext.Orders.Update(order);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
             }
@@ -324,6 +293,7 @@ namespace OrderMS.Handlers
             {
                 OrderModel order = orderRepository.GetOrderForUpdate(paymentFailed.orderId);
                 order.status = OrderStatus.PAYMENT_FAILED;
+                dbContext.Orders.Update(order);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
             }

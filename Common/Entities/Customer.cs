@@ -39,13 +39,13 @@ namespace Common.Entities
         public string card_type { get; set; } = "";
 
         // statistics
-        public int success_payment_count { get; set; }
+        public int success_payment_count { get; set; } = 0;
 
-        public int failed_payment_count { get; set; }
+        public int failed_payment_count { get; set; } = 0;
 
         // public int pending_deliveries_count { get; set; }
 
-        public int delivery_count { get; set; }
+        public int delivery_count { get; set; } = 0;
 
         // public int abandoned_cart_count { get; set; }
 
@@ -54,7 +54,7 @@ namespace Common.Entities
         // public decimal total_spent_freights { get; set; }
 
         // additional
-        public string data { get; set; }
+        public string data { get; set; } = "";
 
     }
 }

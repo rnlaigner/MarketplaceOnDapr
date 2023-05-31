@@ -12,7 +12,7 @@ using PaymentMS.Infra;
 namespace PaymentMS.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20230512094331_InitialMigration")]
+    [Migration("20230531204707_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />

@@ -20,7 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<TransactionalInterceptor>(); // Register the interceptor
+builder.Services.AddScoped<TransactionalInterceptor>(); // Register the interceptor
 builder.Services.AddSingleton<ProxyGenerator>(); // Register the proxy generator
 
 // Configure the proxy generation for classes marked with the [Transactional] attribute

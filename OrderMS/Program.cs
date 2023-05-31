@@ -44,7 +44,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<OrderDbContext>();
-    // context.Database.EnsureDeleted();
+    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
     // DbInitializer.Initialize(context);
 
@@ -53,6 +53,7 @@ using (var scope = app.Services.CreateScope())
     if (order is not null) context.Orders.Remove(order);
     */
 
+    /*
     context.Orders.Add(new OrderModel()
     {
         // id = 1,
@@ -63,6 +64,7 @@ using (var scope = app.Services.CreateScope())
         instanceId = "test"
     });
     context.SaveChanges();
+    */
 }
 
 app.MapControllers();

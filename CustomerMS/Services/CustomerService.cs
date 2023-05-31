@@ -28,20 +28,27 @@ namespace CustomerMS.Services
             return await daprClient.GetStateAsync<Customer>(StoreName, id.ToString());
         }
 
-        public void ProcessDeliveryNotification(DeliveryNotification paymentConfirmed)
+        public async void ProcessDeliveryNotification(DeliveryNotification deliveryNotification)
         {
-            throw new NotImplementedException();
+            Customer customer = await daprClient.GetStateAsync<Customer>(StoreName, deliveryNotification.customerId);
+            customer.delivery_count++;
+            await daprClient.SaveStateAsync(StoreName, deliveryNotification.customerId, customer);
         }
 
-        public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
+        public async void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
-            throw new NotImplementedException();
+            Customer customer = await daprClient.GetStateAsync<Customer>(StoreName, paymentConfirmed.customer.CustomerId);
+            customer.success_payment_count++;
+            await daprClient.SaveStateAsync(StoreName, paymentConfirmed.customer.CustomerId, customer);
         }
 
-        public void ProcessPaymentFailed(PaymentFailed paymentFailed)
+        public async void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
-            throw new NotImplementedException();
+            Customer customer = await daprClient.GetStateAsync<Customer>(StoreName, paymentFailed.customer.CustomerId);
+            customer.failed_payment_count++;
+            await daprClient.SaveStateAsync(StoreName, paymentFailed.customer.CustomerId, customer);
         }
+
     }
 }
 

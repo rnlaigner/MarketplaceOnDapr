@@ -42,7 +42,7 @@ public class StockController : ControllerBase
         });
     }
 
-    [HttpPost]
+    [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public IActionResult AddStockItem([FromBody] StockItem stockItem, [FromHeader(Name = "instanceId")] string instanceId)
     {
@@ -70,8 +70,9 @@ public class StockController : ControllerBase
         // this.logger.LogInformation("[UpdatePrice] completed for instanceId {0}", priceUpdate.instanceId);
     }
 
+    [HttpPost("BulkProductStreaming")]
     [BulkSubscribe("BulkProductStreaming")]
-    [Topic(PUBSUB_NAME, nameof(Product))]
+    [Topic(PUBSUB_NAME, "products")]
     public async Task<ActionResult<BulkSubscribeAppResponse>> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages)
     {
 

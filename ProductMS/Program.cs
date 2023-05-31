@@ -47,7 +47,7 @@ if (!sharedState)
     {
         var services = scope.ServiceProvider;
         var context = services.GetRequiredService<ProductDbContext>();
-        // context.Database.EnsureDeleted();
+        context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
     }
 }

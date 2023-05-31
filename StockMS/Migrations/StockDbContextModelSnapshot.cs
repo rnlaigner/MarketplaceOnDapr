@@ -30,6 +30,9 @@ namespace StockMS.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("product_id"));
 
+                    b.Property<bool>("active")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
@@ -58,12 +61,28 @@ namespace StockMS.Migrations
 
                     b.ToTable("stock_items", t =>
                         {
-                            t.HasCheckConstraint("CK_StockItem_QtyAvailable", "[qty_available] >= 0");
+                            t.HasCheckConstraint("CK_StockItem_QtyAvailable", "qty_available >= 0");
 
-                            t.HasCheckConstraint("CK_StockItem_QtyReserved", "[qty_reserved] >= 0");
+                            t.HasCheckConstraint("CK_StockItem_QtyReserved", "qty_reserved >= 0");
 
-                            t.HasCheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "[qty_reserved] <= [qty_available]");
+                            t.HasCheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "qty_reserved <= qty_available");
                         });
+                });
+
+            modelBuilder.Entity("StockMS.Models.StockTracking", b =>
+                {
+                    b.Property<string>("instanceId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("operation")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("success")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("instanceId");
+
+                    b.ToTable("stock_tracking");
                 });
 #pragma warning restore 612, 618
         }

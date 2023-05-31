@@ -79,7 +79,7 @@ namespace PaymentMS.Services
 
             if (res)
             {
-                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalAmount, paymentRequest.items, paymentRequest.instanceId);
+                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalAmount, paymentRequest.items, DateTime.Today, paymentRequest.instanceId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
                 this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
             }

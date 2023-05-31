@@ -57,7 +57,7 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpPost]
+    [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public async Task<IActionResult> AddProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)
@@ -72,7 +72,7 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpPut]
+    [HttpPut("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public async Task<IActionResult> UpdateProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)
@@ -87,7 +87,7 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpPut]
+    [HttpPut("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public async Task<IActionResult> DeleteProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)

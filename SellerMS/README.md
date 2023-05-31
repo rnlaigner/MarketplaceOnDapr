@@ -1,4 +1,7 @@
-﻿In a marketplace it is usually the case sellers have a kind of dashboard (usually after login) to get info about their sales.
+﻿dotnet ef migrations add InitialMigration -c SellerDbContext
+dapr run --app-port 5006 --app-id payment --app-protocol http --dapr-http-port 3506 -- dotnet run --project SellerMS.csproj
+
+In a marketplace it is usually the case sellers have a kind of dashboard (usually after login) to get info about their sales.
 For instance, a dashboard presents important information about the operation of a given seller, such as the revenue aggregated
 by time, top-10 items with less number of stock, the most popular products, the open orders, etc
 

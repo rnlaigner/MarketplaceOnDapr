@@ -102,3 +102,15 @@ if `echo "$*" | grep -q customer`; then
         end tell'
     fi
 fi
+
+if `echo "$*" | grep -q product`; then
+    p=`dapr list | grep -c product`
+    if [ $p = $var1 ]
+    then
+        echo "product already running"
+    else
+        osascript -e 'tell app "Terminal"
+            do script "dapr run --app-port 5008 --app-id product --app-protocol http --dapr-http-port 3508 -- dotnet run --project '$current_dir'/ProductMS/ProductMS.csproj"
+        end tell'
+    fi
+fi

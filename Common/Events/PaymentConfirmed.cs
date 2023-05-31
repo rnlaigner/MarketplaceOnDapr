@@ -9,6 +9,7 @@ namespace Common.Events
         long orderId,
         decimal totalAmount,
         IList<OrderItem> items,
+        DateTime date,
         string instanceId
     );
 }

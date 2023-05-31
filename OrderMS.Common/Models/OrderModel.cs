@@ -38,8 +38,6 @@ namespace OrderMS.Common.Models
 
         public int count_items { get; set; }
 
-        public int count_delivered_items { get; set; }
-
         public DateTime created_at { get; set; } = DateTime.Now;
 
         public DateTime? updated_at { get; set; }
