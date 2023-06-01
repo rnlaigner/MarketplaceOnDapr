@@ -12,13 +12,11 @@
     <PackageReference Include="Dapr.AspNetCore" Version="1.10.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Handlers\" />
     <None Remove="Properties\" />
     <None Remove="Infra\" />
     <None Remove="Workflows\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Handlers\" />
     <Folder Include="Properties\" />
     <Folder Include="Infra\" />
     <Folder Include="Workflows\" />

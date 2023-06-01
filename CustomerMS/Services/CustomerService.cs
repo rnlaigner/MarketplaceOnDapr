@@ -1,6 +1,7 @@
 ﻿using System;
 using Common.Entities;
 using Common.Events;
+using CustomerMS.Repositories;
 using Dapr.Client;
 
 namespace CustomerMS.Services
@@ -10,11 +11,13 @@ namespace CustomerMS.Services
         public const string StoreName = "statestore";
 
         private readonly DaprClient daprClient;
+        private readonly ICustomerRepository customerRepository;
         private readonly ILogger<CustomerService> logger;
 
-        public CustomerService(DaprClient daprCLient, ILogger<CustomerService> logger)
+        public CustomerService(DaprClient daprCLient, ICustomerRepository customerRepository, ILogger<CustomerService> logger)
 		{
             this.daprClient = daprCLient;
+            this.customerRepository = customerRepository;
             this.logger = logger;
 		}
 
@@ -30,23 +33,17 @@ namespace CustomerMS.Services
 
         public async void ProcessDeliveryNotification(DeliveryNotification deliveryNotification)
         {
-            Customer customer = await daprClient.GetStateAsync<Customer>(StoreName, deliveryNotification.customerId);
-            customer.delivery_count++;
-            await daprClient.SaveStateAsync(StoreName, deliveryNotification.customerId, customer);
+            await this.customerRepository.IncreaseDeliveryAtomically(deliveryNotification.customerId);
         }
 
         public async void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
-            Customer customer = await daprClient.GetStateAsync<Customer>(StoreName, paymentConfirmed.customer.CustomerId);
-            customer.success_payment_count++;
-            await daprClient.SaveStateAsync(StoreName, paymentConfirmed.customer.CustomerId, customer);
+            await this.customerRepository.IncreasePaymentSuccessCount(paymentConfirmed);
         }
 
         public async void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
-            Customer customer = await daprClient.GetStateAsync<Customer>(StoreName, paymentFailed.customer.CustomerId);
-            customer.failed_payment_count++;
-            await daprClient.SaveStateAsync(StoreName, paymentFailed.customer.CustomerId, customer);
+            await this.customerRepository.IncreasePaymentFailureCount(paymentFailed);
         }
 
     }

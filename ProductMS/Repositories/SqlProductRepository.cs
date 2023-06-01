@@ -16,33 +16,32 @@ namespace ProductMS.Repositories
 
         public void Delete(ProductModel product)
         {
-            this.dbContext.Products.Remove(product);
+            product.active = false;
+            product.updated_at = DateTime.Now;
+            this.dbContext.Products.Update(product);
+            this.dbContext.SaveChanges();
         }
 
-        public ProductModel? GetProduct(long id)
+        public ProductModel? GetProduct(long sellerId, long productId)
         {
-            return this.dbContext.Products.Find(id);
+            var product = this.dbContext.Products.Find(sellerId, productId);
+            if (product is not null && product.active) return product;
+            return null;
         }
 
         public void Insert(ProductModel product)
         {
+            product.created_at = DateTime.Now;
             this.dbContext.Products.Add(product);
+            this.dbContext.SaveChanges();
         }
 
         public void Update(ProductModel product)
         {
+            product.updated_at = DateTime.Now;
             this.dbContext.Products.Update(product);
+            this.dbContext.SaveChanges();
         }
-
-        /*
-        public ProductModel UpdatePrice(long productId, decimal newPrice)
-        {
-            var product = this.dbContext.Products.Find(productId);
-            if (product is null) throw new Exception("Product ID "+ productId +" cannot be found in the database.");
-            product.price = newPrice;
-            return product;
-        }
-        */
 
     }
 }

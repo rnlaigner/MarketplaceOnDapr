@@ -28,7 +28,7 @@ namespace StockMS.Services
 
         public void ProcessProductUpdates(List<Product> products)
         {
-            var itemsToDelete = products.Where(p => !p.active).Select(p=>p.id).ToList();
+            var itemsToDelete = products.Where(p => !p.active).Select(p=>p.product_id).ToList();
             if (itemsToDelete.Count() == 0) return;
 
             using (var txCtx = dbContext.Database.BeginTransaction())
@@ -61,10 +61,10 @@ namespace StockMS.Services
             if (product.active) return;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var stockItem = stockRepository.GetItemForUpdate(product.id);
+                var stockItem = stockRepository.GetItemForUpdate(product.product_id);
                 if(stockItem is null)
                 {
-                    this.logger.LogWarning("Attempt to delete product that does not exists in Stock DB {0}", product.id);
+                    this.logger.LogWarning("Attempt to delete product that does not exists in Stock DB {0}", product.product_id);
                     return;
                 }
 

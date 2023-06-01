@@ -10,14 +10,16 @@ namespace ProductMS.Infra
         {
             return new()
             {
-                id = product.id,
+                product_id = product.product_id,
                 seller_id = product.seller_id,
                 name = product.name,
                 sku = product.sku,
                 category = product.category_name,
                 description = product.description,
                 price = product.price,
-                created_at = DateTime.Now,
+                created_at = product.created_at,
+                updated_at = product.updated_at,
+                status = product.status
             };
 
         }

@@ -6,22 +6,22 @@ using Dapr.Workflow;
 using Microsoft.Extensions.Logging;
 using Dapr.Client;
 
-namespace Workflow.Handlers
+namespace Workflow.Activities
 {
 
-    class ProcessCheckoutActivity : WorkflowActivity<Common.Events.StockConfirmed, InvoiceIssued>
+    class ProcessCheckout : WorkflowActivity<StockConfirmed, InvoiceIssued>
     {
         readonly ILogger logger;
 
         // readonly DaprClient daprClient;
 
-        public ProcessCheckoutActivity(ILoggerFactory loggerFactory) //, DaprClient daprClient)
+        public ProcessCheckout(ILoggerFactory loggerFactory) //, DaprClient daprClient)
         {
-            this.logger = loggerFactory.CreateLogger<ProcessCheckoutActivity>();
+            this.logger = loggerFactory.CreateLogger<ProcessCheckout>();
             // this.daprClient = daprClient;
         }
 
-        public override async Task<InvoiceIssued> RunAsync(WorkflowActivityContext context, Common.Events.StockConfirmed checkout)
+        public override async Task<InvoiceIssued> RunAsync(WorkflowActivityContext context, StockConfirmed checkout)
         {
 
             this.logger.LogInformation("Process checkout has been called!");

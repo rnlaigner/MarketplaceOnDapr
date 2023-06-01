@@ -1,16 +1,17 @@
-﻿How to run:
+﻿The current workflow is alpha. A bug is affecting proper execution
+https://github.com/dapr/dapr/issues/6373
+It appears a fix has been provided but it not released yet
+https://github.com/dapr/dapr/pull/6377
+Which makes it challenging to use it in experiments.
 
-dapr run --app-id workflow --app-port 5000 -- dotnet run --project Workflow/Workflow.csproj
- 
-To run app and workflow separated:
+==================
 
-In Workflow folder:
-dotnet run
+How to run:
 
-In Workflow folder, but another prompt:
-dapr run --enable-api-logging --app-id wfapp --dapr-grpc-port 4001 --dapr-http-port 3500
+dapr run --enable-api-logging --app-id workflow --app-port 5000 --dapr-http-port 3500 -- dotnet run --project Workflow/Workflow.csproj
 
-To start a workflow:
+
+To test whether a workflow starts:
 curl -i -X GET http://localhost:5000/test
 
 https://docs.dapr.io/developing-applications/building-blocks/workflow/workflow-features-concepts/#workflow-activities
@@ -27,3 +28,4 @@ https://github.com/dapr/components-contrib/pull/1380
 https://forum.arduino.cc/t/allow-mdns-discovery-on-macos/1089144
 https://docs.dapr.io/reference/components-reference/supported-state-stores/setup-consul/
 https://docs.dapr.io/operations/configuration/configuration-overview/
+

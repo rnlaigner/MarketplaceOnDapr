@@ -3,13 +3,13 @@ namespace Common.Entities
 {
 	public class OrderItem
 	{
-        // Composite PK
         public long order_id { get; set; }
+
         public long order_item_id { get; set; }
 
         public long product_id { get; set; }
+
         public string product_name { get; set; } = "";
-        public string product_category { get; set; } = "";
 
         public long seller_id { get; set; }
 

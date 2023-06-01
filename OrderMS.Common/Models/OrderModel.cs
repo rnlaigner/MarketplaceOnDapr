@@ -20,9 +20,9 @@ namespace OrderMS.Common.Models
         public long id { get; set; }
 
         // https://finom.co/en-fr/blog/invoice-number/
-        public string invoice_number { get; set; }
+        public string invoice_number { get; set; } = "";
 
-        public string customer_id { get; set; }
+        public long customer_id { get; set; }
 
         public OrderStatus status { get; set; } = OrderStatus.CREATED;
 
@@ -47,9 +47,6 @@ namespace OrderMS.Common.Models
         public decimal total_incentive { get; set; } = 0;
         public decimal total_invoice { get; set; } = 0;
         public decimal total_items { get; set; } = 0;
-
-        // for workflow
-        public string instanceId { get; set; }
 
         // only way to make migrations pick the relationship from the order item side?...
         [ForeignKey("order_id")]

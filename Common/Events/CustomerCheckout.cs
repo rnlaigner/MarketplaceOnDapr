@@ -9,7 +9,7 @@ namespace Common.Entities
      */
     public record CustomerCheckout(
     
-        string CustomerId,
+        long CustomerId,
 
         /**
         * Delivery address (could be different from customer's address)
@@ -46,7 +46,7 @@ namespace Common.Entities
 
         string CardBrand,
 
-        // if no credit card, must be null
+        // if no credit card, must be 1
         int Installments
 
     );

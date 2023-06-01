@@ -5,9 +5,12 @@ namespace SellerMS.DTO
 {
 	public record SellerDashboard
 	(
+		// the materialized view
+		// the aggregate part
 		OrderSellerView sellerView,
-		IList<OrderEntry> orderEntries //,
-		// IList<ProductEntry> productEntries 
+		// simple query the seller open order entries
+		// the detailed part
+		IList<OrderEntry> orderEntries
 	);
 }
 

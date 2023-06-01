@@ -5,7 +5,7 @@ namespace Common.Events
 {
     public record ShipmentNotification
     (
-        string customerId,
+        long customerId,
         long orderId,
         DateTime eventDate,
         string instanceId,

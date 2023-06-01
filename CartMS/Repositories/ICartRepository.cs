@@ -5,9 +5,9 @@ namespace CartMS.Repositories
 {
     public interface ICartRepository
     {
-        Task<Cart> GetCart(string customerId);
+        Task<Cart> GetCart(long customerId);
 
-        Task<bool> AddItem(string customerId, CartItem item);
+        Task<bool> AddItem(long customerId, CartItem item);
 
         Task<bool> SafeSave(Cart cart);
 

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Reactive;
 using System.Threading.Tasks;
-using Workflow.Handlers;
+using Workflow.Activities;
 using Common.Events;
 using Common.Entities;
 using Dapr.Workflow;
 using Microsoft.Extensions.Logging;
+using Dapr.Client;
 
 namespace Workflows
 {
@@ -16,10 +17,12 @@ namespace Workflows
     class CheckoutWorkflowAsync : Workflow<CustomerCheckout, CheckoutResult>
     {
 
-        readonly ILogger logger;
+        private readonly DaprClient daprClient;
+        private readonly ILogger logger;
 
-        public CheckoutWorkflowAsync()
+        public CheckoutWorkflowAsync(DaprClient daprClient)
         {
+            this.daprClient = daprClient;
             this.logger = new LoggerFactory().CreateLogger<CheckoutWorkflow>();
         }
 
@@ -34,10 +37,8 @@ namespace Workflows
 
             CheckoutNotification checkoutNotification = new CheckoutNotification(customerCheckout.CustomerId, instanceId);
 
-            Task<Cart> notifyTask = context.CallActivityAsync<Cart>(
-                nameof(NotifyCheckoutActivity),
-                checkoutNotification);
-
+            /*
+            // dapr
             this.logger.LogInformation("Activity notify checkout has been called");
 
             await notifyTask;
@@ -66,7 +67,7 @@ namespace Workflows
             this.logger.LogInformation("Activity process checkout has been called");
 
             InvoiceIssued InvoiceIssued = invoiceIssuedTask.Result;
-
+            */
             return new CheckoutResult(Processed: true);
         }
     }

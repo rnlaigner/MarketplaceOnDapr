@@ -9,10 +9,12 @@
     <None Remove="Entities\" />
     <None Remove="Events\" />
     <None Remove="Utils\" />
+    <None Remove="Idempotency\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Entities\" />
     <Folder Include="Events\" />
     <Folder Include="Utils\" />
+    <Folder Include="Idempotency\" />
   </ItemGroup>
 </Project>

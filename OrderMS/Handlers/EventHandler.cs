@@ -37,20 +37,9 @@ namespace OrderMS.Controllers
         public async void ProcessCheckout(StockConfirmed checkout)
         {
             this.logger.LogInformation("[ProcessCheckoutRequest] received {0}.", checkout.instanceId);
-            InvoiceIssued paymentRequest = await this.orderService.ProcessCheckout(checkout);
+            await this.orderService.ProcessCheckoutAsync(checkout);
             this.logger.LogInformation("[ProcessCheckoutRequest] processed {0}.", checkout.instanceId);
         }
-
-        /*
-        [HttpPost("ProcessDeliveryNotification")]
-        [Topic(PUBSUB_NAME, nameof(DeliveryNotification))]
-        public void ProcessDeliveryNotification(DeliveryNotification deliveryNotification)
-        {
-            this.logger.LogInformation("[DeliveryNotification] received {0}.", deliveryNotification.instanceId);
-            this.orderService.ProcessDeliveryNotification(deliveryNotification);
-            this.logger.LogInformation("[ProcessCheckoutRequest] processed {0}.", deliveryNotification.instanceId);
-        }
-        */
 
         [HttpPost("ProcessShipmentNotification")]
         [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]

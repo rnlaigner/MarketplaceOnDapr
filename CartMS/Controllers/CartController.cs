@@ -27,7 +27,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
-    public async Task<ActionResult> AddProduct(string customerId, [FromBody] CartItem item)
+    public async Task<ActionResult> AddProduct(long customerId, [FromBody] CartItem item)
     {
         // check if it is already on the way to checkout.... if so, cannot add product
         var cart = await this.cartRepository.GetCart(customerId);
@@ -52,7 +52,7 @@ public class CartController : ControllerBase
     [HttpGet("{customerId}")]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Cart>> Get(string customerId)
+    public async Task<ActionResult<Cart>> Get(long customerId)
     {
         var cart = await this.cartRepository.GetCart(customerId);
         if (cart is null)
@@ -121,7 +121,7 @@ public class CartController : ControllerBase
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
-    public async Task<IActionResult> Seal(string customerId)
+    public async Task<IActionResult> Seal(long customerId)
     {
         var cart = await this.cartRepository.GetCart(customerId);
         if (cart.status != CartStatus.CHECKOUT_SENT)
@@ -137,18 +137,20 @@ public class CartController : ControllerBase
 
     [Route("test/{customerId}")]
     [HttpPatch]
-    [ProducesResponseType(typeof(Common.Entities.Cart), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<Common.Entities.Cart>> Test(CheckoutNotification checkoutNotification)
+    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
+    public ActionResult<Cart> Test(CheckoutNotification checkoutNotification)
     {
+        this.logger.LogInformation("[Test] received request for customer {0}.", checkoutNotification.customerId);
         return Ok(new Cart(checkoutNotification.customerId));
     }
 
     [Route("test")]
-    [HttpGet]
-    [ProducesResponseType(typeof(Common.Entities.Cart), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<Common.Entities.Cart>> Test()
+    [HttpPatch]
+    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
+    public ActionResult<Cart> Test()
     {
-        return Ok(new Cart("1"));
+        this.logger.LogInformation("[Test] received request.");
+        return Ok(new Cart(1));
     }
 
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Common.Entities;
 using OrderMS.Common.Models;
 using Microsoft.Extensions.Logging;
+using Common.Idempotency;
 
 namespace OrderMS.Infra
 {
@@ -17,6 +18,8 @@ namespace OrderMS.Infra
         public DbSet<OrderItemModel> OrderItems => Set<OrderItemModel>();
         public DbSet<OrderHistoryModel> OrderHistory => Set<OrderHistoryModel>();
         public DbSet<CustomerOrderModel> CustomerOrders => Set<CustomerOrderModel>();
+
+        public DbSet<TransactionTrackingModel> TransactionTracking => Set<TransactionTrackingModel>();
 
         public OrderDbContext()
         {
@@ -65,6 +68,10 @@ namespace OrderMS.Infra
              .UseIdentityAlwaysColumn()
              .HasDefaultValueSql("nextval('\"OrderHistoryNumbers\"')");
 
+            modelBuilder.Entity<TransactionTrackingModel>().HasKey(e => e.instanceId);
+
+            modelBuilder.Entity<OrderModel>().Property(e => e.status).HasConversion<string>();
+            modelBuilder.Entity<OrderHistoryModel>().Property(e => e.status).HasConversion<string>();
         }
         
     }

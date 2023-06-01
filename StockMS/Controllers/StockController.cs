@@ -73,14 +73,11 @@ public class StockController : ControllerBase
     [HttpPost("BulkProductStreaming")]
     [BulkSubscribe("BulkProductStreaming")]
     [Topic(PUBSUB_NAME, "products")]
-    public async Task<ActionResult<BulkSubscribeAppResponse>> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages)
+    public ActionResult<BulkSubscribeAppResponse> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages)
     {
-
         this.stockService.ProcessProductUpdates(bulkMessages.Entries.Select(e=>e.Event.Data).ToList());
-
         List<BulkSubscribeAppResponseEntry> 
             responseEntries = bulkMessages.Entries.Select(message => new BulkSubscribeAppResponseEntry(message.EntryId, BulkSubscribeAppResponseStatus.SUCCESS)).ToList();
-      
         return new BulkSubscribeAppResponse(responseEntries);
     }
 

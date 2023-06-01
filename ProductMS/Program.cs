@@ -14,7 +14,8 @@ builder.Services.AddOptions();
 IConfigurationSection configSection = builder.Configuration.GetSection("ProductConfig");
 builder.Services.Configure<ProductConfig>(configSection);
 
-bool sharedState = bool.Parse(configSection["SharedState"] != null ? configSection["SharedState"] : "false");
+var sss = configSection["SharedState"] is not null ? configSection["SharedState"].ToString() : "false";
+bool sharedState = bool.Parse(sss);
 
 // Add services to the container
 if (sharedState)

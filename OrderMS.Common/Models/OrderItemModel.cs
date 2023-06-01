@@ -25,9 +25,7 @@ namespace OrderMS.Common.Models
 
         public long product_id { get; set; }
 
-        public string product_name { get; set; }
-
-        public string product_category { get; set; }
+        public string product_name { get; set; } = "";
 
         public long seller_id { get; set; }
 
@@ -47,6 +45,8 @@ namespace OrderMS.Common.Models
         public decimal total_amount { get; set; }
 
         // can be derived from total_items - total_amount
+        // incentive of item is not of concern to the order
+        // the seller must compute 
         // public decimal total_incentive { get; set; }
 
         public OrderItemModel() { }

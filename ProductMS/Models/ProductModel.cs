@@ -6,20 +6,20 @@ namespace ProductMS.Models
 {
 
     [Table("products")]
-    [PrimaryKey(nameof(id))]
+    [PrimaryKey(nameof(seller_id),nameof(product_id))]
     public class ProductModel
 	{
-        public long id { get; set; }
-
         public long seller_id { get; set; }
 
-        public string name { get; set; }
+        public long product_id { get; set; }
 
-        public string sku { get; set; }
+        public string name { get; set; } = "";
 
-        public string category { get; set; }
+        public string sku { get; set; } = "";
 
-        public string description { get; set; }
+        public string category { get; set; } = "";
+
+        public string description { get; set; } = "";
 
         public decimal price { get; set; }
 
@@ -28,6 +28,8 @@ namespace ProductMS.Models
         public DateTime updated_at { get; set; }
 
         public string status { get; set; } = "approved";
+
+        public bool active { get; set; } = true;
 
         public ProductModel()
 		{

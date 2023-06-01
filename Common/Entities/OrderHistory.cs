@@ -20,7 +20,8 @@ namespace Common.Entities
         public long order_id { get; set; }
 
         public DateTime created_at { get; set; }
-        public string status { get; set; }
+
+        public OrderStatus status { get; set; }
 
     }
 }

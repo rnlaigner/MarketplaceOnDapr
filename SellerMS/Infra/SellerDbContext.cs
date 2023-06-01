@@ -125,6 +125,8 @@ namespace SellerMS.Infra
             // it seems the library does not accept after insert or update or delete. in this case it is necessary to edit the migration directly
             //modelBuilder.Entity<OrderEntry>().AfterInsert(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(OrderHistoricalView)};")));
             //modelBuilder.Entity<OrderEntry>().AfterInsert(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(ShipmentHistoricalView)};")));
+
+            // after insert or update...
             modelBuilder.Entity<OrderEntryDetails>().AfterInsert(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(Models.OrderSellerView)};")));
             modelBuilder.Entity<OrderEntryDetails>().AfterUpdate(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(Models.OrderSellerView)};")));
 

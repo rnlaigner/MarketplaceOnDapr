@@ -33,11 +33,11 @@ namespace ProductMS.Services
             {
                 using (var txCtx = this.dbContext.Database.BeginTransaction())
                 {
-                    ProductModel? product = this.productRepository.GetProduct(productToDelete.id);
+                    ProductModel? product = this.productRepository.GetProduct(productToDelete.seller_id, productToDelete.product_id);
 
                     if (product is null)
                     {
-                        this.logger.LogWarning("Cannot find product id {0} to delete", productToDelete.id);
+                        this.logger.LogWarning("Cannot find product id {0} to delete", productToDelete.product_id);
                         return false;
                     }
                     else
@@ -59,6 +59,7 @@ namespace ProductMS.Services
             }
             catch(Exception e)
             {
+                logger.LogWarning("[Delete] Exception {0}", e.Message);
                 return false;
             }
         }
@@ -72,7 +73,7 @@ namespace ProductMS.Services
             { 
                 using (var txCtx = this.dbContext.Database.BeginTransaction()) {
 
-                    ProductModel? product = this.productRepository.GetProduct(productToUpdate.id);
+                    ProductModel? product = this.productRepository.GetProduct(productToUpdate.seller_id, productToUpdate.product_id);
                     var product_ = Utils.AsProductModel(productToUpdate);
 
                     if (product is null)
@@ -80,7 +81,7 @@ namespace ProductMS.Services
                         this.productRepository.Insert(product_);
                     } else
                     {
-                        this.productRepository.Update(product_);
+                        this.productRepository.Update(product);
                     }
 
                     this.dbContext.SaveChanges();
@@ -95,6 +96,7 @@ namespace ProductMS.Services
             }
             catch (Exception e)
             {
+                logger.LogWarning("[Upsert] Exception {0}", e.Message);
                 return false;
             }
         }

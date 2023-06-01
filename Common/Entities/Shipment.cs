@@ -15,25 +15,25 @@ namespace Common.Entities
 		public decimal total_freight_value;
 
 		// date all deliveries were requested
-        public string request_date;
+        public string request_date { get; set; } = "";
 
         // shipment status
-        public string status;
+        public string status { get; set; } = "";
 
         // customer delivery address. the same for all packages/sellers
-        public string first_name { get; set; }
+        public string first_name { get; set; } = "";
 
-        public string last_name { get; set; }
+        public string last_name { get; set; } = "";
 
-        public string street { get; set; }
+        public string street { get; set; } = "";
 
-        public string complement { get; set; }
+        public string complement { get; set; } = "";
 
-        public string zip_code_prefix { get; set; }
+        public string zip_code { get; set; } = "";
 
-        public string city { get; set; }
+        public string city { get; set; } = "";
 
-        public string state { get; set; }
+        public string state { get; set; } = "";
     }
 }
 

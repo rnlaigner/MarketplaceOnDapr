@@ -229,7 +229,7 @@ namespace SellerMS.Services
         public Task ProcessProductUpdate(Product product)
         {
             // throw new NotImplementedException();
-            logger.LogInformation("[ProcessProductUpdate] Product ID {0}", product.id);
+            logger.LogInformation("[ProcessProductUpdate] Product ID {0}", product.product_id);
             return Task.CompletedTask;
         }
 
@@ -247,13 +247,19 @@ namespace SellerMS.Services
         {
             using (var dbContext = _contextFactory.CreateDbContext())
             {
-                // perhaps Find(sellerId) works... have to test
-                return new SellerDashboard(
-                dbContext.OrderSellerView.Where(v => v.seller_id == sellerId).FirstOrDefault(),
-                dbContext.OrderEntries.Where(oe => oe.seller_id == sellerId && (oe.order_status == OrderStatus.INVOICED || oe.order_status == OrderStatus.READY_FOR_SHIPMENT ||
-                                                                                oe.order_status == OrderStatus.IN_TRANSIT || oe.order_status == OrderStatus.PAYMENT_PROCESSED)).ToList()
-                // dbContext.ProductEntries.Where(pe=>pe.seller_id == sellerId).OrderBy(pe=>pe.order_count).Take(10).ToList()
-                );
+                /*
+                * There are two conditions on which the data retrieved for the dashboard may differ
+                * Some order entries inserted but not yet incorporated into seller view if not in a transaction
+                */
+                using (var txCtx = dbContext.Database.BeginTransaction()) { 
+                    
+                    return new SellerDashboard(
+                    dbContext.OrderSellerView.Where(v => v.seller_id == sellerId).FirstOrDefault(),
+                    dbContext.OrderEntries.Where(oe => oe.seller_id == sellerId && (oe.order_status == OrderStatus.INVOICED || oe.order_status == OrderStatus.READY_FOR_SHIPMENT ||
+                                                                                    oe.order_status == OrderStatus.IN_TRANSIT || oe.order_status == OrderStatus.PAYMENT_PROCESSED)).ToList()
+                    // dbContext.ProductEntries.Where(pe=>pe.seller_id == sellerId).OrderBy(pe=>pe.order_count).Take(10).ToList()
+                    );
+                }
             }
         }
 

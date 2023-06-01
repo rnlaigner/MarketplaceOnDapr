@@ -30,7 +30,6 @@ namespace StockMS.Infra
 
         }
 
-
     }
 }
 

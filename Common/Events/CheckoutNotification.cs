@@ -5,7 +5,7 @@ namespace Common.Events
 {
     public record CheckoutNotification
     (
-        string customerId,
+        long customerId,
         string instanceId
     );
 }

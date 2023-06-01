@@ -2,11 +2,8 @@
 
 namespace Common.Entities
 {
-
     public record CustomerCheckoutFailed(
-        string CustomerId,
+        long CustomerId,
         IList<ProductStatus> divergencies
-    );
-    
+    ); 
 }
-

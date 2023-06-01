@@ -11,7 +11,7 @@ namespace ProductMS.Repositories
 
         void Delete(ProductModel product);
 
-        ProductModel? GetProduct(long id);
+        ProductModel? GetProduct(long sellerId, long productId);
 
     }
 }

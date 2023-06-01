@@ -39,7 +39,7 @@ namespace CartMS.Services
             }
         }
 
-        public async Task SealIfNecessary(string customerId)
+        public async Task SealIfNecessary(long customerId)
         {
             Cart cart = await this.cartRepository.GetCart(customerId);
             if (config.SealAfterCheckout)
@@ -93,16 +93,16 @@ namespace CartMS.Services
             IList<Product>? products = null;
             if (config.CheckPriceUpdateOnCheckout)
             {
-                var ids = (IReadOnlyList<string>)cart.items.Select(i => i.Value.Sku).ToList();
+                var ids = (IReadOnlyList<long>)cart.items.Select(i => i.Value.ProductId).ToList();
                 products = await productRepository.GetProducts(ids);
 
                 
                 foreach (var product in products)
                 {
-                    var currPrice = cart.items[product.id].UnitPrice;
+                    var currPrice = cart.items[product.product_id].UnitPrice;
                     if (currPrice != product.price)
                     {
-                        divergencies.Add(new ProductStatus(product.id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
+                        divergencies.Add(new ProductStatus(product.product_id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
                     }
                 }
 
@@ -112,17 +112,17 @@ namespace CartMS.Services
             {
                 if (products == null)
                 {
-                    var ids = (IReadOnlyList<string>)cart.items.Select(i => i.Value.Sku).ToList();
+                    var ids = (IReadOnlyList<long>)cart.items.Select(i => i.Value.ProductId).ToList();
                     products = await productRepository.GetProducts(ids);
                 }
 
                 if (cart.items.Count() > products.Count())
                 {
-                    var dict = products.ToDictionary(c => c.sku, c => c);
+                    var dict = products.ToDictionary(c => c.product_id, c => c);
                     // find missing products
                     foreach (var item in cart.items)
                     {
-                        if (!dict.ContainsKey(item.Value.Sku))
+                        if (!dict.ContainsKey(item.Value.ProductId))
                         {
                             divergencies.Add(new ProductStatus(item.Value.ProductId, ItemStatus.DELETED));
                         }

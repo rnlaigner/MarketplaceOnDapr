@@ -17,7 +17,7 @@ namespace SellerMS.Models
         public OrderStatus status { get; set; }
 
         // customer info
-        public string customer_id { get; set; }
+        public long customer_id { get; set; }
 
         public string first_name { get; set; }
 

@@ -63,7 +63,7 @@ public class EventController : ControllerBase
         await this.sellerService.ProcessShipmentNotification(shipmentNotification);
     }
 
-    [HttpPost("ProcessShipmentNotification")]
+    [HttpPost("ProcessDeliveryNotification")]
     [Topic(PUBSUB_NAME, nameof(DeliveryNotification))]
     public async void ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
     {

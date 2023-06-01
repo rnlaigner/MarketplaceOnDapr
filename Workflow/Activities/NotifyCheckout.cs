@@ -12,10 +12,10 @@ using Newtonsoft.Json;
 using static Google.Rpc.Context.AttributeContext.Types;
 using Workflow.Infra;
 
-namespace Workflow.Handlers
+namespace Workflow.Activities
 {
 
-    class NotifyCheckoutActivity : WorkflowActivity<CheckoutNotification, Cart>
+    class NotifyCheckout : WorkflowActivity<CheckoutNotification, Cart>
     {
         readonly ILogger logger;
 
@@ -24,9 +24,9 @@ namespace Workflow.Handlers
 
         // private readonly DaprClient daprClient;
 
-        public NotifyCheckoutActivity(ILoggerFactory loggerFactory) //DaprClient daprClient
+        public NotifyCheckout(ILoggerFactory loggerFactory) //DaprClient daprClient
         {
-            this.logger = loggerFactory.CreateLogger<NotifyCheckoutActivity>();
+            this.logger = loggerFactory.CreateLogger<NotifyCheckout>();
             // this.daprClient = daprClient;
             this.httpClient = new HttpClient();
             this.httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -38,7 +38,7 @@ namespace Workflow.Handlers
         public override async Task<Cart> RunAsync(WorkflowActivityContext context, CheckoutNotification checkoutNotification)
         {
             //using var daprClient = new DaprClientBuilder().Build();
-
+            /*
             this.logger.LogInformation("Building checkout notification to Cart [1]");
 
             // cannot enable mdns discovery on my mac due to KU firewall policies
@@ -53,11 +53,14 @@ namespace Workflow.Handlers
             // var response = await httpClient.PatchAsync("http://localhost:5001/"+ checkoutNotification.customerId+"/checkout", str);
             var str = HttpUtils.BuildPayload(payload);
 
-            this.logger.LogInformation("Sending checkout notification to Cart [2]");
+            
             HttpResponseMessage response;
+            */
+            this.logger.LogInformation("Sending checkout notification to Cart [2]");
             Cart cart;
 
             //https://github.com/dapr/quickstarts/blob/master/service_invocation/csharp/http/checkout/Program.cs
+            /*
             try
             {
                 response = await httpClient.PatchAsync("http://localhost:3501/"
@@ -81,7 +84,7 @@ namespace Workflow.Handlers
             {
                 this.logger.LogError("Cannot send message 1: {0}", e.Message);
             }
-
+            */
 
             try
             {
@@ -89,29 +92,30 @@ namespace Workflow.Handlers
                 CancellationTokenSource source = new CancellationTokenSource();
                 CancellationToken cancellationToken = source.Token;
 
+                /*
                 var result = daprClient.CreateInvokeMethodRequest(HttpMethod.Patch, "cart",
                     // "/" + checkoutNotification.customerId + 
-                    "/test/"+ checkoutNotification.customerId,
+                    "test/"+ checkoutNotification.customerId,
                     checkoutNotification);
 
                 this.logger.LogInformation("Path {0}", result.RequestUri.AbsolutePath);
 
                 this.logger.LogInformation("Sending checkout notification to Cart [2]");
                 cart = await daprClient.InvokeMethodAsync<Cart>(result, cancellationToken);
-                return cart;
+                */
 
+                var result = daprClient.CreateInvokeMethodRequest(HttpMethod.Patch, "cart", "Test", checkoutNotification.customerId);
+                cart = await daprClient.InvokeMethodAsync<Cart>(result);
+
+                this.logger.LogInformation("Returning cart from checkout notification [3] {0}", cart.ToString());
+                return cart;
             }
             catch (Exception e)
             {
-                this.logger.LogError("Cannot send message 2: {0}", e.StackTrace);
+                this.logger.LogError("Cannot send checkout notification: {0}", e.StackTrace);
+                return null;
             }
-
-
-            // context.
-
-            this.logger.LogInformation("Returning cart from checkout notification [3]");
-
-            return null;
+            
         }
     }
 }

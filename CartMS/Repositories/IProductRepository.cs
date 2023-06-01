@@ -13,9 +13,9 @@ namespace CartMS.Repositories
 
         Task<bool> Delete(Product product);
 
-        Task<IList<Product>> GetProducts(IReadOnlyList<string> skus);
+        Task<IList<Product>> GetProducts(IReadOnlyList<long> productIds);
 
-        Task<Product> GetProduct(string id);
+        Task<Product> GetProduct(long id);
     }
 }
 

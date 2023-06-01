@@ -14,7 +14,7 @@ namespace OrderMS.Common.Models
     public class CustomerOrderModel
 	{
 
-        public string customer_id { get; set; }
+        public long customer_id { get; set; }
 
         public long next_order_id { get; set; }
 

@@ -22,7 +22,8 @@ namespace OrderMS.Migrations
                 name: "customer_orders",
                 columns: table => new
                 {
-                    customer_id = table.Column<string>(type: "text", nullable: false),
+                    customer_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     next_order_id = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -37,8 +38,8 @@ namespace OrderMS.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false, defaultValueSql: "nextval('\"OrderNumbers\"')")
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     invoice_number = table.Column<string>(type: "text", nullable: false),
-                    customer_id = table.Column<string>(type: "text", nullable: false),
-                    status = table.Column<int>(type: "integer", nullable: false),
+                    customer_id = table.Column<long>(type: "bigint", nullable: false),
+                    status = table.Column<string>(type: "text", nullable: false),
                     purchase_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     payment_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     delivered_carrier_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -51,12 +52,23 @@ namespace OrderMS.Migrations
                     total_freight = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     total_incentive = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     total_invoice = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
-                    total_items = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
-                    instanceId = table.Column<string>(type: "text", nullable: false)
+                    total_items = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_orders", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TransactionTracking",
+                columns: table => new
+                {
+                    instanceId = table.Column<string>(type: "text", nullable: false),
+                    createdAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TransactionTracking", x => x.instanceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -67,7 +79,7 @@ namespace OrderMS.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     order_id = table.Column<long>(type: "bigint", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    orderStatus = table.Column<int>(type: "integer", nullable: true)
+                    status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,7 +100,6 @@ namespace OrderMS.Migrations
                     order_item_id = table.Column<long>(type: "bigint", nullable: false),
                     product_id = table.Column<long>(type: "bigint", nullable: false),
                     product_name = table.Column<string>(type: "text", nullable: false),
-                    product_category = table.Column<string>(type: "text", nullable: false),
                     seller_id = table.Column<long>(type: "bigint", nullable: false),
                     unit_price = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     shipping_limit_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -130,6 +141,9 @@ namespace OrderMS.Migrations
 
             migrationBuilder.DropTable(
                 name: "order_items");
+
+            migrationBuilder.DropTable(
+                name: "TransactionTracking");
 
             migrationBuilder.DropTable(
                 name: "orders");

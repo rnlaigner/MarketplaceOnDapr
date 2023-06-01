@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reactive;
 using System.Threading.Tasks;
-using Workflow.Handlers;
+using Workflow.Activities;
 using Common.Events;
 using Common.Entities;
 using Dapr.Workflow;
@@ -37,19 +37,17 @@ namespace Workflows
             // https://docs.dapr.io/developing-applications/building-blocks/workflow/workflow-features-concepts/#workflow-determinism-and-code-restraints
             var now = context.CurrentUtcDateTime;
 
-            this.logger.LogInformation("Starting new workflow {0}:{1}", instanceId, now);
+            this.logger.LogInformation("Starting new workflow {0} at {1}", instanceId, now);
 
             CheckoutNotification checkoutNotification = new CheckoutNotification(customerCheckout.CustomerId, instanceId);
 
             Task<Cart> notifyTask = context.CallActivityAsync<Cart>(
-                nameof(NotifyCheckoutActivity),
+                nameof(NotifyCheckout),
                 checkoutNotification);
 
             this.logger.LogInformation("Activity notify checkout has been called");
 
             await notifyTask;
-
-            // context.WaitForExternalEventAsync
 
             if (!notifyTask.IsCompletedSuccessfully || notifyTask.Result == null)
             {
@@ -60,12 +58,7 @@ namespace Workflows
             var cart = notifyTask.Result;
 
             // sending the instanceId so order service can ensure idempotence
-            Common.Events.StockConfirmed checkout = new Common.Events.StockConfirmed(
-                now, customerCheckout, cart.items.Select(c => c.Value).ToList(), instanceId);
-
-            // TODO i believe the workflow should reserve all items before sending to order
-            // and the same if payment fails...
-            // to code a call to the stock and only after confirm all the stock, then I proceed withthe order procesisng
+            StockConfirmed checkout = new StockConfirmed(now, customerCheckout, cart.items.Select(c => c.Value).ToList(), instanceId);
 
             Task<InvoiceIssued> InvoiceIssuedTask = context.CallActivityAsync<InvoiceIssued>(
                 nameof(StockConfirmed),

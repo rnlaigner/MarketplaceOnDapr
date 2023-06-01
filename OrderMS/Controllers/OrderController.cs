@@ -31,15 +31,15 @@ public class OrderController : ControllerBase
 
     [HttpPost("/checkout")]
     [ProducesResponseType(typeof(InvoiceIssued), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<InvoiceIssued>> ProcessCheckout(StockConfirmed checkout)
+    public ActionResult<InvoiceIssued> ProcessCheckout(StockConfirmed checkout)
     {
-        InvoiceIssued invoice = await this.orderService.ProcessCheckout(checkout);
+        InvoiceIssued invoice = this.orderService.ProcessCheckout(checkout);
         return Ok(invoice);
     }
 
     [HttpGet("/")]
     [ProducesResponseType(typeof(IEnumerable<Order>), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<IEnumerable<Order>>> GetAll()
+    public ActionResult<IEnumerable<Order>> GetAll()
     {
         // TODO parse http to get filters
         return Ok(this.orderRepository.GetAll());

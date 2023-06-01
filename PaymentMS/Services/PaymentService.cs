@@ -102,7 +102,7 @@ namespace PaymentMS.Services
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
             {
                 Amount = paymentRequest.totalAmount,
-                Customer = paymentRequest.customer.CustomerId,
+                Customer = paymentRequest.customer.CustomerId.ToString(),
                 IdempotencyKey = paymentRequest.instanceId,
                 cardOptions = new()
                 {

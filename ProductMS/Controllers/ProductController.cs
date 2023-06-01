@@ -17,8 +17,6 @@ public class ProductController : ControllerBase
     private readonly IProductRepository productRepository;
     private readonly IProductService productService;
 
-    private readonly bool stateShared;
-
     public ProductController(IProductService productService, IProductRepository productRepository, ILogger<ProductController> logger)
     {
         this.productService = productService;
@@ -37,18 +35,21 @@ public class ProductController : ControllerBase
         return Ok();
     }
 
+    /**
+     * https://stackoverflow.com/questions/36280947/how-to-pass-multiple-parameters-to-a-get-method-in-asp-net-core
+     */
     [HttpGet]
-    [Route("{id:int}")]
+    [Route("{sellerId}/{productId}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetById(long id)
+    public ActionResult<Product> GetById(long sellerId, long productId)
     {
-        if (id <= 0)
+        if (sellerId <= 0 || productId <= 0)
         {
             return BadRequest();
         }
-        var product = this.productRepository.GetProduct(id);
+        var product = this.productRepository.GetProduct(sellerId, productId);
 
         if (product != null)
         {

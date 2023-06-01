@@ -40,8 +40,9 @@ public class EventController : ControllerBase
      * https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-bulk/
      * TODO separate delete and upserts...
      */
+    [HttpPost("BulkProductStreaming")]
     [BulkSubscribe("BulkProductStreaming")]
-    [Topic(PUBSUB_NAME, nameof(Product))]
+    [Topic(PUBSUB_NAME, "products")]
     public async Task<ActionResult<BulkSubscribeAppResponse>> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages )
     {
         List<BulkSubscribeAppResponseEntry> responseEntries; // = new List<BulkSubscribeAppResponseEntry>();
@@ -50,7 +51,7 @@ public class EventController : ControllerBase
         var dict = bulkMessages.Entries.ToDictionary(k => k.EntryId, v => v.Event.Data);
 
         // https://docs.dapr.io/developing-applications/building-blocks/state-management/howto-get-save-state/
-        var ops = bulkMessages.Entries.Select(m => new StateTransactionRequest(m.Event.Data.id.ToString(), JsonSerializer.SerializeToUtf8Bytes(m.Event.Data), StateOperationType.Upsert)).ToList();
+        var ops = bulkMessages.Entries.Select(m => new StateTransactionRequest(m.Event.Data.product_id.ToString(), JsonSerializer.SerializeToUtf8Bytes(m.Event.Data), StateOperationType.Upsert)).ToList();
 
         Task task = this.daprClient.ExecuteStateTransactionAsync(PUBSUB_NAME, ops);
         await task;

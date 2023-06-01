@@ -1,6 +1,6 @@
 ﻿arch -arm64 brew install dapr/tap/dapr-cli
 dapr init
-dapr run --app-id basket --app-port 5000 dotnet run Basket.API.csproj
+dapr run --app-id basket --app-port 5001 dotnet run Basket.API.csproj
 
 to set up another redis:
 docker run -d --name redis -p 6379:6379 redis:alpine

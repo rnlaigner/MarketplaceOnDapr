@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text.Json.Serialization;
-using Workflow.Handlers;
+using Workflow.Activities;
 using Common.Entities;
 using Dapr.Client;
 using Dapr.Workflow;
@@ -30,8 +30,8 @@ builder.Services.AddDaprWorkflow(options =>
     options.RegisterWorkflow<CheckoutWorkflow>();
 
     // These are the activities that get invoked by the workflow(s).
-    options.RegisterActivity<NotifyCheckoutActivity>();
-    options.RegisterActivity<ProcessCheckoutActivity>();
+    options.RegisterActivity<NotifyCheckout>();
+    options.RegisterActivity<ProcessCheckout>();
     // options.RegisterActivity<ProcessPaymentActivity>();
 });
 
@@ -57,7 +57,7 @@ app.MapGet("/test", async (WorkflowEngineClient client) =>
 {
     // Console.WriteLine("starting workflow call!");
     CustomerCheckout customerCheckout = new CustomerCheckout(
-                "1",
+                1,
                 "",
                 "",
                 "",

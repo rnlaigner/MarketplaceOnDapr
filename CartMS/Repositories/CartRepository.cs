@@ -29,9 +29,9 @@ namespace CartMS.Repositories
             this.logger = logger;
         }
 
-        public async Task<bool> AddItem(string customerId, CartItem item)
+        public async Task<bool> AddItem(long customerId, CartItem item)
         {
-            var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId);
+            var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId.ToString());
 
             if (cartEntry.Value.status == CartStatus.CHECKOUT_SENT)
             {
@@ -45,7 +45,7 @@ namespace CartMS.Repositories
                 cartEntry.Value.customerId = customerId;
                 cartEntry.Value.createdAt = DateTime.Now;
                 return await this.daprClient.TrySaveStateAsync<Cart>(StoreName,
-                    customerId,
+                    customerId.ToString(),
                     cartEntry.Value,
                     cartEntry.ETag);
             }
@@ -60,19 +60,19 @@ namespace CartMS.Repositories
                 cartEntry.Value.items.Add(item.ProductId, item);
             }
 
-            return await this.daprClient.TrySaveStateAsync<Cart>(StoreName, customerId, cartEntry.Value, cartEntry.ETag);
+            return await this.daprClient.TrySaveStateAsync<Cart>(StoreName, customerId.ToString(), cartEntry.Value, cartEntry.ETag);
         }
 
-        public async Task<Cart> GetCart(string customerId)
+        public async Task<Cart> GetCart(long customerId)
         {
-            return await this.daprClient.GetStateAsync<Cart>(StoreName, customerId);
+            return await this.daprClient.GetStateAsync<Cart>(StoreName, customerId.ToString());
         }
 
         public async Task<bool> SafeSave(Cart cart)
         {
-            var (_, ETag) = await this.daprClient.GetStateAndETagAsync<Cart>(StoreName, cart.customerId);
+            var (_, ETag) = await this.daprClient.GetStateAndETagAsync<Cart>(StoreName, cart.customerId.ToString());
             bool res = await this.daprClient.TrySaveStateAsync<Cart>(StoreName,
-                    cart.customerId,
+                    cart.customerId.ToString(),
                     cart,
                     ETag);
             return res;
@@ -81,7 +81,7 @@ namespace CartMS.Repositories
         public async Task Save(Cart cart)
         {
             await this.daprClient.SaveStateAsync<Cart>(StoreName,
-                    cart.customerId,
+                    cart.customerId.ToString(),
                     cart);
         }
     }

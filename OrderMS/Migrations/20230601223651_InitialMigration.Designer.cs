@@ -12,7 +12,7 @@ using OrderMS.Infra;
 namespace OrderMS.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20230531204507_InitialMigration")]
+    [Migration("20230601223651_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -29,10 +29,26 @@ namespace OrderMS.Migrations
 
             modelBuilder.HasSequence("OrderNumbers");
 
+            modelBuilder.Entity("Common.Idempotency.TransactionTrackingModel", b =>
+                {
+                    b.Property<string>("instanceId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("instanceId");
+
+                    b.ToTable("TransactionTracking");
+                });
+
             modelBuilder.Entity("OrderMS.Common.Models.CustomerOrderModel", b =>
                 {
-                    b.Property<string>("customer_id")
-                        .HasColumnType("text");
+                    b.Property<long>("customer_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("customer_id"));
 
                     b.Property<long>("next_order_id")
                         .HasColumnType("bigint");
@@ -54,11 +70,12 @@ namespace OrderMS.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("orderStatus")
-                        .HasColumnType("integer");
-
                     b.Property<long>("order_id")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("id");
 
@@ -78,10 +95,6 @@ namespace OrderMS.Migrations
                     b.Property<decimal>("freight_value")
                         .HasPrecision(4, 2)
                         .HasColumnType("decimal");
-
-                    b.Property<string>("product_category")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<long>("product_id")
                         .HasColumnType("bigint");
@@ -131,9 +144,8 @@ namespace OrderMS.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("customer_id")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<long>("customer_id")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("delivered_carrier_date")
                         .HasColumnType("timestamp with time zone");
@@ -143,10 +155,6 @@ namespace OrderMS.Migrations
 
                     b.Property<DateTime?>("estimated_delivery_date")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("instanceId")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("invoice_number")
                         .IsRequired()
@@ -158,8 +166,9 @@ namespace OrderMS.Migrations
                     b.Property<DateTime>("purchase_date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("status")
-                        .HasColumnType("integer");
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("total_amount")
                         .HasPrecision(4, 2)

@@ -24,7 +24,7 @@ namespace ProductMS.Repositories
             throw new NotImplementedException();
         }
 
-        public ProductModel? GetProduct(long id)
+        public ProductModel? GetProduct(long sellerId, long productId)
         {
             throw new NotImplementedException();
         }

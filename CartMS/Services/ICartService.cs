@@ -6,7 +6,7 @@ namespace CartMS.Services
 	{
 
         public Task SealIfNecessary(Cart cart);
-        public Task SealIfNecessary(string customerId);
+        public Task SealIfNecessary(long customerId);
 
         public Task NotifyCheckout(CustomerCheckout customerCheckout);
         public Task<List<ProductStatus>> CheckCartForDivergencies(Cart cart);
