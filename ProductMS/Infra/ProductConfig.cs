@@ -2,11 +2,7 @@
 {
 	public class ProductConfig
 	{
-
-		public bool SharedState { get; set; } = false;
-		public bool ProductStreaming { get; set; } = true;
-
-		
+		public bool ProductStreaming { get; set; } = true;	
 	}
 }
 

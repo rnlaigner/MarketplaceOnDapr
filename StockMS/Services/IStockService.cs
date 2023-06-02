@@ -7,8 +7,6 @@ namespace StockMS.Services
 	{
         public Task ReserveStockAsync(ReserveStock checkout);
 
-        public bool ReserveStock(ReserveStock checkout);
-
         public void ConfirmReservation(PaymentConfirmed payment);
 
         public void CancelReservation(PaymentFailed paymentFailure);

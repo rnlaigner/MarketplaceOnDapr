@@ -10,7 +10,6 @@ namespace StockMS.Infra
     {
 
         public DbSet<StockItemModel> StockItems => Set<StockItemModel>();
-        public DbSet<StockTracking> StockTracking => Set<StockTracking>();
 
         public StockDbContext()
 		{

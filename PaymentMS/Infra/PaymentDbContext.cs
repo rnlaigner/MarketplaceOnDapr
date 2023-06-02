@@ -11,7 +11,6 @@ namespace PaymentMS.Infra
 
         public DbSet<OrderPaymentModel> OrderPayments => Set<OrderPaymentModel>();
         public DbSet<OrderPaymentCardModel> OrderPaymentCards => Set<OrderPaymentCardModel>();
-        public DbSet<PaymentTrackingModel> PaymentTrackings => Set<PaymentTrackingModel>();
 
         public PaymentDbContext()
         {
@@ -29,6 +28,13 @@ namespace PaymentMS.Infra
                 .EnableDetailedErrors();
 
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        }
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Properties<decimal>()
+                .HaveColumnType("decimal")
+                .HavePrecision(4, 2);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

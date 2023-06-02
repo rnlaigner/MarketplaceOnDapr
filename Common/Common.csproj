@@ -5,16 +5,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>1701;1702;CS8034</NoWarn>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="Entities\" />
     <None Remove="Events\" />
     <None Remove="Utils\" />
-    <None Remove="Idempotency\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Entities\" />
     <Folder Include="Events\" />
     <Folder Include="Utils\" />
-    <Folder Include="Idempotency\" />
   </ItemGroup>
 </Project>

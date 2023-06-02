@@ -18,9 +18,9 @@ namespace ShipmentMS.Migrations
                 {
                     order_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    customer_id = table.Column<string>(type: "text", nullable: false),
+                    customer_id = table.Column<long>(type: "bigint", nullable: false),
                     package_count = table.Column<int>(type: "integer", nullable: false),
-                    total_freight_value = table.Column<decimal>(type: "numeric", nullable: false),
+                    total_freight_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     request_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     first_name = table.Column<string>(type: "text", nullable: false),
@@ -45,7 +45,7 @@ namespace ShipmentMS.Migrations
                     seller_id = table.Column<long>(type: "bigint", nullable: false),
                     product_id = table.Column<long>(type: "bigint", nullable: false),
                     product_name = table.Column<string>(type: "text", nullable: false),
-                    freight_value = table.Column<decimal>(type: "numeric", nullable: false),
+                    freight_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     shipping_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),

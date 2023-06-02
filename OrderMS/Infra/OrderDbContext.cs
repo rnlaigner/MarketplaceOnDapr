@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Common.Entities;
 using OrderMS.Common.Models;
 using Microsoft.Extensions.Logging;
-using Common.Idempotency;
+using Microsoft.Extensions.Configuration;
 
 namespace OrderMS.Infra
 {
@@ -19,18 +19,18 @@ namespace OrderMS.Infra
         public DbSet<OrderHistoryModel> OrderHistory => Set<OrderHistoryModel>();
         public DbSet<CustomerOrderModel> CustomerOrders => Set<CustomerOrderModel>();
 
-        public DbSet<TransactionTrackingModel> TransactionTracking => Set<TransactionTrackingModel>();
+        protected readonly IConfiguration configuration;
 
-        public OrderDbContext()
+        public OrderDbContext(IConfiguration configuration)
         {
-
+            this.configuration = configuration;
         }
         
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // connection string can be taken from appsettings:
             // https://jasonwatmore.com/post/2022/06/23/net-6-connect-to-postgresql-database-with-entity-framework-core
-            options.UseNpgsql(@"Host=localhost;Port=5432;Database=order;Username=postgres;Password=password")
+            options.UseNpgsql(configuration.GetConnectionString("WebApiDatabase"))
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b
@@ -67,8 +67,6 @@ namespace OrderMS.Infra
              .Property(o => o.id)
              .UseIdentityAlwaysColumn()
              .HasDefaultValueSql("nextval('\"OrderHistoryNumbers\"')");
-
-            modelBuilder.Entity<TransactionTrackingModel>().HasKey(e => e.instanceId);
 
             modelBuilder.Entity<OrderModel>().Property(e => e.status).HasConversion<string>();
             modelBuilder.Entity<OrderHistoryModel>().Property(e => e.status).HasConversion<string>();

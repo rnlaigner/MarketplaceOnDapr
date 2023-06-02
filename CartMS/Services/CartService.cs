@@ -96,7 +96,6 @@ namespace CartMS.Services
                 var ids = (IReadOnlyList<long>)cart.items.Select(i => i.Value.ProductId).ToList();
                 products = await productRepository.GetProducts(ids);
 
-                
                 foreach (var product in products)
                 {
                     var currPrice = cart.items[product.product_id].UnitPrice;
@@ -133,6 +132,20 @@ namespace CartMS.Services
             return divergencies;
         }
 
+        public async void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
+        {
+            Cart cart = await this.cartRepository.GetCart(paymentConfirmed.customer.CustomerId);
+            cart.items.Clear();
+            cart.status = CartStatus.OPEN;
+            await this.cartRepository.Save(cart);
+        }
+
+        public async void ProcessPaymentFailed(PaymentFailed paymentFailed)
+        {
+            Cart cart = await this.cartRepository.GetCart(paymentFailed.customer.CustomerId);
+            cart.status = CartStatus.OPEN;
+            await this.cartRepository.Save(cart);
+        }
     }
 }
 

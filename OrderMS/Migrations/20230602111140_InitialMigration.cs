@@ -60,18 +60,6 @@ namespace OrderMS.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransactionTracking",
-                columns: table => new
-                {
-                    instanceId = table.Column<string>(type: "text", nullable: false),
-                    createdAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TransactionTracking", x => x.instanceId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "order_history",
                 columns: table => new
                 {
@@ -141,9 +129,6 @@ namespace OrderMS.Migrations
 
             migrationBuilder.DropTable(
                 name: "order_items");
-
-            migrationBuilder.DropTable(
-                name: "TransactionTracking");
 
             migrationBuilder.DropTable(
                 name: "orders");

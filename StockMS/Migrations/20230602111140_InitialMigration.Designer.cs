@@ -12,7 +12,7 @@ using StockMS.Infra;
 namespace StockMS.Migrations
 {
     [DbContext(typeof(StockDbContext))]
-    [Migration("20230531210031_InitialMigration")]
+    [Migration("20230602111140_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -70,22 +70,6 @@ namespace StockMS.Migrations
 
                             t.HasCheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "qty_reserved <= qty_available");
                         });
-                });
-
-            modelBuilder.Entity("StockMS.Models.StockTracking", b =>
-                {
-                    b.Property<string>("instanceId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("operation")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("success")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("instanceId");
-
-                    b.ToTable("stock_tracking");
                 });
 #pragma warning restore 612, 618
         }

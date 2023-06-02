@@ -19,24 +19,12 @@ namespace PaymentMS.Migrations
                     payment_sequential = table.Column<int>(type: "integer", nullable: false),
                     payment_type = table.Column<string>(type: "text", nullable: false),
                     payment_installments = table.Column<int>(type: "integer", nullable: false),
-                    payment_value = table.Column<decimal>(type: "numeric", nullable: false)
+                    payment_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_order_payments", x => new { x.order_id, x.payment_sequential });
                     table.CheckConstraint("CK_OrderPayment_PaymentValue", "payment_value >= 0");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "payment_tracking",
-                columns: table => new
-                {
-                    instanceId = table.Column<string>(type: "text", nullable: false),
-                    status = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_payment_tracking", x => x.instanceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -66,9 +54,6 @@ namespace PaymentMS.Migrations
         {
             migrationBuilder.DropTable(
                 name: "order_payment_cards");
-
-            migrationBuilder.DropTable(
-                name: "payment_tracking");
 
             migrationBuilder.DropTable(
                 name: "order_payments");

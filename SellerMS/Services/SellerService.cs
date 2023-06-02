@@ -254,7 +254,7 @@ namespace SellerMS.Services
                 using (var txCtx = dbContext.Database.BeginTransaction()) { 
                     
                     return new SellerDashboard(
-                    dbContext.OrderSellerView.Where(v => v.seller_id == sellerId).FirstOrDefault(),
+                    dbContext.OrderSellerView.Where(v => v.seller_id == sellerId).FirstOrDefault(new OrderSellerView()),
                     dbContext.OrderEntries.Where(oe => oe.seller_id == sellerId && (oe.order_status == OrderStatus.INVOICED || oe.order_status == OrderStatus.READY_FOR_SHIPMENT ||
                                                                                     oe.order_status == OrderStatus.IN_TRANSIT || oe.order_status == OrderStatus.PAYMENT_PROCESSED)).ToList()
                     // dbContext.ProductEntries.Where(pe=>pe.seller_id == sellerId).OrderBy(pe=>pe.order_count).Take(10).ToList()
@@ -312,7 +312,7 @@ namespace SellerMS.Services
                     };
                 }
                 else
-                    return null;
+                    return new Seller();
             }
         }
     }

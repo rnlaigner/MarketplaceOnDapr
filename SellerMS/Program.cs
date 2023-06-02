@@ -35,13 +35,6 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
 
-    /*
-    context.Database.ExecuteSqlRaw(SellerDbContext.OrderHistoricalViewSql);
-    context.Database.ExecuteSqlRaw(SellerDbContext.OrderHistoricalViewSqlIndex);
-
-    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentHistoricalViewSql);
-    context.Database.ExecuteSqlRaw(SellerDbContext.ShipmentHistoricalViewSqlIndex);
-    */
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSql);
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSqlIndex);
 }

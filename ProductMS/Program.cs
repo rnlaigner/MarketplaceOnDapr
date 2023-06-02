@@ -4,8 +4,6 @@ using ProductMS.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 // https://docs.dapr.io/developing-applications/building-blocks/state-management/howto-share-state/
-// default to shared state
-// bool sharedState = Boolean.Parse(builder.Configuration["State:Shared"] ?? "true");
 
 // Add functionality to inject IOptions<T>
 builder.Services.AddOptions();
@@ -14,18 +12,9 @@ builder.Services.AddOptions();
 IConfigurationSection configSection = builder.Configuration.GetSection("ProductConfig");
 builder.Services.Configure<ProductConfig>(configSection);
 
-var sss = configSection["SharedState"] is not null ? configSection["SharedState"].ToString() : "false";
-bool sharedState = bool.Parse(sss);
-
 // Add services to the container
-if (sharedState)
-{
-    builder.Services.AddScoped<IProductRepository, DaprProductRepository>();
-} else
-{
-    builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
-    builder.Services.AddDbContext<ProductDbContext>();
-}
+builder.Services.AddDbContext<ProductDbContext>();
+builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
 
 builder.Services.AddDaprClient();
 builder.Services.AddControllers();
@@ -41,21 +30,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-if (!sharedState)
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+using (var scope = app.Services.CreateScope())
 {
-    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        var context = services.GetRequiredService<ProductDbContext>();
-        context.Database.EnsureDeleted();
-        context.Database.EnsureCreated();
-    }
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ProductDbContext>();
+    context.Database.EnsureDeleted();
+    context.Database.EnsureCreated();
 }
 
-// Configure the HTTP request pipeline.
 
+// Configure the HTTP request pipeline.
 app.MapControllers();
+
 app.MapSubscribeHandler();
 
 app.Run();

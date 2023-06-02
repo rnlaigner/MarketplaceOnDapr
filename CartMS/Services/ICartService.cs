@@ -1,4 +1,5 @@
 ﻿using Common.Entities;
+using Common.Events;
 
 namespace CartMS.Services
 {
@@ -11,7 +12,8 @@ namespace CartMS.Services
         public Task NotifyCheckout(CustomerCheckout customerCheckout);
         public Task<List<ProductStatus>> CheckCartForDivergencies(Cart cart);
 
-
+        void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
+        void ProcessPaymentFailed(PaymentFailed paymentFailed);
     }
 }
 

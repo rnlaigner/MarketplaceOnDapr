@@ -24,7 +24,7 @@ namespace PaymentMS.Models
         // respective to this line (ie. coupon)
         public decimal payment_value { get; set; }
 
-        public OrderPaymentCardModel orderPaymentCard { get; set; }
+        public OrderPaymentCardModel? orderPaymentCard { get; set; }
 
         public OrderPaymentModel() { }
 

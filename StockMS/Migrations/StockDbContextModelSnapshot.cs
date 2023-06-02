@@ -68,22 +68,6 @@ namespace StockMS.Migrations
                             t.HasCheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "qty_reserved <= qty_available");
                         });
                 });
-
-            modelBuilder.Entity("StockMS.Models.StockTracking", b =>
-                {
-                    b.Property<string>("instanceId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("operation")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("success")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("instanceId");
-
-                    b.ToTable("stock_tracking");
-                });
 #pragma warning restore 612, 618
         }
     }

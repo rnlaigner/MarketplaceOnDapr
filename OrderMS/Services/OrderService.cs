@@ -15,7 +15,6 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using OrderMS.Services;
-using Common.Idempotency;
 
 namespace OrderMS.Handlers
 {
@@ -98,16 +97,6 @@ namespace OrderMS.Handlers
             {
                 var now = System.DateTime.Now;
 
-                var tracking = dbContext.TransactionTracking.Find(checkout.instanceId);
-                if(tracking is not null)
-                {
-                    logger.LogWarning("[ProcessCheckout] Idempotence check has found instance ID {0} created at {1}. Ignoring event StockConfirmed.", checkout.instanceId, tracking.createdAt);
-                    return;
-                }
-
-                tracking = new TransactionTrackingModel(checkout.instanceId, now);
-                dbContext.TransactionTracking.Add(tracking);
-   
                 // calculate total freight_value
                 decimal total_freight = 0;
                 foreach (var item in checkout.items)
@@ -243,7 +232,7 @@ namespace OrderMS.Handlers
                 this.dbContext.SaveChanges();
 
                 InvoiceIssued invoice = new InvoiceIssued(checkout.customerCheckout, orderPersisted.Entity.id,  newOrder.invoice_number,
-                    now, total_amount, orderItems, checkout.instanceId);
+                    now, newOrder.total_invoice, orderItems, checkout.instanceId);
 
                 // publish
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(InvoiceIssued), invoice);
@@ -334,15 +323,12 @@ namespace OrderMS.Handlers
             }
         }
 
-        InvoiceIssued IOrderService.ProcessCheckout(StockConfirmed checkout)
+        public InvoiceIssued ProcessCheckout(StockConfirmed checkout)
         {
             throw new NotImplementedException();
         }
 
-        public Task ProcessCheckout(StockConfirmed checkout)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }
 

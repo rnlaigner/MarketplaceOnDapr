@@ -25,8 +25,11 @@ public class EventController : ControllerBase
     private readonly ILogger<EventController> logger;
     private readonly ICartService cartService;
 
-    public EventController(ICartService cartService, DaprClient daprClient, ICartRepository cartRepository, IProductRepository productRepository,
-                           ILogger<EventController> logger)
+    public EventController(DaprClient daprClient,
+                            ICartService cartService, 
+                            ICartRepository cartRepository,
+                            IProductRepository productRepository,
+                            ILogger<EventController> logger)
     {
         this.daprClient = daprClient;
         this.cartRepository = cartRepository;
@@ -108,6 +111,23 @@ public class EventController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("ProcessPaymentConfirmed")]
+    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
+    public void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
+    {
+        this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentConfirmed.customer.CustomerId);
+        this.cartService.ProcessPaymentConfirmed(paymentConfirmed);
+        this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentConfirmed.customer.CustomerId);
+    }
+
+    [HttpPost("ProcessPaymentFailed")]
+    [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
+    public void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
+    {
+        this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentFailed.customer.CustomerId);
+        this.cartService.ProcessPaymentFailed(paymentFailed);
+        this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentFailed.customer.CustomerId);
+    }
 
 }
 

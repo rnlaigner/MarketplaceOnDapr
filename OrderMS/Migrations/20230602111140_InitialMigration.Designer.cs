@@ -12,7 +12,7 @@ using OrderMS.Infra;
 namespace OrderMS.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20230601223651_InitialMigration")]
+    [Migration("20230602111140_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -28,19 +28,6 @@ namespace OrderMS.Migrations
             modelBuilder.HasSequence("OrderHistoryNumbers");
 
             modelBuilder.HasSequence("OrderNumbers");
-
-            modelBuilder.Entity("Common.Idempotency.TransactionTrackingModel", b =>
-                {
-                    b.Property<string>("instanceId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("createdAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("instanceId");
-
-                    b.ToTable("TransactionTracking");
-                });
 
             modelBuilder.Entity("OrderMS.Common.Models.CustomerOrderModel", b =>
                 {

@@ -9,7 +9,7 @@ help_="--help"
 param1="$1"
 
 if [ "$param1" = "$help_" ]; then
-    echo "It is expected that the script runs in the project root folder."
+    echo "It is expected that the script runs in the project's root folder."
     echo "You can specify the apps using the following pattern:"
     echo "<app-id1> ... <app-idn>"
     exit 1

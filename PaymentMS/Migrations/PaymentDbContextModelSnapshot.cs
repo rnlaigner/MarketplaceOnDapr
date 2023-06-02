@@ -66,7 +66,8 @@ namespace PaymentMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("payment_value")
-                        .HasColumnType("numeric");
+                        .HasPrecision(4, 2)
+                        .HasColumnType("decimal");
 
                     b.HasKey("order_id", "payment_sequential");
 
@@ -74,20 +75,6 @@ namespace PaymentMS.Migrations
                         {
                             t.HasCheckConstraint("CK_OrderPayment_PaymentValue", "payment_value >= 0");
                         });
-                });
-
-            modelBuilder.Entity("PaymentMS.Models.PaymentTrackingModel", b =>
-                {
-                    b.Property<string>("instanceId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("instanceId");
-
-                    b.ToTable("payment_tracking");
                 });
 
             modelBuilder.Entity("PaymentMS.Models.OrderPaymentCardModel", b =>
@@ -101,8 +88,7 @@ namespace PaymentMS.Migrations
 
             modelBuilder.Entity("PaymentMS.Models.OrderPaymentModel", b =>
                 {
-                    b.Navigation("orderPaymentCard")
-                        .IsRequired();
+                    b.Navigation("orderPaymentCard");
                 });
 #pragma warning restore 612, 618
         }

@@ -39,4 +39,3 @@ app.MapControllers();
 app.MapSubscribeHandler();
 
 app.Run();
-

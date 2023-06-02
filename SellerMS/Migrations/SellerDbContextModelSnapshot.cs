@@ -108,9 +108,8 @@ namespace SellerMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("customer_id")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<long>("customer_id")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("first_name")
                         .IsRequired()

@@ -10,7 +10,7 @@ namespace Common.Events
         long orderId,
         string invoiceNumber,
         DateTime issueDate,
-        decimal totalAmount,
+        decimal totalInvoice,
         IList<OrderItem> items,
         string instanceId = ""
     );

@@ -26,19 +26,6 @@ namespace OrderMS.Migrations
 
             modelBuilder.HasSequence("OrderNumbers");
 
-            modelBuilder.Entity("Common.Idempotency.TransactionTrackingModel", b =>
-                {
-                    b.Property<string>("instanceId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("createdAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("instanceId");
-
-                    b.ToTable("TransactionTracking");
-                });
-
             modelBuilder.Entity("OrderMS.Common.Models.CustomerOrderModel", b =>
                 {
                     b.Property<long>("customer_id")

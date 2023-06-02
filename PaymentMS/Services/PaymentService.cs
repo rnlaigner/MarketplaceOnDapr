@@ -29,81 +29,17 @@ namespace PaymentMS.Services
 		}
 
         /**
-         * The code below may commit and crash before sending the
-         * result event.
-         * 
-         * one way to make sure the result event has been sent is
-         * subscribing to it. after receiving the event, can update
-         * a tracking table. if a payment request is made and the
-         * event has not been sent, just send the event without 
-         * processing the payment again (just by checking the 
-         * idempotency key in tracking table)
-         * 
-         * however, this method still has flaws
-         * since this method can also fail after reading
-         * from the queue (and acknowledging the read...).
-         * i.e., without transactional queuing
-         * is difficult to ensure guarantees
-         * 
-         * in this sense, the least effort is employed.
-         * the result event is generated again and 
-         * downstream microservices must ensure 
-         * idempotency by themselves
-         * 
+         * The invoice issued event can arrive more than once, but the customer is only charged once
+         * Concurrent invoice issues will lead to corrupted state due to the constraints
          */
         public async Task ProcessPayment(InvoiceIssued paymentRequest)
         {
 
-            // check if this request has been made. if not, send it
-            var tracking = dbContext.PaymentTrackings.Where(p => p.instanceId == paymentRequest.instanceId).FirstOrDefault();
-            bool res = false;
-            if (tracking is not null)
-            {
-                res = tracking.status.Equals("succeeded"); // tracking.status
-                this.logger.LogInformation("[ProcessPayment] already processed: {0}. Sending again result payload...", paymentRequest.instanceId); 
-            } else {
-                try
-                {
-                    res = await this.ProcessPayment_(paymentRequest);
-                } catch(Exception e)
-                {
-                    bool db = e is DbUpdateConcurrencyException || e is DbUpdateException;
-                    this.logger.LogInformation("[ProcessPayment] {0} failed due to a database exception: {1}", paymentRequest.instanceId, e.Message);
-
-                    // TODO put on dead letter queue
-                    // await this.daprClient.PublishEventAsync(PUBSUB_NAME, "poisonMessages", paymentRes);
-
-                    return;
-                }
-            }
-
-            if (res)
-            {
-                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalAmount, paymentRequest.items, DateTime.Today, paymentRequest.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
-                this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
-            }
-            else
-            {
-                // https://stackoverflow.com/questions/73732696/dapr-pubsub-messages-only-being-received-by-one-subscriber
-                // https://github.com/dapr/dapr/issues/3176
-                // it seems the problem only happens in k8s:
-                // https://v1-0.docs.dapr.io/operations/components/component-schema/
-                // https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-mqtt3/
-                var paymentRes = new PaymentFailed("payment_failed", paymentRequest.customer, paymentRequest.orderId, paymentRequest.items, paymentRequest.totalAmount, paymentRequest.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), paymentRes);
-                this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
-            }
-        }
-
-        public async Task<bool> ProcessPayment_(InvoiceIssued paymentRequest)
-        {
-
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
             {
-                Amount = paymentRequest.totalAmount,
+                Amount = paymentRequest.totalInvoice,
                 Customer = paymentRequest.customer.CustomerId.ToString(),
-                IdempotencyKey = paymentRequest.instanceId,
+                IdempotencyKey = paymentRequest.invoiceNumber,
                 cardOptions = new()
                 {
                     Number = paymentRequest.customer.CardNumber,
@@ -116,18 +52,15 @@ namespace PaymentMS.Services
             using (var dbContextTransaction = dbContext.Database.BeginTransaction())
             {
 
-                // save in tracking in the ctx of transaction
-                dbContext.PaymentTrackings.Add(new()
-                {
-                    instanceId = paymentRequest.instanceId,
-                    status = intent.Status
-                });
-                dbContext.SaveChanges();
-
                 if (!intent.Status.Equals("succeeded"))
                 {
+                    var res = new PaymentFailed("payment_failed", paymentRequest.customer, paymentRequest.orderId,
+                        paymentRequest.items, paymentRequest.totalInvoice, paymentRequest.instanceId);
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), res);
+                    this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
+
                     dbContextTransaction.Commit();
-                    return false;
+                    return;
                 }
 
                 int seq = 1;
@@ -142,7 +75,7 @@ namespace PaymentMS.Services
                         payment_sequential = seq,
                         payment_type = cc ? PaymentType.CREDIT_CARD : PaymentType.DEBIT_CARD,
                         payment_installments = paymentRequest.customer.Installments,
-                        payment_value = paymentRequest.totalAmount
+                        payment_value = paymentRequest.totalInvoice
                     };
 
                     // create an entity for credit card payment details with FK to order payment
@@ -172,7 +105,7 @@ namespace PaymentMS.Services
                         payment_sequential = seq,
                         payment_type = PaymentType.BOLETO,
                         payment_installments = 1,
-                        payment_value = paymentRequest.totalAmount
+                        payment_value = paymentRequest.totalInvoice
                     });
                     seq++;
                 }
@@ -198,11 +131,15 @@ namespace PaymentMS.Services
                     dbContext.OrderPayments.AddRange(paymentLines);
                 dbContext.SaveChanges();
 
+                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalInvoice, paymentRequest.items, DateTime.Today, paymentRequest.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
+                this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
+
                 dbContextTransaction.Commit();
             
             }
 
-            return true;
+            return;
 
         }
     }

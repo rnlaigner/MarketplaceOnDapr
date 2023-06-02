@@ -1,8 +1,5 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true
-  },
+  "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "Cart": {
       "commandName": "Project",
@@ -10,7 +7,8 @@
       "applicationUrl": "http://localhost:5001",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "dotnetRunMessages": true
     }
   }
 }

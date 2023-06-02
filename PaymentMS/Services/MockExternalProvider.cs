@@ -20,13 +20,13 @@ namespace PaymentMS.Services
             // TODO perform http request to driver
             return new PaymentIntent()
             {
-                  Id = "",
+                  Id = Guid.NewGuid().ToString(),
                   Amount = options.Amount,
                  // example: pi_1GszdL2eZvKYlo2C4nORvwio_secret_F06b3J3jgLq8Ueo5JeZUF79mr
                  client_secret = "",
                  Currency = options.Currency.ToString(),
                  Customer = options.Customer,
-                FailureMessage = "",
+                 FailureMessage = "",
                  Created = DateTime.Now.Millisecond
             };
         }

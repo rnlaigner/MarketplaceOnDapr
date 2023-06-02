@@ -35,19 +35,6 @@ namespace StockMS.Migrations
                     table.CheckConstraint("CK_StockItem_QtyReserved", "qty_reserved >= 0");
                     table.CheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "qty_reserved <= qty_available");
                 });
-
-            migrationBuilder.CreateTable(
-                name: "stock_tracking",
-                columns: table => new
-                {
-                    instanceId = table.Column<string>(type: "text", nullable: false),
-                    operation = table.Column<int>(type: "integer", nullable: false),
-                    success = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_stock_tracking", x => x.instanceId);
-                });
         }
 
         /// <inheritdoc />
@@ -55,9 +42,6 @@ namespace StockMS.Migrations
         {
             migrationBuilder.DropTable(
                 name: "stock_items");
-
-            migrationBuilder.DropTable(
-                name: "stock_tracking");
         }
     }
 }

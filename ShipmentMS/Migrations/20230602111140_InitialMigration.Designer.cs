@@ -12,7 +12,7 @@ using ShipmentMS.Infra;
 namespace ShipmentMS.Migrations
 {
     [DbContext(typeof(ShipmentDbContext))]
-    [Migration("20230531205933_InitialMigration")]
+    [Migration("20230602111140_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -37,7 +37,8 @@ namespace ShipmentMS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("freight_value")
-                        .HasColumnType("numeric");
+                        .HasPrecision(4, 2)
+                        .HasColumnType("decimal");
 
                     b.Property<long>("product_id")
                         .HasColumnType("bigint");
@@ -80,9 +81,8 @@ namespace ShipmentMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("customer_id")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<long>("customer_id")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("first_name")
                         .IsRequired()
@@ -111,7 +111,8 @@ namespace ShipmentMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("total_freight_value")
-                        .HasColumnType("numeric");
+                        .HasPrecision(4, 2)
+                        .HasColumnType("decimal");
 
                     b.Property<string>("zip_code")
                         .IsRequired()

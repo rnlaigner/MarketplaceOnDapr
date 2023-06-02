@@ -18,17 +18,13 @@ namespace OrderMS.Controllers
     {
         private const string PUBSUB_NAME = "pubsub";
 
-        private readonly DaprClient daprClient;
         private readonly IOrderService orderService;
 
         private readonly ILogger<EventHandler> logger;
 
-        public EventHandler(IOrderService eventHandler,
-                            DaprClient daprClient,
-                            ILogger<EventHandler> logger)
+        public EventHandler(IOrderService orderService, ILogger<EventHandler> logger)
         {
-            this.orderService = eventHandler;
-            this.daprClient = daprClient;
+            this.orderService = orderService;
             this.logger = logger;
         }
 

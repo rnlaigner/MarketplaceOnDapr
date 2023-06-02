@@ -19,5 +19,5 @@ docker pull postgres
 docker run --name orderdb -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres
 
 
-dapr run --app-id order --app-port 5002 -- dotnet run --project OrderMS.csproj
-dapr run --app-id order --app-port 5002 -- dotnet run --project OrderMS/OrderMS.csproj
+dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 3502 -- dotnet run --project OrderMS.csproj
+dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 3502 -- dotnet run --project OrderMS/OrderMS.csproj

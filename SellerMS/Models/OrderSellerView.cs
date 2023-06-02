@@ -18,7 +18,7 @@ namespace SellerMS.Models
         // information below from a seller's perspective
 
         // order
-        public int count_items { get; set; }
+        public int count_items { get; set; } = 0;
         public decimal total_amount { get; set; } = 0;
         public decimal total_freight { get; set; } = 0;
 
