@@ -12,13 +12,16 @@ namespace PaymentMS.Infra
         public DbSet<OrderPaymentModel> OrderPayments => Set<OrderPaymentModel>();
         public DbSet<OrderPaymentCardModel> OrderPaymentCards => Set<OrderPaymentCardModel>();
 
-        public PaymentDbContext()
+        private readonly IConfiguration configuration;
+
+        public PaymentDbContext(IConfiguration configuration)
         {
+            this.configuration = configuration;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseNpgsql(@"Host=localhost;Port=5432;Database=payment;Username=postgres;Password=password")
+            options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b

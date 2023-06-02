@@ -5,16 +5,18 @@ namespace ProductMS.Infra
 {
 	public class ProductDbContext : DbContext
     {
-
         public DbSet<ProductModel> Products => Set<ProductModel>();
 
-        public ProductDbContext()
-		{
-		}
+        private readonly IConfiguration configuration;
+
+        public ProductDbContext(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseNpgsql(@"Host=localhost;Port=5432;Database=product;Username=postgres;Password=password")
+            options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b

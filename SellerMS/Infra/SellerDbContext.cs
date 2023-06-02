@@ -19,8 +19,11 @@ namespace SellerMS.Infra
 
         public DbSet<OrderSellerView> OrderSellerView => Set<OrderSellerView>();
 
-        public SellerDbContext()
+        private readonly IConfiguration configuration;
+
+        public SellerDbContext(IConfiguration configuration)
         {
+            this.configuration = configuration;
         }
 
         // the amount being transacted at the moment
@@ -37,7 +40,7 @@ namespace SellerMS.Infra
         {
             // https://github.com/win7user10/Laraue.EfCoreTriggers#laraueefcoretriggerspostgresql
             options = options
-                .UseNpgsql(@"Host=localhost;Port=5432;Database=seller;Username=postgres;Password=password")
+                .UseNpgsql(configuration.GetConnectionString("Database"))
                 .UsePostgreSqlTriggers()
                 .UseLoggerFactory(
                     LoggerFactory.Create(

@@ -10,13 +10,16 @@ namespace ShipmentMS.Infra
         public DbSet<ShipmentModel> Shipments => Set<ShipmentModel>();
         public DbSet<PackageModel> Packages => Set<PackageModel>();
 
-        public ShipmentDbContext()
-		{
-		}
+        private readonly IConfiguration configuration;
+
+        public ShipmentDbContext(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseNpgsql(@"Host=localhost;Port=5432;Database=shipment;Username=postgres;Password=password")
+            options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b

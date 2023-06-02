@@ -8,10 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace OrderMS.Infra
 {
-    /**
-     * https://www.npgsql.org/efcore/
-     * 
-     */
+
     public class OrderDbContext : DbContext
     {
         public DbSet<OrderModel> Orders => Set<OrderModel>();
@@ -19,7 +16,7 @@ namespace OrderMS.Infra
         public DbSet<OrderHistoryModel> OrderHistory => Set<OrderHistoryModel>();
         public DbSet<CustomerOrderModel> CustomerOrders => Set<CustomerOrderModel>();
 
-        protected readonly IConfiguration configuration;
+        private readonly IConfiguration configuration;
 
         public OrderDbContext(IConfiguration configuration)
         {
@@ -30,7 +27,7 @@ namespace OrderMS.Infra
         {
             // connection string can be taken from appsettings:
             // https://jasonwatmore.com/post/2022/06/23/net-6-connect-to-postgresql-database-with-entity-framework-core
-            options.UseNpgsql(configuration.GetConnectionString("WebApiDatabase"))
+            options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b

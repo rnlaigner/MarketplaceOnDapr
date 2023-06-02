@@ -11,9 +11,12 @@ namespace StockMS.Infra
 
         public DbSet<StockItemModel> StockItems => Set<StockItemModel>();
 
-        public StockDbContext()
-		{
-		}
+        private readonly IConfiguration configuration;
+
+        public StockDbContext(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
