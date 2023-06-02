@@ -15,10 +15,10 @@ namespace Common.Entities
 		public decimal total_freight_value;
 
 		// date all deliveries were requested
-        public string request_date { get; set; } = "";
+        public DateTime request_date { get; set; }
 
         // shipment status
-        public string status { get; set; } = "";
+        public ShipmentStatus status { get; set; }
 
         // customer delivery address. the same for all packages/sellers
         public string first_name { get; set; } = "";

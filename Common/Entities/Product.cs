@@ -33,7 +33,7 @@
 
         // https://dev.olist.com/docs/products
         // approved by default
-        public string status { get; set; } = "";
+        public string status { get; set; } = "approved";
 
     }
 }

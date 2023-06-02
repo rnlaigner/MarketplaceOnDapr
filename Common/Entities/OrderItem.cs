@@ -16,7 +16,7 @@ namespace Common.Entities
         // prices change over time
         public decimal unit_price { get; set; }
 
-        public DateTime? shipping_limit_date { get; set; }
+        public DateTime shipping_limit_date { get; set; }
 
         public decimal freight_value { get; set; }
 

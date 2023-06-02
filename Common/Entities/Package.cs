@@ -27,7 +27,7 @@ namespace Common.Entities
 
 		public int quantity;
 
-		public string? status { get; set; }
+		public PackageStatus status { get; set; }
     }
 }
 
