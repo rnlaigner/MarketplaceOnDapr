@@ -22,7 +22,15 @@ public class CartController : ControllerBase
         this.logger = logger;
     }
 
-    [Route("{customerId}/add")]
+    //[HttpGet("/healthcheck")]
+    //[ProducesResponseType((int)HttpStatusCode.OK)]
+    //[ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    //public ActionResult Healthcheck()
+    //{
+    //    return Ok();
+    //}
+
+    [Route("{customerId}")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
@@ -64,7 +72,7 @@ public class CartController : ControllerBase
      * API for workflow
      * The workflow program will build the Checkout object
      */
-    [Route("checkout")]
+    [Route("workflowCheckout")]
     [HttpPost]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
@@ -111,7 +119,6 @@ public class CartController : ControllerBase
         var res = await this.cartRepository.SafeSave(cart);
         if (res)
         {
-            await cartService.SealIfNecessary(cart);
             return Ok(cart);
         }
         return Conflict();
@@ -126,12 +133,12 @@ public class CartController : ControllerBase
         var cart = await this.cartRepository.GetCart(customerId);
         if (cart.status != CartStatus.CHECKOUT_SENT)
         {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed);
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart is not in CHECKOUT_SENT status");
         }
         /**
          * Seal is a terminal state, so no need to check for concurrent operation
          */
-        await this.cartService.SealIfNecessary(cart);
+        await this.cartService.Seal(cart);
         return Ok();
     }
 
@@ -144,13 +151,21 @@ public class CartController : ControllerBase
         return Ok(new Cart(checkoutNotification.customerId));
     }
 
-    [Route("test")]
+    [Route("checkout")]
     [HttpPatch]
-    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
-    public ActionResult<Cart> Test()
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
+    public async Task<IActionResult> NotifyCheckout([FromBody] CustomerCheckout customerCheckout)
     {
-        this.logger.LogInformation("[Test] received request.");
-        return Ok(new Cart(1));
+        this.logger.LogInformation("[NotifyCheckout] received request.");
+        Cart cart = await this.cartRepository.GetCart(customerCheckout.CustomerId);
+        if (cart.status == CartStatus.CHECKOUT_SENT)
+        {
+            this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer "+ customerCheckout.CustomerId + " cart has already been submitted to checkout");
+        }
+        await this.cartService.NotifyCheckout(customerCheckout, cart);
+        return Ok();
     }
 
 }

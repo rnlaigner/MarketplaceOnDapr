@@ -29,40 +29,20 @@ namespace CartMS.Services
             this.logger = logger;
         }
 
-        public async Task SealIfNecessary(Cart cart)
+        public async Task Seal(Cart cart, bool cleanItems = true)
         {
-            if (config.SealAfterCheckout)
-            {
+            if(cleanItems)
                 cart.items.Clear();
-                cart.status = CartStatus.OPEN;
-                await this.cartRepository.Save(cart);
-            }
+            cart.status = CartStatus.OPEN;
+            await this.cartRepository.Save(cart);   
         }
 
-        public async Task SealIfNecessary(long customerId)
+        public async Task NotifyCheckout(CustomerCheckout customerCheckout, Cart cart)
         {
-            Cart cart = await this.cartRepository.GetCart(customerId);
-            if (config.SealAfterCheckout)
-            {
-                cart.items.Clear();
-                cart.status = CartStatus.OPEN;
-                await this.cartRepository.Save(cart);
-            }
-        }
-
-        public async Task NotifyCheckout(CustomerCheckout customerCheckout)
-        {
-            Cart cart = await this.cartRepository.GetCart(customerCheckout.CustomerId);
-            if (cart.status == CartStatus.CHECKOUT_SENT)
-            {
-                this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
-                return;
-            }
-
             List<ProductStatus> divergencies = await CheckCartForDivergencies(cart);
-            cart.divergencies = divergencies;
             if (divergencies.Count() > 0)
             {
+                cart.divergencies = divergencies;
                 await this.cartRepository.Save(cart);
                 CustomerCheckoutFailed checkoutFailed = new CustomerCheckoutFailed(customerCheckout.CustomerId, divergencies);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(CustomerCheckoutFailed), checkoutFailed);
@@ -81,10 +61,7 @@ namespace CartMS.Services
             // CancellationToken cancellationToken = source.Token;
 
             ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cart.items.Select(c => c.Value).ToList());
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout); // , cancellationToken);
-
-            await this.SealIfNecessary(cart);
-            
+            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout); // , cancellationToken);    
         }
 
         public async Task<List<ProductStatus>> CheckCartForDivergencies(Cart cart)
@@ -135,16 +112,13 @@ namespace CartMS.Services
         public async void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
             Cart cart = await this.cartRepository.GetCart(paymentConfirmed.customer.CustomerId);
-            cart.items.Clear();
-            cart.status = CartStatus.OPEN;
-            await this.cartRepository.Save(cart);
+            await this.Seal(cart);
         }
 
         public async void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
             Cart cart = await this.cartRepository.GetCart(paymentFailed.customer.CustomerId);
-            cart.status = CartStatus.OPEN;
-            await this.cartRepository.Save(cart);
+            await this.Seal(cart, false);
         }
     }
 }

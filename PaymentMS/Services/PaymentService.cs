@@ -34,7 +34,11 @@ namespace PaymentMS.Services
          */
         public async Task ProcessPayment(InvoiceIssued paymentRequest)
         {
-
+            /*
+             * We assume the payment provider exposes an idempotency ID 
+             * that guarantees exactly once payment processing even when 
+             * a payment request is submitted more than once to them
+             */
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
             {
                 Amount = paymentRequest.totalInvoice,

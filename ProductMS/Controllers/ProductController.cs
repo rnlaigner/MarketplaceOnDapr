@@ -24,6 +24,13 @@ public class ProductController : ControllerBase
         this.productRepository = productRepository;
     }
 
+    //[HttpGet("/healthcheck")]
+    //[ProducesResponseType((int)HttpStatusCode.OK)]
+    //[ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    //public ActionResult Healthcheck()
+    //{
+    //    return Ok();
+    //}
 
     [HttpGet]
     [Route("/")]

@@ -5,11 +5,10 @@ namespace CartMS.Services
 {
 	public interface ICartService
 	{
+        // can also be used for test
+        public Task Seal(Cart cart, bool cleanItems = true);
 
-        public Task SealIfNecessary(Cart cart);
-        public Task SealIfNecessary(long customerId);
-
-        public Task NotifyCheckout(CustomerCheckout customerCheckout);
+        public Task NotifyCheckout(CustomerCheckout customerCheckout, Cart cart);
         public Task<List<ProductStatus>> CheckCartForDivergencies(Cart cart);
 
         void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);

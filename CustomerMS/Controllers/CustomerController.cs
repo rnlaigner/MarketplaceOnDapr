@@ -22,6 +22,14 @@ public class CustomerController : ControllerBase
         this.logger = logger;
     }
 
+    //[HttpGet("/healthcheck")]
+    //[ProducesResponseType((int)HttpStatusCode.OK)]
+    //[ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    //public ActionResult Healthcheck()
+    //{
+    //    return Ok();
+    //}
+
     [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public IActionResult AddCustomer([FromBody] Customer customer)
@@ -32,14 +40,14 @@ public class CustomerController : ControllerBase
         return StatusCode((int)HttpStatusCode.Created);
     }
 
-    [HttpGet("/")]
+    [HttpGet("/{customerId}")]
     [ProducesResponseType((int)HttpStatusCode.Found)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Customer>> GetCustomerAsync([FromBody] long id)
+    public async Task<ActionResult<Customer>> GetCustomers(long customerId)
     {
-        this.logger.LogInformation("[GetCustomer] received for seller {0}", id);
-        Customer customer = await this.customerService.GetCustomer(id);
-        this.logger.LogInformation("[GetCustomer] completed for seller {0}.", id);
+        this.logger.LogInformation("[GetCustomer] received for seller {0}", customerId);
+        Customer customer = await this.customerService.GetCustomer(customerId);
+        this.logger.LogInformation("[GetCustomer] completed for seller {0}.", customerId);
         if (customer is not null) return StatusCode((int)HttpStatusCode.Found, customer);
         return NotFound();
     }

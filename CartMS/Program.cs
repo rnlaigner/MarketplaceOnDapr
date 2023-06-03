@@ -14,6 +14,9 @@ builder.Services.AddSingleton<ICartService, CartService>();
 
 builder.Services.AddControllers();
 
+// https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-6.0
+builder.Services.AddHealthChecks();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -34,6 +37,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 // not needed unless using pub/sub
 app.MapSubscribeHandler();

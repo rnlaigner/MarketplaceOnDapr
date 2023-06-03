@@ -45,7 +45,7 @@ public class EventController : ControllerBase
      */
     [HttpPost("BulkProductStreaming")]
     [BulkSubscribe("BulkProductStreaming")]
-    [Topic(PUBSUB_NAME, "products")]
+    [Topic(PUBSUB_NAME, "Products")]
     public async Task<ActionResult<BulkSubscribeAppResponse>> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages )
     {
         List<BulkSubscribeAppResponseEntry> responseEntries; // = new List<BulkSubscribeAppResponseEntry>();
@@ -102,15 +102,6 @@ public class EventController : ControllerBase
      * Source: https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-publish-subscribe/
      * 
      */
-    [HttpPost("NotifyCheckout")]
-    [Topic(PUBSUB_NAME, nameof(CustomerCheckout))]
-    public async Task<IActionResult> NotifyCheckout([FromBody] CustomerCheckout customerCheckout)
-    {
-        Task task = this.cartService.NotifyCheckout(customerCheckout);
-        await task;
-        return Ok();
-    }
-
     [HttpPost("ProcessPaymentConfirmed")]
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
     public void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
@@ -130,4 +121,3 @@ public class EventController : ControllerBase
     }
 
 }
-

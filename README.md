@@ -71,3 +71,6 @@ cmhmod 775 deploy_macos.sh
 
 ## How to trigger transactions
 
+
+## Useful links
+https://www.ibm.com/garage/method/practices/manage/health-check-apis/

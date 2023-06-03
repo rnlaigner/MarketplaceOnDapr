@@ -10,6 +10,9 @@ builder.Services.AddSingleton<ICustomerRepository, CustomerRepository>();
 builder.Services.AddSingleton<ICustomerService, CustomerService>();
 
 builder.Services.AddControllers();
+
+builder.Services.AddHealthChecks();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -25,7 +28,8 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
+app.MapHealthChecks("/health");
+
 app.MapSubscribeHandler();
 
 app.Run();
-

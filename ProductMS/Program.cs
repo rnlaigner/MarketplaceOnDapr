@@ -1,5 +1,6 @@
 ﻿using ProductMS.Infra;
 using ProductMS.Repositories;
+using ProductMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,12 +13,16 @@ builder.Services.AddOptions();
 IConfigurationSection configSection = builder.Configuration.GetSection("ProductConfig");
 builder.Services.Configure<ProductConfig>(configSection);
 
+builder.Services.AddDaprClient();
+
 // Add services to the container
 builder.Services.AddDbContext<ProductDbContext>();
 builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
-builder.Services.AddDaprClient();
 builder.Services.AddControllers();
+
+builder.Services.AddHealthChecks();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -39,9 +44,10 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureCreated();
 }
 
-
 // Configure the HTTP request pipeline.
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.MapSubscribeHandler();
 
