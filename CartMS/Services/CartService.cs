@@ -59,7 +59,7 @@ namespace CartMS.Services
 
             // CancellationTokenSource source = new CancellationTokenSource();
             // CancellationToken cancellationToken = source.Token;
-
+            this.logger.LogWarning("Customer {0} cart has been submitted to checkout. Publishing checkout event...", customerCheckout.CustomerId);
             ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cart.items.Select(c => c.Value).ToList());
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout); // , cancellationToken);    
         }
@@ -70,7 +70,7 @@ namespace CartMS.Services
             IList<Product>? products = null;
             if (config.CheckPriceUpdateOnCheckout)
             {
-                var ids = (IReadOnlyList<long>)cart.items.Select(i => i.Value.ProductId).ToList();
+                IReadOnlyList<long> ids = (IReadOnlyList<long>)cart.items.Select(i => i.Value.ProductId).ToList();
                 products = await productRepository.GetProducts(ids);
 
                 foreach (var product in products)
@@ -81,7 +81,6 @@ namespace CartMS.Services
                         divergencies.Add(new ProductStatus(product.product_id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
                     }
                 }
-
             }
 
             if (config.CheckIfProductExistsOnCheckout)

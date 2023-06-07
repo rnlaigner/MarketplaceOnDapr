@@ -22,14 +22,6 @@ public class CustomerController : ControllerBase
         this.logger = logger;
     }
 
-    //[HttpGet("/healthcheck")]
-    //[ProducesResponseType((int)HttpStatusCode.OK)]
-    //[ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    //public ActionResult Healthcheck()
-    //{
-    //    return Ok();
-    //}
-
     [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public IActionResult AddCustomer([FromBody] Customer customer)

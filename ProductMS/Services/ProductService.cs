@@ -27,28 +27,15 @@ namespace ProductMS.Services
             this.logger = logger;
         }
 
-        public async Task<bool> Delete(Product productToDelete)
+        public async Task<bool> Delete(ProductModel productToDelete)
         {
             try
             {
                 using (var txCtx = this.dbContext.Database.BeginTransaction())
                 {
-                    ProductModel? product = this.productRepository.GetProduct(productToDelete.seller_id, productToDelete.product_id);
 
-                    if (product is null)
-                    {
-                        this.logger.LogWarning("Cannot find product id {0} to delete", productToDelete.product_id);
-                        return false;
-                    }
-                    else
-                    {
-                        this.productRepository.Delete(product);
-                    }
-
-                    this.dbContext.SaveChanges();
-
-                    productToDelete.active = false;
-
+                    this.productRepository.Delete(productToDelete);
+                   
                     if(config.ProductStreaming)
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), productToDelete);
 
@@ -74,20 +61,23 @@ namespace ProductMS.Services
                 using (var txCtx = this.dbContext.Database.BeginTransaction()) {
 
                     ProductModel? product = this.productRepository.GetProduct(productToUpdate.seller_id, productToUpdate.product_id);
-                    var product_ = Utils.AsProductModel(productToUpdate);
+                    ProductModel input = Utils.AsProductModel(productToUpdate);
 
                     if (product is null)
                     {
-                        this.productRepository.Insert(product_);
+                        input.updated_at = input.created_at;
+                        this.productRepository.Insert(input);
                     } else
                     {
-                        this.productRepository.Update(product);
+                        input.created_at = product.created_at;
+                        input.updated_at = DateTime.Now;
+                        this.productRepository.Update(input);
                     }
 
                     this.dbContext.SaveChanges();
 
                     if (config.ProductStreaming) // TODO should we handle the commit exception with cancellation token?
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), productToUpdate);
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), Utils.AsProduct(input));
                 
                     txCtx.Commit();
 

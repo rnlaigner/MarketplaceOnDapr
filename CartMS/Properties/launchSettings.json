@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "Cart": {
+    "CartMS": {
       "commandName": "Project",
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5001",

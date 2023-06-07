@@ -24,43 +24,60 @@ public class ProductController : ControllerBase
         this.productRepository = productRepository;
     }
 
-    //[HttpGet("/healthcheck")]
-    //[ProducesResponseType((int)HttpStatusCode.OK)]
-    //[ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    //public ActionResult Healthcheck()
-    //{
-    //    return Ok();
-    //}
-
     [HttpGet]
-    [Route("/")]
+    [Route("sellers/{sellerId}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<List<Product>> GetAll()
+    public ActionResult<Product> GetBySeller(long sellerId)
     {
-        return Ok();
-    }
-
-    /**
-     * https://stackoverflow.com/questions/36280947/how-to-pass-multiple-parameters-to-a-get-method-in-asp-net-core
-     */
-    [HttpGet]
-    [Route("{sellerId}/{productId}")]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetById(long sellerId, long productId)
-    {
-        if (sellerId <= 0 || productId <= 0)
+        this.logger.LogInformation("[GetBySeller] received for seller {0}", sellerId);
+        if (sellerId <= 0)
         {
             return BadRequest();
         }
-        var product = this.productRepository.GetProduct(sellerId, productId);
+        var product = this.productRepository.GetBySeller(sellerId);
 
         if (product != null)
         {
+            this.logger.LogInformation("[GetBySeller] returning for product {0}", sellerId);
             return Ok(product);
+        }
+        return NotFound();
+    }
+
+    [HttpGet]
+    [Route("{productId}")]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
+    public ActionResult<Product> GetById(long productId)
+    {
+        this.logger.LogInformation("[GetById] received for product {0}", productId);
+        if (productId <= 0)
+        {
+            return BadRequest();
+        }
+        var product = this.productRepository.GetProduct(productId);
+
+        if (product != null)
+        {
+            this.logger.LogInformation("[GetById] returning for product {0}", productId);
+            return Ok(product);
+        }
+        return NotFound();
+    }
+
+    [HttpDelete]
+    [Route("{productId}")]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult DeleteById(long productId)
+    {
+        var product = this.productRepository.GetProduct(productId);
+        if (product != null) { 
+            this.productService.Delete(product);
+            return Accepted();
         }
         return NotFound();
     }
@@ -68,11 +85,9 @@ public class ProductController : ControllerBase
     [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public async Task<IActionResult> AddProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)
+    public async Task<IActionResult> AddProduct([FromBody] Product product)
     {
-        this.logger.LogInformation("[AddProduct] received for instanceId {0}", instanceId);
         bool res = await this.productService.Upsert(product);
-        this.logger.LogInformation("[AddProduct] completed for instanceId {0}. Returning {res}", instanceId, res);
         if (res)
         {
             return StatusCode((int)HttpStatusCode.Created);
@@ -83,26 +98,9 @@ public class ProductController : ControllerBase
     [HttpPut("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<IActionResult> UpdateProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)
+    public async Task<IActionResult> UpdateProduct([FromBody] Product product)
     {
-        this.logger.LogInformation("[UpdateProduct] received for instanceId {0}", instanceId);
         bool res = await this.productService.Upsert(product);
-        this.logger.LogInformation("[UpdateProduct] completed for instanceId {0}. Returning {res}", instanceId, res);
-        if (res)
-        {
-            return Accepted();
-        }
-        return NotFound();
-    }
-
-    [HttpPut("/")]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<IActionResult> DeleteProduct([FromBody] Product product, [FromHeader(Name = "instanceId")] string instanceId)
-    {
-        this.logger.LogInformation("[UpdateProduct] received for instanceId {0}", instanceId);
-        bool res = await this.productService.Delete(product);
-        this.logger.LogInformation("[UpdateProduct] completed for instanceId {0}. Returning {res}", instanceId, res);
         if (res)
         {
             return Accepted();

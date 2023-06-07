@@ -85,6 +85,8 @@ namespace ShipmentMS.Service
             // enqueue shipment notification
             ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
+
+            // TODO publish transactional event result
         }
 
         [Transactional(IsolationLevel.Serializable)]

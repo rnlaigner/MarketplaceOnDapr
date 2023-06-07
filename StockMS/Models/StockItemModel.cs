@@ -4,16 +4,15 @@ using Microsoft.EntityFrameworkCore;
 namespace StockMS.Models
 {
     [Table("stock_items")]
-    [PrimaryKey(nameof(product_id))]
+    [PrimaryKey(nameof(seller_id),nameof(product_id))]
     public class StockItemModel
 	{
-
-        public long product_id { get; set; }
-
         // consider partitioning on seller id
         // https://www.postgresql.org/docs/current/ddl-partitioning.html
         // https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/managing?tabs=dotnet-core-cli#adding-raw-sql
         public long seller_id { get; set; }
+
+        public long product_id { get; set; }
 
         public int qty_available { get; set; }
 

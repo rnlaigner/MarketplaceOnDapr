@@ -36,6 +36,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var cartRepository = services.GetService<CartRepository>();
+    // cartRepository.DeleteAll();
+}
+
 app.MapControllers();
 
 app.MapHealthChecks("/health");

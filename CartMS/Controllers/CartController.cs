@@ -22,15 +22,7 @@ public class CartController : ControllerBase
         this.logger = logger;
     }
 
-    //[HttpGet("/healthcheck")]
-    //[ProducesResponseType((int)HttpStatusCode.OK)]
-    //[ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    //public ActionResult Healthcheck()
-    //{
-    //    return Ok();
-    //}
-
-    [Route("{customerId}")]
+    [Route("{customerId}/add")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
@@ -40,7 +32,10 @@ public class CartController : ControllerBase
         // check if it is already on the way to checkout.... if so, cannot add product
         var cart = await this.cartRepository.GetCart(customerId);
         if (cart != null && cart.status == CartStatus.CHECKOUT_SENT)
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart " + cart.customerId + " already sent for checkout.");
+        {
+            this.logger.LogWarning("Cart for customer {0} already sent for checkout.", customerId);
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart for customer " + cart.customerId + " already sent for checkout.");
+        }
 
         this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
         if (item.Quantity <= 0)
@@ -68,60 +63,16 @@ public class CartController : ControllerBase
         return Ok(cart);
     }
 
-    /*
-     * API for workflow
-     * The workflow program will build the Checkout object
-     */
-    [Route("workflowCheckout")]
-    [HttpPost]
+    [HttpDelete("{customerId}")]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.Conflict)]
-    [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Cart>> NotifyCheckout(CheckoutNotification checkoutNotification)
+    public async Task<ActionResult<Cart>> Delete(long customerId)
     {
-        // querying the kv store
-        var cart = await this.cartRepository.GetCart(checkoutNotification.customerId);
-        // in the database, this would be like: select count(*) from cart where cart.instanceId = ?
+        this.logger.LogInformation("Customer {0} requested to delete cart.", customerId);
+        var cart = await this.cartRepository.Delete(customerId);
         if (cart is null)
             return NotFound();
-
-        if(cart.items.Count() == 0)
-        {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed,
-                "Cart for customer " + checkoutNotification.customerId + " shows no items to checkout!");
-        }
-
-        // workflow calling again
-        if (checkoutNotification.instanceId.Equals(cart.instanceId) && cart.status == CartStatus.CHECKOUT_SENT)
-        {
-            return cart;
-        }
-
-        if (cart.status == CartStatus.CHECKOUT_SENT)
-        {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed,
-                "Cart for customer " + checkoutNotification.customerId + " is on checkout process already!");
-        }
-
-        var divergencies = await cartService.CheckCartForDivergencies(cart);
-        if (divergencies.Count() > 0)
-        {
-            cart.divergencies = divergencies;
-            await this.cartRepository.Save(cart);
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, cart);
-        }
-        else
-        {
-            cart.instanceId = checkoutNotification.instanceId;
-            cart.status = CartStatus.CHECKOUT_SENT;
-        }
-        var res = await this.cartRepository.SafeSave(cart);
-        if (res)
-        {
-            return Ok(cart);
-        }
-        return Conflict();
+        return Ok(cart);
     }
 
     [Route("{customerId}/seal")]
@@ -151,19 +102,36 @@ public class CartController : ControllerBase
         return Ok(new Cart(checkoutNotification.customerId));
     }
 
-    [Route("checkout")]
-    [HttpPatch]
+    [Route("{customerId}/checkout")]
+    [HttpPost]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
-    public async Task<IActionResult> NotifyCheckout([FromBody] CustomerCheckout customerCheckout)
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> NotifyCheckout(long customerId, [FromBody] CustomerCheckout customerCheckout)
     {
+        // TODO log a transaction event
         this.logger.LogInformation("[NotifyCheckout] received request.");
+
+        if (customerId != customerCheckout.CustomerId)
+        {
+            logger.LogError("Customer checkout payload ({0}) does not match customer ID ({1}) in URL", customerId, customerCheckout.CustomerId);
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer checkout payload does not match customer ID in URL");
+        }
+        
         Cart cart = await this.cartRepository.GetCart(customerCheckout.CustomerId);
+
+        if(cart is null)
+        {
+            this.logger.LogWarning("Customer {0} cart cannot be found", customerCheckout.CustomerId);
+            return NotFound();
+        }
+
         if (cart.status == CartStatus.CHECKOUT_SENT)
         {
             this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer "+ customerCheckout.CustomerId + " cart has already been submitted to checkout");
         }
+
         await this.cartService.NotifyCheckout(customerCheckout, cart);
         return Ok();
     }

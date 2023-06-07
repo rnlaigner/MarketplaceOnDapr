@@ -8,7 +8,7 @@ namespace ProductMS.Services
 	public interface IProductService
 	{
         public Task<bool> Upsert(Product productToUpdate);
-        public Task<bool> Delete(Product productToDelete);
+        public Task<bool> Delete(ProductModel productToDelete);
 
     }
 }

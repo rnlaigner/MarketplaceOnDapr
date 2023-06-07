@@ -44,6 +44,7 @@ namespace CartMS.Repositories
         {
             var parsedInput = productIds.Select(id => string.Format("P|{0}", id)).ToList();
             IReadOnlyList<BulkStateItem> mulitpleStateResult = await daprClient.GetBulkStateAsync(StoreName, parsedInput, parallelism: 1);
+            // FIXME Unable to cast object of type 'System.Collections.Generic.List`1[System.String]' to type 'System.Collections.Generic.IList`1[Common.Entities.Product]'
             return (IList<Product>)mulitpleStateResult.Select(b => b.Value).ToList();
         }
 

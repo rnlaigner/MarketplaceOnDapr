@@ -33,21 +33,19 @@ namespace CartMS.Repositories
         {
             var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId.ToString());
 
-            if (cartEntry.Value.status == CartStatus.CHECKOUT_SENT)
+            if (cartEntry.Value is null)
+            {
+                this.logger.LogInformation("Creating cart and adding item for customer {0}.", customerId);
+                Cart cart = new Cart(customerId);
+                cart.items.Add(item.ProductId, item);
+                await this.daprClient.SaveStateAsync<Cart>(StoreName,
+                    customerId.ToString(),
+                    cart);
+                return true;
+
+            } else if (cartEntry.Value.status == CartStatus.CHECKOUT_SENT)
             {
                 return false;
-            }
-
-            if (cartEntry.Value.customerId.Equals(""))
-            {
-                this.logger.LogInformation("Creating cart for customer {0}.", customerId);
-                // update field
-                cartEntry.Value.customerId = customerId;
-                cartEntry.Value.createdAt = DateTime.Now;
-                return await this.daprClient.TrySaveStateAsync<Cart>(StoreName,
-                    customerId.ToString(),
-                    cartEntry.Value,
-                    cartEntry.ETag);
             }
 
             if (cartEntry.Value.items.ContainsKey(item.ProductId))
@@ -65,7 +63,9 @@ namespace CartMS.Repositories
 
         public async Task<Cart> GetCart(long customerId)
         {
-            return await this.daprClient.GetStateAsync<Cart>(StoreName, customerId.ToString());
+            var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId.ToString());
+            if (cartEntry.Value is null) return new Cart(customerId);
+            return cartEntry.Value;
         }
 
         public async Task<bool> SafeSave(Cart cart)
@@ -83,6 +83,18 @@ namespace CartMS.Repositories
             await this.daprClient.SaveStateAsync<Cart>(StoreName,
                     cart.customerId.ToString(),
                     cart);
+        }
+
+        public async Task<Cart> Delete(long customerId)
+        {
+            var cartEntry = await daprClient.GetStateAsync<Cart>(StoreName, customerId.ToString());
+            if (cartEntry is not null)
+            {
+                await this.daprClient.DeleteStateAsync(StoreName, customerId.ToString());
+                return cartEntry;
+            }
+            else
+                return new Cart(-1);
         }
     }
 }

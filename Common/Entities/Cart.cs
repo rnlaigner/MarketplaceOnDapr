@@ -7,13 +7,15 @@ namespace Common.Entities
     public class Cart
     {
         // no longer identified within an actor. so it requires an id
-        public long customerId { get; set; }
+        public long customerId { get; set; } = 0;
 
         public CartStatus status { get; set; } = CartStatus.OPEN;
 
         public IDictionary<long, CartItem> items { get; set; } = new Dictionary<long, CartItem>();
 
         public DateTime? createdAt { get; set; }
+
+        public DateTime? updatedAt { get; set; }
 
         public string instanceId { get; set; } = "";
 
@@ -23,7 +25,11 @@ namespace Common.Entities
         // for dapr
         public Cart() { }
 
-        public Cart(long customerId) { this.customerId = customerId; }
+        public Cart(long customerId) {
+            this.customerId = customerId;
+            this.createdAt = DateTime.Now;
+            this.updatedAt = DateTime.Now;
+        }
 
         public override string ToString()
         {

@@ -13,6 +13,9 @@ namespace ProductMS.Repositories
 
         ProductModel? GetProduct(long sellerId, long productId);
 
+        ProductModel? GetProduct(long productId);
+
+        List<ProductModel> GetBySeller(long sellerId);
     }
 }
 

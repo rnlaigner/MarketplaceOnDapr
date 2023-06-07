@@ -12,6 +12,8 @@ namespace CartMS.Repositories
         Task<bool> SafeSave(Cart cart);
 
         Task Save(Cart cart);
+
+        Task<Cart> Delete(long customerId);
     }
 }
 

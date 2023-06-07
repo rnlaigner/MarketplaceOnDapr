@@ -1,4 +1,6 @@
-﻿using ProductMS.Infra;
+﻿using Google.Api;
+using Microsoft.AspNetCore.Mvc;
+using ProductMS.Infra;
 using ProductMS.Repositories;
 using ProductMS.Services;
 
@@ -17,15 +19,29 @@ builder.Services.AddDaprClient();
 
 // Add services to the container
 builder.Services.AddDbContext<ProductDbContext>();
-builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+/*
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    // options.SuppressModelStateInvalidFilter = true;
+    options.InvalidModelStateResponseFactory = actionContext =>
+    {
+        // Do what you need here for specific cases with `actionContext` 
+        // I believe you can cehck the action attributes 
+        // if you'd like to make mark / handle specific cases by action attributes. 
+
+        return new BadRequestObjectResult(actionContext.ModelState);
+    };
+});
+*/
 
 var app = builder.Build();
 
