@@ -1,5 +1,6 @@
 ﻿using Common.Entities;
 using Common.Events;
+using StockMS.Models;
 
 namespace StockMS.Services
 {
@@ -15,7 +16,7 @@ namespace StockMS.Services
 
         public void ProcessProductUpdates(List<Product> products);
 
-        void CreateStockItem(StockItem stockItem);
+        public Task CreateStockItem(StockItem stockItem);
     }
 }
 

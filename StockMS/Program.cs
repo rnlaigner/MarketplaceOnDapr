@@ -1,17 +1,21 @@
 ﻿using StockMS.Repositories;
 using Microsoft.OpenApi.Models;
 using StockMS.Infra;
+using StockMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-
-builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddDaprClient();
 
 builder.Services.AddDbContext<StockDbContext>();
 
-builder.Services.AddDaprClient();
+builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<IStockService, StockService>();
+
 builder.Services.AddControllers();
+
+builder.Services.AddHealthChecks();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -23,6 +27,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCloudEvents();
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -36,8 +42,10 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-
 app.MapControllers();
+
+app.MapHealthChecks("/health");
+
 app.MapSubscribeHandler();
 
 app.Run();

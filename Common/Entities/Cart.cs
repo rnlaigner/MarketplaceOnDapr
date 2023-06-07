@@ -11,12 +11,7 @@ namespace Common.Entities
 
         public CartStatus status { get; set; } = CartStatus.OPEN;
 
-        // public IDictionary<long, CartItem> items { get; set; } = new Dictionary<long, CartItem>();
         public IList<CartItem> items { get; set; } = new List<CartItem>();
-
-        //public DateTime? createdAt { get; set; }
-
-        //public DateTime? updatedAt { get; set; }
 
         public string instanceId { get; set; } = "";
 
@@ -28,8 +23,6 @@ namespace Common.Entities
 
         public Cart(long customerId) {
             this.customerId = customerId;
-            //this.createdAt = DateTime.Now;
-            //this.updatedAt = DateTime.Now;
         }
 
         public override string ToString()

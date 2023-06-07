@@ -64,12 +64,13 @@ namespace CartMS.Services
                  UnitPrice = i.unit_price,
                  FreightValue = i.freight_value,
                  Quantity = i.quantity,
-                 Vouchers = i.vouchers.Equals("") ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
+                 Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
             }).ToList();
 
-            this.logger.LogWarning("Customer {0} cart has been submitted to checkout. Publishing checkout event...", customerCheckout.CustomerId);
+            this.logger.LogInformation("Customer {0} cart has been submitted to checkout. Publishing checkout event...", customerCheckout.CustomerId);
+
             ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cartItems);
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout); // , cancellationToken);    
+            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);  
         }
 
         public List<ProductStatus> CheckCartForDivergencies(CartModel cart)

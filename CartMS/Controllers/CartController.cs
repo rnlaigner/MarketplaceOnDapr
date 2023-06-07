@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Net;
 using CartMS.Models;
 using CartMS.Repositories;
@@ -31,7 +32,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
-    public ActionResult AddProduct(long customerId, [FromBody] CartItem item)
+    public ActionResult AddItem(long customerId, [FromBody] CartItem item)
     {
         // check if it is already on the way to checkout.... if so, cannot add product
         var cart = this.cartRepository.GetCart(customerId);
@@ -59,9 +60,10 @@ public class CartController : ControllerBase
         }
 
         string? vouchersInput = null;
-        if(item.Vouchers is not null)
+        if(item.Vouchers is not null && item.Vouchers.Count() > 0)
         {
-            vouchersInput = String.Join(",", item.Vouchers);
+            // vouchersInput = String.Join(",", item.Vouchers);
+            vouchersInput = String.Join(",", item.Vouchers.Select(v => v.ToString(CultureInfo.InvariantCulture)));
         }
 
         CartItemModel cartItemModel = new()
@@ -107,8 +109,7 @@ public class CartController : ControllerBase
             UnitPrice = i.unit_price,
             FreightValue = i.freight_value,
             Quantity = i.quantity,
-            // Vouchers = i.vouchers.Split(',').Select(decimal.Parse).ToArray()
-            Vouchers = i.vouchers.Equals("") ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
+            Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
         }).ToList();
 
         return Ok(new Cart()

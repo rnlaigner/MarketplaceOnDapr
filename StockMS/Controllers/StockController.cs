@@ -6,6 +6,7 @@ using Dapr;
 using Dapr.AspNetCore;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
+using StockMS.Models;
 using StockMS.Repositories;
 using StockMS.Services;
 
@@ -29,57 +30,43 @@ public class StockController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpGet("/")]
-    public IEnumerable<StockItem> Get()
-    {
-        return this.stockRepository.GetAll().Select(x => new StockItem()
-        {
-            product_id = x.product_id,
-            seller_id = x.seller_id,
-            qty_available = x.qty_available,
-            qty_reserved = x.qty_reserved,
-            order_count = x.order_count
-        });
-    }
-
     [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public IActionResult AddStockItem([FromBody] StockItem stockItem, [FromHeader(Name = "instanceId")] string instanceId)
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    public async Task<ActionResult> AddStockItem([FromBody] StockItem stockItem)
     {
-        this.logger.LogInformation("[AddStockItem] received for instanceId {0}", instanceId);
-        this.stockService.CreateStockItem(stockItem);
-        this.logger.LogInformation("[AddStockItem] completed for instanceId {0}.", instanceId);
-        return StatusCode((int)HttpStatusCode.Created);
+        this.logger.LogInformation("[AddStockItem] received for item id {0}", stockItem.product_id);
+        Task t = this.stockService.CreateStockItem(stockItem);
+        await t;
+        if (t.IsCompletedSuccessfully)
+        {
+            this.logger.LogInformation("[AddStockItem] completed for item id {0}.", stockItem.product_id);
+            return StatusCode((int)HttpStatusCode.Created);
+        }
+        return StatusCode((int)HttpStatusCode.InternalServerError);
     }
 
-    [HttpPost("ReserveStock")]
-    [Topic(PUBSUB_NAME, nameof(ReserveStock))]
-    public async void ReserveStock(ReserveStock checkout)
+    [HttpGet("/{itemId}")]
+    [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public ActionResult<StockItem> GetStockItem(long itemId)
     {
-        this.logger.LogInformation("[ReserveStock] received for instanceId {0}", checkout.instanceId);
-        await this.stockService.ReserveStockAsync(checkout);
-        this.logger.LogInformation("[ReserveStock] completed for instanceId {0}", checkout.instanceId);
-    }
-
-    [HttpPost("ProductStreaming")]
-    [Topic(PUBSUB_NAME, nameof(Product))]
-    public IActionResult ProcessProductStream([FromBody] Product product)
-    {
-        this.stockService.ProcessProductUpdate(product);
-        return Ok();
-        // this.logger.LogInformation("[UpdatePrice] completed for instanceId {0}", priceUpdate.instanceId);
-    }
-
-    [HttpPost("BulkProductStreaming")]
-    [BulkSubscribe("BulkProductStreaming")]
-    [Topic(PUBSUB_NAME, "products")]
-    public ActionResult<BulkSubscribeAppResponse> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages)
-    {
-        this.stockService.ProcessProductUpdates(bulkMessages.Entries.Select(e=>e.Event.Data).ToList());
-        List<BulkSubscribeAppResponseEntry> 
-            responseEntries = bulkMessages.Entries.Select(message => new BulkSubscribeAppResponseEntry(message.EntryId, BulkSubscribeAppResponseStatus.SUCCESS)).ToList();
-        return new BulkSubscribeAppResponse(responseEntries);
+        this.logger.LogInformation("[GetStockItem] received for item id {0}", itemId);
+        StockItemModel? item = this.stockRepository.GetItem(itemId);
+        this.logger.LogInformation("[GetStockItem] completed for item id {0}.", itemId);
+        if (item is not null)
+            return Ok(new StockItem()
+            {
+                seller_id = item.seller_id,
+                product_id = item.product_id,
+                qty_available = item.qty_available,
+                qty_reserved = item.qty_reserved,
+                order_count = item.order_count,
+                ytd = item.ytd,
+                data = item.data
+            });
+        
+        return NotFound();
     }
 
 }
-

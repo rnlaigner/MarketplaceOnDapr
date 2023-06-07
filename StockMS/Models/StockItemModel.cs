@@ -24,13 +24,16 @@ namespace StockMS.Models
 
         public DateTime created_at { get; set; }
 
-        public DateTime? updated_at { get; set; }
-
-        public bool active { get; set; } = true;
+        public DateTime updated_at { get; set; }
 
         public string? data { get; set; }
 
-        public StockItemModel() { }
+        public bool active { get; set; } = true;
+
+        public StockItemModel() {
+            this.created_at = DateTime.Now;
+            this.updated_at = this.created_at;
+        }
 
         public StockItemModel(long product_id, long seller_id, int qty, DateTime created_at)
 		{
@@ -38,6 +41,7 @@ namespace StockMS.Models
             this.seller_id = seller_id;
             this.qty_available = qty;
             this.created_at = created_at;
+            this.updated_at = created_at;
             this.active = true;
 		}
 	}

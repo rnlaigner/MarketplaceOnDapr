@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Common.Entities;
+using Microsoft.EntityFrameworkCore;
 using StockMS.Infra;
 using StockMS.Models;
 
@@ -32,9 +33,10 @@ namespace StockMS.Repositories
 
         public IEnumerable<StockItemModel> GetItemsForUpdate(List<long> ids)
         {
-            // is it a read lock?
-            // var stockItems = dbContext.StockItems.Where(c => ids.Contains(c.product_id)).ToDictionary(c => c.product_id, c => c);
-            return dbContext.StockItems.FromSqlRaw(String.Format(sqlGetItemsForUpdate, string.Join(", ", ids)));
+            string input = string.Join(", ", ids);
+            logger.LogWarning("Input is {0}", input);
+            // TODO create a simple endpoint to test this retrieval of items...
+            return dbContext.StockItems.FromSqlRaw(String.Format(sqlGetItemsForUpdate, input));
         }
 
         private const string sqlGetItemForUpdate = "SELECT * FROM stock_items s WHERE s.product_id = {0} FOR UPDATE";
@@ -42,6 +44,16 @@ namespace StockMS.Repositories
         public StockItemModel? GetItemForUpdate(long id)
         {
             return dbContext.StockItems.FromSqlRaw(String.Format(sqlGetItemForUpdate, id)).FirstOrDefault();
+        }
+
+        public StockItemModel? GetItem(long sellerId, long productId)
+        {
+            return this.dbContext.StockItems.Find(sellerId, productId);
+        }
+
+        public StockItemModel? GetItem(long productId)
+        {
+            return this.dbContext.StockItems.Where(i=>i.product_id == productId).FirstOrDefault();
         }
     }
 }

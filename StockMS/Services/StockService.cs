@@ -123,9 +123,21 @@ namespace StockMS.Services
         public async Task ReserveStockAsync(ReserveStock checkout)
         {
             // https://stackoverflow.com/questions/31273933/setting-transaction-isolation-level-in-net-entity-framework-for-sql-server
-            try
-            {
+            //try
+            //{
+                if(checkout.items is null)
+                {
+                    logger.LogWarning("ReserveStock items is NULL!");
+                    return;
+                }
+
                 List<long> ids = checkout.items.Select(c => c.ProductId).ToList();
+
+                if(checkout.items.Count() == 0)
+                {
+                    logger.LogWarning("ReserveStock event has no items to reserve!");
+                    return;
+                }
 
                 // could also do this:
                 /*
@@ -137,6 +149,12 @@ namespace StockMS.Services
                 {
 
                     var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(c => c.product_id, c => c);
+
+                    if(stockItems.Count() == 0)
+                    {
+                        logger.LogWarning("ReserveStock has locked no items!");
+                        return;
+                    }
 
                     List<ProductStatus> unavailable = new();
                     List<CartItem> itemsReserved = new();
@@ -171,17 +189,16 @@ namespace StockMS.Services
                         this.dbContext.UpdateRange(stockItems);
                         this.dbContext.SaveChanges();
                         // send to order
-                        StockConfirmed checkoutRequest = new StockConfirmed(checkout.createdAt, checkout.customerCheckout,
+                        StockConfirmed checkoutRequest = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
                             itemsReserved,
                             checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
                     }
 
-                  
                     if(unavailable.Count() > 0)
                     {
                         // notify cart and customer
-                        ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.createdAt, checkout.customerCheckout,
+                        ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
                             unavailable, checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
                     }
@@ -190,28 +207,26 @@ namespace StockMS.Services
                     
                 }
 
-            }
-            catch (Exception e)
-            {
-                // https://learn.microsoft.com/en-us/ef/core/saving/concurrency?tabs=data-annotations
-                bool conflict = e is DbUpdateConcurrencyException;
-                bool update = e is DbUpdateException;
-                this.logger.LogError("Exception (conflict: {0} | update {1}) caught in [ReserveStock] method: {2}", conflict, update, e.Message);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    // https://learn.microsoft.com/en-us/ef/core/saving/concurrency?tabs=data-annotations
+            //    bool conflict = e is DbUpdateConcurrencyException;
+            //    bool update = e is DbUpdateException;
+            //    this.logger.LogError("Exception (conflict: {0} | update {1}) caught in [ReserveStock] method: {2}", conflict, update, e.Message);
+            //}
         }
 
-        public async void CreateStockItem(StockItem stockItem)
+        public async Task CreateStockItem(StockItem stockItem)
         {
-            DateTime now = DateTime.Now;
             var stockItemModel = new StockItemModel()
             {
                 product_id = stockItem.product_id,
                 seller_id = stockItem.seller_id,
                 qty_available = stockItem.qty_available,
-                // qty_reserved = stockItem.qty_reserved,
+                qty_reserved = stockItem.qty_reserved,
                 order_count = stockItem.order_count,
-                created_at = now,
-                updated_at = now,
+                ytd = stockItem.ytd,
                 data = stockItem.data,
 
             };
