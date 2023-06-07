@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddDaprClient();
 
+builder.Services.AddDbContext<CartDbContext>();
 builder.Services.AddSingleton<ICartRepository, CartRepository>();
 builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 
@@ -36,12 +37,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
-    var cartRepository = services.GetService<CartRepository>();
-    // cartRepository.DeleteAll();
+    var context = services.GetRequiredService<CartDbContext>();
+    context.Database.EnsureDeleted();
+    context.Database.EnsureCreated();
 }
 
 app.MapControllers();

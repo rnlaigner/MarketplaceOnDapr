@@ -4,97 +4,71 @@ using Dapr.Client;
 using CartMS.Controllers;
 using Common.Events;
 using System.Net;
+using CartMS.Infra;
+using CartMS.Models;
 
 namespace CartMS.Repositories
 {
-
-    /**
-     * I tried as much as possible keep app logic out of here
-     * The treatments are more related to concurrrency issues that 
-     * could arise within concurrent requests coming from the same customer
-     * (although the driver does not allow for that, it is important 
-     * that the implementation remains bug-free)
-     */
     public class CartRepository : ICartRepository
     {
-        public const string StoreName = "statestore";
-
-        private readonly DaprClient daprClient;
+        private readonly CartDbContext cartDbContext;
 
         private readonly ILogger<CartRepository> logger;
 
-        public CartRepository(DaprClient daprClient, ILogger<CartRepository> logger)
+        public CartRepository(CartDbContext cartDbContext, ILogger<CartRepository> logger)
         {
-            this.daprClient = daprClient;
+            this.cartDbContext = cartDbContext;
             this.logger = logger;
         }
 
-        public async Task<bool> AddItem(long customerId, CartItem item)
+        public CartModel? GetCart(long customerId)
         {
-            var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId.ToString());
+            return this.cartDbContext.Carts.Find(customerId);
+        }
 
-            if (cartEntry.Value is null)
+        public CartModel? Delete(long customerId)
+        {
+            CartModel? cart = GetCart(customerId);
+            if (cart is not null)
             {
-                this.logger.LogInformation("Creating cart and adding item for customer {0}.", customerId);
-                Cart cart = new Cart(customerId);
-                cart.items.Add(item.ProductId, item);
-                await this.daprClient.SaveStateAsync<Cart>(StoreName,
-                    customerId.ToString(),
-                    cart);
-                return true;
-
-            } else if (cartEntry.Value.status == CartStatus.CHECKOUT_SENT)
-            {
-                return false;
+                cartDbContext.Remove(cart);
+                return cart;
             }
+            return null;
+        }
 
-            if (cartEntry.Value.items.ContainsKey(item.ProductId))
+        public CartModel Insert(CartModel cart)
+        {
+            var f = cartDbContext.Add(cart);
+            return f.Entity;
+        }
+
+
+        public IList<CartItemModel> GetItems(long customerId)
+        {
+            return cartDbContext.CartItems.Where(c => c.customer_id == customerId).ToList();
+        }
+
+        public CartItemModel AddItem(CartItemModel item)
+        {
+            var existing = cartDbContext.CartItems.Find(item.customer_id, item.seller_id, item.product_id);
+            if(existing is null)
             {
-                // probably for cases where there are price divergence
-                this.logger.LogInformation("Item {0} already added to cart {1}. Item will be overwritten then.", item.ProductId, customerId);
-                cartEntry.Value.items[item.ProductId] = item;
-            } else {
-                this.logger.LogInformation("Item {0} added to cart {1}.", item.ProductId, customerId);
-                cartEntry.Value.items.Add(item.ProductId, item);
+                return cartDbContext.CartItems.Add(item).Entity;
             }
-
-            return await this.daprClient.TrySaveStateAsync<Cart>(StoreName, customerId.ToString(), cartEntry.Value, cartEntry.ETag);
+            return cartDbContext.CartItems.Update(item).Entity;
         }
 
-        public async Task<Cart> GetCart(long customerId)
+        public CartModel Update(CartModel cart)
         {
-            var cartEntry = await daprClient.GetStateEntryAsync<Cart>(StoreName, customerId.ToString());
-            if (cartEntry.Value is null) return new Cart(customerId);
-            return cartEntry.Value;
+            var f = cartDbContext.Update(cart);
+            return f.Entity;
         }
 
-        public async Task<bool> SafeSave(Cart cart)
+        public void DeleteItems(long customerId)
         {
-            var (_, ETag) = await this.daprClient.GetStateAndETagAsync<Cart>(StoreName, cart.customerId.ToString());
-            bool res = await this.daprClient.TrySaveStateAsync<Cart>(StoreName,
-                    cart.customerId.ToString(),
-                    cart,
-                    ETag);
-            return res;
-        }
-
-        public async Task Save(Cart cart)
-        {
-            await this.daprClient.SaveStateAsync<Cart>(StoreName,
-                    cart.customerId.ToString(),
-                    cart);
-        }
-
-        public async Task<Cart> Delete(long customerId)
-        {
-            var cartEntry = await daprClient.GetStateAsync<Cart>(StoreName, customerId.ToString());
-            if (cartEntry is not null)
-            {
-                await this.daprClient.DeleteStateAsync(StoreName, customerId.ToString());
-                return cartEntry;
-            }
-            else
-                return new Cart(-1);
+            var items = GetItems(customerId);
+            cartDbContext.RemoveRange(items);
         }
     }
 }

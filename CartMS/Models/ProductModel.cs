@@ -2,12 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ProductMS.Models
+namespace CartMS.Models
 {
     [Table("products")]
-    [PrimaryKey(nameof(seller_id),nameof(product_id))]
+    [PrimaryKey(nameof(seller_id), nameof(product_id))]
     public class ProductModel
-	{
+    {
         public long seller_id { get; set; }
 
         public long product_id { get; set; }
@@ -26,13 +26,13 @@ namespace ProductMS.Models
 
         public DateTime updated_at { get; set; }
 
-        public string status { get; set; } = "approved";
+        public string status { get; set; } = "";
 
-        public bool active { get; set; } = true;
+        public bool active { get; set; }
 
         public ProductModel()
-		{
-		}
-	}
+        {
+        }
+    }
 }
 

@@ -1,19 +1,24 @@
 ﻿using System;
+using CartMS.Models;
 using Common.Entities;
 
 namespace CartMS.Repositories
 {
     public interface ICartRepository
     {
-        Task<Cart> GetCart(long customerId);
+        CartModel? GetCart(long customerId);
 
-        Task<bool> AddItem(long customerId, CartItem item);
+        IList<CartItemModel> GetItems(long customerId);
 
-        Task<bool> SafeSave(Cart cart);
+        CartItemModel AddItem(CartItemModel item);
 
-        Task Save(Cart cart);
+        CartModel? Delete(long customerId);
 
-        Task<Cart> Delete(long customerId);
+        CartModel Update(CartModel cart);
+
+        CartModel Insert(CartModel cart);
+
+        void DeleteItems(long customerId);
     }
 }
 

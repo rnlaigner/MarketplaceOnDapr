@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using CartMS.Models;
 using CartMS.Repositories;
 using CartMS.Services;
 using Common.Entities;
@@ -27,14 +28,14 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
-    public async Task<ActionResult> AddProduct(long customerId, [FromBody] CartItem item)
+    public ActionResult AddProduct(long customerId, [FromBody] CartItem item)
     {
         // check if it is already on the way to checkout.... if so, cannot add product
-        var cart = await this.cartRepository.GetCart(customerId);
+        var cart = this.cartRepository.GetCart(customerId);
         if (cart != null && cart.status == CartStatus.CHECKOUT_SENT)
         {
             this.logger.LogWarning("Cart for customer {0} already sent for checkout.", customerId);
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart for customer " + cart.customerId + " already sent for checkout.");
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart for customer " + cart.customer_id + " already sent for checkout.");
         }
 
         this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
@@ -42,8 +43,17 @@ public class CartController : ControllerBase
         {
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
         }
-        bool res = await this.cartRepository.AddItem(customerId, item);
-        if (res)
+
+        if (cart is null) {
+            cart = cartRepository.Insert(new()
+            {
+                customer_id = customerId
+            });
+        }
+
+        CartItemModel cartItemModel = new();
+        var res = this.cartRepository.AddItem(cartItemModel);
+        if (res is not null)
         {
             this.logger.LogInformation("Customer {0} added item successfully.", customerId);
             return Ok();
@@ -55,33 +65,56 @@ public class CartController : ControllerBase
     [HttpGet("{customerId}")]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Cart>> Get(long customerId)
+    public ActionResult<Cart> Get(long customerId)
     {
-        var cart = await this.cartRepository.GetCart(customerId);
+        var cart = this.cartRepository.GetCart(customerId);
         if (cart is null)
             return NotFound();
-        return Ok(cart);
+
+        var items = cartRepository.GetItems(customerId);
+
+        var cartItems = items.Select(i => new CartItem()
+        {
+            SellerId = i.seller_id,
+            ProductId = i.product_id,
+            ProductName = i.product_name,
+            UnitPrice = i.unit_price,
+            FreightValue = i.freight_value,
+            Quantity = i.quantity,
+            Vouchers = i.vouchers
+        }).ToList();
+
+        return Ok(new Cart()
+        {
+            items = cartItems
+        });
     }
 
     [HttpDelete("{customerId}")]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Cart>> Delete(long customerId)
+    public ActionResult<Cart> Delete(long customerId)
     {
         this.logger.LogInformation("Customer {0} requested to delete cart.", customerId);
-        var cart = await this.cartRepository.Delete(customerId);
+        var cart = this.cartRepository.Delete(customerId);
         if (cart is null)
             return NotFound();
+        // FIXME parse
         return Ok(cart);
     }
 
     [Route("{customerId}/seal")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
-    public async Task<IActionResult> Seal(long customerId)
+    public ActionResult Seal(long customerId)
     {
-        var cart = await this.cartRepository.GetCart(customerId);
+        var cart = this.cartRepository.GetCart(customerId);
+        if(cart is null)
+        {
+            return NotFound();
+        }
         if (cart.status != CartStatus.CHECKOUT_SENT)
         {
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart is not in CHECKOUT_SENT status");
@@ -89,7 +122,7 @@ public class CartController : ControllerBase
         /**
          * Seal is a terminal state, so no need to check for concurrent operation
          */
-        await this.cartService.Seal(cart);
+        this.cartService.Seal(cart);
         return Ok();
     }
 
@@ -107,7 +140,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> NotifyCheckout(long customerId, [FromBody] CustomerCheckout customerCheckout)
+    public async Task<ActionResult> NotifyCheckout(long customerId, [FromBody] CustomerCheckout customerCheckout)
     {
         // TODO log a transaction event
         this.logger.LogInformation("[NotifyCheckout] received request.");
@@ -118,7 +151,7 @@ public class CartController : ControllerBase
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer checkout payload does not match customer ID in URL");
         }
         
-        Cart cart = await this.cartRepository.GetCart(customerCheckout.CustomerId);
+        CartModel? cart = this.cartRepository.GetCart(customerCheckout.CustomerId);
 
         if(cart is null)
         {

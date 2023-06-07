@@ -11,7 +11,8 @@ namespace Common.Entities
 
         public CartStatus status { get; set; } = CartStatus.OPEN;
 
-        public IDictionary<long, CartItem> items { get; set; } = new Dictionary<long, CartItem>();
+        // public IDictionary<long, CartItem> items { get; set; } = new Dictionary<long, CartItem>();
+        public IList<CartItem> items { get; set; } = new List<CartItem>();
 
         public DateTime? createdAt { get; set; }
 

@@ -7,6 +7,9 @@ docker run -d --name redis -p 6379:6379 redis:alpine
 
 daprd:1.8.4 for .net 6.0
 
+to run cart migration:
+dotnet ef migrations add InitialMigration -c CartDbContext
+
 to run cart microservice:
 dapr run --app-port 5001 --app-id cart --app-protocol http --dapr-http-port 3501 -- dotnet run --project CartMS.csproj
 
