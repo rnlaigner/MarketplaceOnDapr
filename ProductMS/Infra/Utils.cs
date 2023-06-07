@@ -17,8 +17,9 @@ namespace ProductMS.Infra
                 category = product.category,
                 description = product.description,
                 price = product.price,
-                created_at = product.created_at is null ? DateTime.Now : product.created_at.Value,
-                status = product.status
+                freight_value = product.freight_value,
+                status = product.status,
+                active = product.active
             };
 
         }
@@ -34,8 +35,7 @@ namespace ProductMS.Infra
                 category = product.category,
                 description = product.description,
                 price = product.price,
-                created_at = product.created_at,
-                updated_at = product.updated_at,
+                freight_value = product.freight_value,
                 status = product.status,
                 active = product.active
             };

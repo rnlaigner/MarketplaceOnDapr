@@ -25,16 +25,15 @@
 
         public decimal freight_value { get; set; }
 
-        // "2017-10-06T01:40:58.172415Z"
-        public DateTime? created_at { get; set; }
+        //public DateTime created_at { get; set; }
 
-        public DateTime? updated_at { get; set; }
-
-        public bool active { get; set; }
+        //public DateTime updated_at { get; set; }
 
         // https://dev.olist.com/docs/products
         // approved by default
         public string status { get; set; } = "";
+
+        public bool active { get; set; }
 
         public Product() { }
 

@@ -6,6 +6,7 @@ using Common.Events;
 using System.Net;
 using CartMS.Infra;
 using CartMS.Models;
+using static Grpc.Core.Metadata;
 
 namespace CartMS.Repositories
 {
@@ -32,6 +33,7 @@ namespace CartMS.Repositories
             if (cart is not null)
             {
                 cartDbContext.Remove(cart);
+                cartDbContext.SaveChanges();
                 return cart;
             }
             return null;
@@ -40,6 +42,7 @@ namespace CartMS.Repositories
         public CartModel Insert(CartModel cart)
         {
             var f = cartDbContext.Add(cart);
+            cartDbContext.SaveChanges();
             return f.Entity;
         }
 
@@ -54,14 +57,20 @@ namespace CartMS.Repositories
             var existing = cartDbContext.CartItems.Find(item.customer_id, item.seller_id, item.product_id);
             if(existing is null)
             {
-                return cartDbContext.CartItems.Add(item).Entity;
+                var res = cartDbContext.CartItems.Add(item);
+                cartDbContext.SaveChanges();
+                return res.Entity;
             }
-            return cartDbContext.CartItems.Update(item).Entity;
+            var entity = cartDbContext.CartItems.Update(item);
+            cartDbContext.SaveChanges();
+            return entity.Entity;
         }
 
         public CartModel Update(CartModel cart)
         {
+            cart.updated_at = DateTime.Now;
             var f = cartDbContext.Update(cart);
+            cartDbContext.SaveChanges();
             return f.Entity;
         }
 
@@ -69,6 +78,7 @@ namespace CartMS.Repositories
         {
             var items = GetItems(customerId);
             cartDbContext.RemoveRange(items);
+            cartDbContext.SaveChanges();
         }
     }
 }

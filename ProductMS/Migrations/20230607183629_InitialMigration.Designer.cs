@@ -12,7 +12,7 @@ using ProductMS.Infra;
 namespace ProductMS.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    [Migration("20230606173002_InitialMigration")]
+    [Migration("20230607183629_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -46,6 +46,9 @@ namespace ProductMS.Migrations
                     b.Property<string>("description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<decimal>("freight_value")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("name")
                         .IsRequired()

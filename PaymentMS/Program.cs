@@ -6,6 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<PaymentDbContext>();
 builder.Services.AddDaprClient();
 
+// builder.Services.AddScoped<IPaymentRepository, ShipmentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -19,7 +22,7 @@ var paymentProvider = Boolean.Parse( builder.Configuration["PaymentProvider:Acti
 
 if (!paymentProvider)
 {
-    builder.Services.AddSingleton<IExternalProvider, MockExternalProvider>();
+    builder.Services.AddScoped<IExternalProvider, MockExternalProvider>();
 }
 
 var app = builder.Build();

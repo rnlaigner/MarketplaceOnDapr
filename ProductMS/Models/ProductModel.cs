@@ -22,6 +22,8 @@ namespace ProductMS.Models
 
         public decimal price { get; set; }
 
+        public decimal freight_value { get; set; }
+
         public DateTime created_at { get; set; }
 
         public DateTime updated_at { get; set; }

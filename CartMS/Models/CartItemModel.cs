@@ -22,9 +22,7 @@ namespace CartMS.Models
 
         public int quantity { get; set; }
 
-        public IList<decimal> vouchers { get; set; } = new List<decimal>();
-
-        public CartModel cart { get; set; }
+        public string? vouchers { get; set; }
 
         public CartItemModel() { }
     }

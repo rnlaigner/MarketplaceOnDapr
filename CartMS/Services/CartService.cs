@@ -39,12 +39,13 @@ namespace CartMS.Services
             this.cartRepository.Update(cart);   
         }
 
+        private static readonly decimal[] emptyArray = Array.Empty<decimal>();
+
         public async Task NotifyCheckout(CustomerCheckout customerCheckout, CartModel cart)
         {
-            List<ProductStatus> divergencies = await CheckCartForDivergencies(cart);
+            List<ProductStatus> divergencies = CheckCartForDivergencies(cart);
             if (divergencies.Count() > 0)
             {
-                // await this.cartRepository.Save(cart);
                 CustomerCheckoutFailed checkoutFailed = new CustomerCheckoutFailed(customerCheckout.CustomerId, divergencies);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(CustomerCheckoutFailed), checkoutFailed);
                 return;
@@ -63,7 +64,7 @@ namespace CartMS.Services
                  UnitPrice = i.unit_price,
                  FreightValue = i.freight_value,
                  Quantity = i.quantity,
-                 Vouchers = i.vouchers
+                 Vouchers = i.vouchers.Equals("") ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
             }).ToList();
 
             this.logger.LogWarning("Customer {0} cart has been submitted to checkout. Publishing checkout event...", customerCheckout.CustomerId);
@@ -71,20 +72,23 @@ namespace CartMS.Services
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout); // , cancellationToken);    
         }
 
-        public async Task<List<ProductStatus>> CheckCartForDivergencies(CartModel cart)
+        public List<ProductStatus> CheckCartForDivergencies(CartModel cart)
         {
             var divergencies = new List<ProductStatus>();
 
-            /*
-            IList<Product>? products = null;
             if (config.CheckPriceUpdateOnCheckout)
             {
-                IReadOnlyList<long> ids = (IReadOnlyList<long>)cart.items.Select(i => i.Value.ProductId).ToList();
-                products = await productRepository.GetProducts(ids);
+                var items = cartRepository.GetItems(cart.customer_id);
+
+                var itemsDict = items.ToDictionary(i => i.product_id);
+
+                IList<(long,long)> ids = items.Select(i => (i.seller_id,i.product_id)).ToList();
+                IList<ProductModel> products = productRepository.GetProducts(ids);
 
                 foreach (var product in products)
                 {
-                    var currPrice = cart.items[product.product_id].UnitPrice;
+                    // TODO should key also by seller... 
+                    var currPrice = itemsDict[product.product_id].unit_price;
                     if (currPrice != product.price)
                     {
                         divergencies.Add(new ProductStatus(product.product_id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
@@ -92,6 +96,7 @@ namespace CartMS.Services
                 }
             }
 
+            /*
             if (config.CheckIfProductExistsOnCheckout)
             {
                 if (products == null)
@@ -122,13 +127,15 @@ namespace CartMS.Services
         public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
             CartModel? cart = this.cartRepository.GetCart(paymentConfirmed.customer.CustomerId);
-            this.Seal(cart);
+            if(cart is not null)
+                this.Seal(cart);
         }
 
         public void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
             CartModel? cart = this.cartRepository.GetCart(paymentFailed.customer.CustomerId);
-            this.Seal(cart, false);
+            if (cart is not null)
+                this.Seal(cart);
         }
     }
 }

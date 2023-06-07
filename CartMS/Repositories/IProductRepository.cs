@@ -1,4 +1,5 @@
 ﻿using System;
+using CartMS.Models;
 using Common.Entities;
 
 namespace CartMS.Repositories
@@ -9,13 +10,15 @@ namespace CartMS.Repositories
 	 */
 	public interface IProductRepository
 	{
-        Task<bool> Upsert(Product product);
+		ProductModel Insert(ProductModel product);
 
-        Task<bool> Delete(Product product);
+		ProductModel Update(ProductModel product);
 
-        Task<IList<Product>> GetProducts(IReadOnlyList<long> productIds);
+        ProductModel Delete(ProductModel product);
 
-        Task<Product> GetProduct(long id);
+		IList<ProductModel> GetProducts(IList<(long, long)> ids);
+
+        ProductModel? GetProduct(long sellerId, long productId);
     }
 }
 

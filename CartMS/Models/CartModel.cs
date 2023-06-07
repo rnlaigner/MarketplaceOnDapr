@@ -13,13 +13,12 @@ namespace CartMS.Models
 
         public CartStatus status { get; set; } = CartStatus.OPEN;
 
-        // public IDictionary<long, CartItem> items { get; set; };
-
         public DateTime created_at { get; set; } = DateTime.Now;
 
         public DateTime updated_at { get; set; } = DateTime.Now;
 
-        // public IList<CartItemModel> items = new List<CartItemModel>();
+        [ForeignKey("customer_id")]
+        public ICollection<CartItemModel> packages { get; } = new List<CartItemModel>();
 
         public CartModel() { }
     }

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using CartMS.Models;
 using CartMS.Repositories;
 using CartMS.Services;
@@ -22,6 +23,8 @@ public class CartController : ControllerBase
         this.cartRepository = cartRepository;
         this.logger = logger;
     }
+
+    private static readonly decimal[] emptyArray = Array.Empty<decimal>();
 
     [Route("{customerId}/add")]
     [HttpPatch]
@@ -47,11 +50,32 @@ public class CartController : ControllerBase
         if (cart is null) {
             cart = cartRepository.Insert(new()
             {
-                customer_id = customerId
+                customer_id = customerId,
             });
         }
+        else
+        {
+            cartRepository.Update(cart);
+        }
 
-        CartItemModel cartItemModel = new();
+        string? vouchersInput = null;
+        if(item.Vouchers is not null)
+        {
+            vouchersInput = String.Join(",", item.Vouchers);
+        }
+
+        CartItemModel cartItemModel = new()
+        {
+            customer_id = customerId,
+            seller_id = item.SellerId,
+            product_id = item.ProductId,
+            product_name = item.ProductName,
+            unit_price = item.UnitPrice,
+            freight_value = item.FreightValue,
+            quantity = item.Quantity,
+            vouchers = vouchersInput
+        };
+
         var res = this.cartRepository.AddItem(cartItemModel);
         if (res is not null)
         {
@@ -73,6 +97,8 @@ public class CartController : ControllerBase
 
         var items = cartRepository.GetItems(customerId);
 
+        // https://stackoverflow.com/questions/9524682/
+
         var cartItems = items.Select(i => new CartItem()
         {
             SellerId = i.seller_id,
@@ -81,33 +107,34 @@ public class CartController : ControllerBase
             UnitPrice = i.unit_price,
             FreightValue = i.freight_value,
             Quantity = i.quantity,
-            Vouchers = i.vouchers
+            // Vouchers = i.vouchers.Split(',').Select(decimal.Parse).ToArray()
+            Vouchers = i.vouchers.Equals("") ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
         }).ToList();
 
         return Ok(new Cart()
         {
-            items = cartItems
+            customerId = cart.customer_id,
+            items = cartItems,
+            status = cart.status,
         });
     }
 
     [HttpDelete("{customerId}")]
-    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Cart> Delete(long customerId)
+    public ActionResult Delete(long customerId)
     {
         this.logger.LogInformation("Customer {0} requested to delete cart.", customerId);
         var cart = this.cartRepository.Delete(customerId);
         if (cart is null)
             return NotFound();
-        // FIXME parse
-        return Ok(cart);
+        return Ok();
     }
 
     [Route("{customerId}/seal")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     public ActionResult Seal(long customerId)
     {
         var cart = this.cartRepository.GetCart(customerId);
@@ -115,24 +142,12 @@ public class CartController : ControllerBase
         {
             return NotFound();
         }
-        if (cart.status != CartStatus.CHECKOUT_SENT)
-        {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart is not in CHECKOUT_SENT status");
-        }
+
         /**
          * Seal is a terminal state, so no need to check for concurrent operation
          */
         this.cartService.Seal(cart);
         return Ok();
-    }
-
-    [Route("test/{customerId}")]
-    [HttpPatch]
-    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
-    public ActionResult<Cart> Test(CheckoutNotification checkoutNotification)
-    {
-        this.logger.LogInformation("[Test] received request for customer {0}.", checkoutNotification.customerId);
-        return Ok(new Cart(checkoutNotification.customerId));
     }
 
     [Route("{customerId}/checkout")]
@@ -156,7 +171,7 @@ public class CartController : ControllerBase
         if(cart is null)
         {
             this.logger.LogWarning("Customer {0} cart cannot be found", customerCheckout.CustomerId);
-            return NotFound();
+            return NotFound("Customer "+ customerCheckout.CustomerId + " cart cannot be found");
         }
 
         if (cart.status == CartStatus.CHECKOUT_SENT)

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text.Json;
 using CartMS.Infra;
+using CartMS.Models;
 using CartMS.Repositories;
 using CartMS.Services;
 using Common.Entities;
@@ -73,22 +74,36 @@ public class EventController : ControllerBase
 
     [HttpPost("ProductStreaming")]
     [Topic(PUBSUB_NAME, nameof(Product))]
-    public async Task<IActionResult> ProcessProductStream([FromBody] Product product)
+    public ActionResult ProcessProductStream([FromBody] Product product)
     {
-        // this.logger.LogInformation("[ProcessProductStream] received for instanceId {0}", priceUpdate.instanceId);
+        ProductModel? product_ = productRepository.GetProduct(product.seller_id, product.product_id);
 
-        // await this.productService.UpdatePrice(priceUpdate);
-        // lookup by sku to differentiate from customer id
-        // check if dapr supports this: https://redis.io/commands/select/
-        // https://stackoverflow.com/questions/35621324/how-to-create-own-database-in-redis
-        // Product product_ = await productRepository.GetProduct(product.sku);
+        if(product_ is null)
+        {
+            var now = DateTime.Now;
+            product_ = new()
+            {
+                seller_id = product.seller_id,
+                product_id = product.product_id,
+                name = product.name,
+                sku = product.sku,
+                category = product.category,
+                description = product.description,
+                price = product.price,
+                created_at = now,
+                updated_at = now,
+                status = product.status,
+                active = product.active
+            };
+            this.productRepository.Insert(product_);
+        }
 
         if (product.active)
         {
-            await this.productRepository.Upsert(product);
+            this.productRepository.Update(product_);
         } else
         {
-            await this.productRepository.Delete(product);
+            this.productRepository.Delete(product_);
         }
 
         return Ok();

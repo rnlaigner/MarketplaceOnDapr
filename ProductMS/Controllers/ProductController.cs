@@ -40,7 +40,7 @@ public class ProductController : ControllerBase
 
         if (product != null)
         {
-            this.logger.LogInformation("[GetBySeller] returning for product {0}", sellerId);
+            this.logger.LogInformation("[GetBySeller] returning seller {0}", sellerId);
             return Ok(product);
         }
         return NotFound();
@@ -62,8 +62,20 @@ public class ProductController : ControllerBase
 
         if (product != null)
         {
-            this.logger.LogInformation("[GetById] returning for product {0}", productId);
-            return Ok(product);
+            this.logger.LogInformation("[GetById] returning product {0}", productId);
+            return Ok(new Product()
+            {
+                seller_id = product.seller_id,
+                product_id= product.product_id,
+                name = product.name,
+                sku = product.sku,
+                category = product.category,
+                description = product.description,
+                price = product.price,
+                freight_value = product.freight_value,
+                status = product.status,
+                active = product.active
+            });
         }
         return NotFound();
     }
@@ -72,11 +84,11 @@ public class ProductController : ControllerBase
     [Route("{productId}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public ActionResult DeleteById(long productId)
+    public async Task<ActionResult> DeleteById(long productId)
     {
         var product = this.productRepository.GetProduct(productId);
         if (product != null) { 
-            this.productService.Delete(product);
+            await this.productService.Delete(product);
             return Accepted();
         }
         return NotFound();
@@ -85,7 +97,7 @@ public class ProductController : ControllerBase
     [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public async Task<IActionResult> AddProduct([FromBody] Product product)
+    public async Task<ActionResult> AddProduct([FromBody] Product product)
     {
         bool res = await this.productService.Upsert(product);
         if (res)
@@ -98,7 +110,7 @@ public class ProductController : ControllerBase
     [HttpPut("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<IActionResult> UpdateProduct([FromBody] Product product)
+    public async Task<ActionResult> UpdateProduct([FromBody] Product product)
     {
         bool res = await this.productService.Upsert(product);
         if (res)

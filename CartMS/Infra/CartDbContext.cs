@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using CartMS.Models;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CartMS.Infra
 {
@@ -35,7 +36,18 @@ namespace CartMS.Infra
             modelBuilder.Entity<CartModel>()
                  .Property(e => e.status)
                  .HasConversion<string>();
+
+            // modelBuilder.Entity<CartItemModel>().Property(p => p.vouchers).HasConversion<TagsValueConverter>();
         }
+
+        //public class TagsValueConverter : ValueConverter<IList<decimal>, string>
+        //{
+        //    public TagsValueConverter() : base(
+        //        value => value.Select(v=>v.ToString()).,
+        //        dbValue => dbValue.ToList())
+        //    {
+        //    }
+        //}
 
     }
 }

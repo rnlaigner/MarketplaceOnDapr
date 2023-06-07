@@ -1,4 +1,6 @@
 ﻿using System;
+using CartMS.Infra;
+using CartMS.Models;
 using Common.Entities;
 using Dapr.Client;
 
@@ -12,48 +14,46 @@ namespace CartMS.Repositories
      */
     public class ProductRepository : IProductRepository
     {
-        public const string StoreName = "statestore";
-
-        private readonly DaprClient daprClient;
+        private readonly CartDbContext cartDbContext;
 
         private readonly ILogger<ProductRepository> logger;
 
-        public ProductRepository(DaprClient daprClient, ILogger<ProductRepository> logger)
+        public ProductRepository(CartDbContext cartDbContext, ILogger<ProductRepository> logger)
         {
-            this.daprClient = daprClient;
+            this.cartDbContext = cartDbContext;
             this.logger = logger;
         }
 
-        public async Task<bool> Delete(Product product)
+        public ProductModel Delete(ProductModel product)
         {
-            string id = string.Format("P|{0}", product.product_id);
-            Task task = daprClient.DeleteStateAsync(StoreName, id);
-            await task;
-            return task.IsCompletedSuccessfully;
+            return cartDbContext.Products.Remove(product).Entity;
         }
 
-        public async Task<Product> GetProduct(long productId)
+        public ProductModel? GetProduct(long sellerId, long productId)
         {
-            string id = string.Format("P|{0}", productId);
-            return await daprClient.GetStateAsync<Product>(StoreName, id);
+            return cartDbContext.Products.Find(sellerId, productId);
         }
 
-        // private static readonly List<String> emptyList = new (){};
-
-        public async Task<IList<Product>> GetProducts(IReadOnlyList<long> productIds)
+        public IList<ProductModel> GetProducts(IList<(long, long)> ids)
         {
-            var parsedInput = productIds.Select(id => string.Format("P|{0}", id)).ToList();
-            IReadOnlyList<BulkStateItem> mulitpleStateResult = await daprClient.GetBulkStateAsync(StoreName, parsedInput, parallelism: 1);
-            // FIXME Unable to cast object of type 'System.Collections.Generic.List`1[System.String]' to type 'System.Collections.Generic.IList`1[Common.Entities.Product]'
-            return (IList<Product>)mulitpleStateResult.Select(b => b.Value).ToList();
+            List<ProductModel> products = new List<ProductModel>();
+            foreach(var entry in ids)
+            {
+                var res = cartDbContext.Products.Find(entry.Item1, entry.Item2);
+                if (res is not null)
+                    products.Add(res);
+            }
+            return products;
         }
 
-        public async Task<bool> Upsert(Product product)
+        public ProductModel Insert(ProductModel product)
         {
-            string id = string.Format("P|{0}", product.product_id);
-            Task task = daprClient.SaveStateAsync(StoreName, id, product);
-            await task;
-            return task.IsCompletedSuccessfully;
+            return cartDbContext.Products.Add(product).Entity;
+        }
+
+        public ProductModel Update(ProductModel product)
+        {
+            return cartDbContext.Products.Update(product).Entity;
         }
     }
 }

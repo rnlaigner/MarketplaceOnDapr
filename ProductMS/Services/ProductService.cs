@@ -65,11 +65,11 @@ namespace ProductMS.Services
 
                     if (product is null)
                     {
+                        input.created_at = DateTime.Now;
                         input.updated_at = input.created_at;
                         this.productRepository.Insert(input);
                     } else
                     {
-                        input.created_at = product.created_at;
                         input.updated_at = DateTime.Now;
                         this.productRepository.Update(input);
                     }

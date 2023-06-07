@@ -44,6 +44,9 @@ namespace ProductMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("freight_value")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("text");
