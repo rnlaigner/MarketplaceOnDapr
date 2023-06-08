@@ -12,7 +12,7 @@ using OrderMS.Infra;
 namespace OrderMS.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20230602111140_InitialMigration")]
+    [Migration("20230608104022_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -177,7 +177,7 @@ namespace OrderMS.Migrations
                         .HasPrecision(4, 2)
                         .HasColumnType("decimal");
 
-                    b.Property<DateTime?>("updated_at")
+                    b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("id");

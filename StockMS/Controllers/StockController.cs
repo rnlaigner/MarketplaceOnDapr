@@ -30,6 +30,22 @@ public class StockController : ControllerBase
         this.logger = logger;
     }
 
+    [HttpPatch("/")]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<ActionResult> IncreaseStock([FromBody] IncreaseStock increaseStock)
+    {
+        this.logger.LogInformation("[IncreaseStock] received for item id {0}", increaseStock.product_id);
+        var item = this.stockRepository.GetItem(increaseStock.seller_id, increaseStock.product_id);
+        if (item is null)
+        {
+            this.logger.LogInformation("[IncreaseStock] completed for item id {0}.", increaseStock.product_id);
+            return NotFound();
+        }
+        await this.stockService.IncreaseStock(increaseStock);
+        return Accepted();
+    }
+
     [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]

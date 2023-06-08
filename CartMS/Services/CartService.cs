@@ -43,14 +43,6 @@ namespace CartMS.Services
 
         public async Task NotifyCheckout(CustomerCheckout customerCheckout, CartModel cart)
         {
-            List<ProductStatus> divergencies = CheckCartForDivergencies(cart);
-            if (divergencies.Count() > 0)
-            {
-                CustomerCheckoutFailed checkoutFailed = new CustomerCheckoutFailed(customerCheckout.CustomerId, divergencies);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(CustomerCheckoutFailed), checkoutFailed);
-                return;
-            }
-
             cart.status = CartStatus.CHECKOUT_SENT;
             this.cartRepository.Update(cart);
 
@@ -81,17 +73,19 @@ namespace CartMS.Services
             {
                 var items = cartRepository.GetItems(cart.customer_id);
 
-                var itemsDict = items.ToDictionary(i => i.product_id);
+                var itemsDict = items.ToDictionary(i => (i.seller_id, i.product_id));
 
-                IList<(long,long)> ids = items.Select(i => (i.seller_id,i.product_id)).ToList();
+                var ids = items.Select(i => (i.seller_id,i.product_id)).ToList();
                 IList<ProductModel> products = productRepository.GetProducts(ids);
 
                 foreach (var product in products)
                 {
-                    // TODO should key also by seller... 
-                    var currPrice = itemsDict[product.product_id].unit_price;
+                    var item = itemsDict[(product.seller_id, product.product_id)];
+                    var currPrice = item.unit_price;
                     if (currPrice != product.price)
                     {
+                        item.unit_price = product.price;
+                        cartRepository.UpdateItem(item);
                         divergencies.Add(new ProductStatus(product.product_id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
                     }
                 }

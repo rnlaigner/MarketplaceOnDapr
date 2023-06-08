@@ -38,9 +38,9 @@ namespace OrderMS.Common.Models
 
         public int count_items { get; set; }
 
-        public DateTime created_at { get; set; } = DateTime.Now;
+        public DateTime created_at { get; set; }
 
-        public DateTime? updated_at { get; set; }
+        public DateTime updated_at { get; set; }
 
         public decimal total_amount { get; set; } = 0;
         public decimal total_freight { get; set; } = 0;

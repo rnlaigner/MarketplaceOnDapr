@@ -12,19 +12,19 @@ namespace CartMS.Repositories
 {
     public class CartRepository : ICartRepository
     {
-        private readonly CartDbContext cartDbContext;
+        private readonly CartDbContext dbContext;
 
         private readonly ILogger<CartRepository> logger;
 
         public CartRepository(CartDbContext cartDbContext, ILogger<CartRepository> logger)
         {
-            this.cartDbContext = cartDbContext;
+            this.dbContext = cartDbContext;
             this.logger = logger;
         }
 
         public CartModel? GetCart(long customerId)
         {
-            return this.cartDbContext.Carts.Find(customerId);
+            return this.dbContext.Carts.Find(customerId);
         }
 
         public CartModel? Delete(long customerId)
@@ -32,8 +32,8 @@ namespace CartMS.Repositories
             CartModel? cart = GetCart(customerId);
             if (cart is not null)
             {
-                cartDbContext.Remove(cart);
-                cartDbContext.SaveChanges();
+                dbContext.Remove(cart);
+                dbContext.SaveChanges();
                 return cart;
             }
             return null;
@@ -41,44 +41,51 @@ namespace CartMS.Repositories
 
         public CartModel Insert(CartModel cart)
         {
-            var f = cartDbContext.Add(cart);
-            cartDbContext.SaveChanges();
+            var f = dbContext.Add(cart);
+            dbContext.SaveChanges();
             return f.Entity;
         }
 
 
         public IList<CartItemModel> GetItems(long customerId)
         {
-            return cartDbContext.CartItems.Where(c => c.customer_id == customerId).ToList();
+            return dbContext.CartItems.Where(c => c.customer_id == customerId).ToList();
         }
 
         public CartItemModel AddItem(CartItemModel item)
         {
-            var existing = cartDbContext.CartItems.Find(item.customer_id, item.seller_id, item.product_id);
+            var existing = dbContext.CartItems.Find(item.customer_id, item.seller_id, item.product_id);
             if(existing is null)
             {
-                var res = cartDbContext.CartItems.Add(item);
-                cartDbContext.SaveChanges();
+                var res = dbContext.CartItems.Add(item);
+                dbContext.SaveChanges();
                 return res.Entity;
             }
-            var entity = cartDbContext.CartItems.Update(item);
-            cartDbContext.SaveChanges();
+            var entity = dbContext.CartItems.Update(item);
+            dbContext.SaveChanges();
+            return entity.Entity;
+        }
+
+        public CartItemModel UpdateItem(CartItemModel item)
+        {
+            var entity = dbContext.CartItems.Update(item);
+            dbContext.SaveChanges();
             return entity.Entity;
         }
 
         public CartModel Update(CartModel cart)
         {
             cart.updated_at = DateTime.Now;
-            var f = cartDbContext.Update(cart);
-            cartDbContext.SaveChanges();
+            var f = dbContext.Update(cart);
+            dbContext.SaveChanges();
             return f.Entity;
         }
 
         public void DeleteItems(long customerId)
         {
             var items = GetItems(customerId);
-            cartDbContext.RemoveRange(items);
-            cartDbContext.SaveChanges();
+            dbContext.RemoveRange(items);
+            dbContext.SaveChanges();
         }
     }
 }

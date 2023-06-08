@@ -14,6 +14,8 @@ namespace CartMS.Services
         void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
 
         void ProcessPaymentFailed(PaymentFailed paymentFailed);
+
+        public List<ProductStatus> CheckCartForDivergencies(CartModel cart);
     }
 }
 

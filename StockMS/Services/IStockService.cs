@@ -6,17 +6,19 @@ namespace StockMS.Services
 {
 	public interface IStockService
 	{
-        public Task ReserveStockAsync(ReserveStock checkout);
+        Task ReserveStockAsync(ReserveStock checkout);
 
-        public void ConfirmReservation(PaymentConfirmed payment);
+        void ConfirmReservation(PaymentConfirmed payment);
 
-        public void CancelReservation(PaymentFailed paymentFailure);
+        void CancelReservation(PaymentFailed paymentFailure);
 
-        public void ProcessProductUpdate(Product product);
+        void ProcessProductUpdate(Product product);
 
-        public void ProcessProductUpdates(List<Product> products);
+        void ProcessProductUpdates(List<Product> products);
 
-        public Task CreateStockItem(StockItem stockItem);
+        Task CreateStockItem(StockItem stockItem);
+
+        Task IncreaseStock(IncreaseStock increaseStock);
     }
 }
 

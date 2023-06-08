@@ -154,7 +154,7 @@ public class CartController : ControllerBase
     [Route("{customerId}/checkout")]
     [HttpPost]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
+    [ProducesResponseType(typeof(Cart),(int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> NotifyCheckout(long customerId, [FromBody] CustomerCheckout customerCheckout)
     {
@@ -179,6 +179,18 @@ public class CartController : ControllerBase
         {
             this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer "+ customerCheckout.CustomerId + " cart has already been submitted to checkout");
+        }
+
+        List<ProductStatus> divergencies = this.cartService.CheckCartForDivergencies(cart);
+        if (divergencies.Count() > 0)
+        {
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, new Cart()
+            {
+                customerId = cart.customer_id,
+                // items = cartItems,
+                status = cart.status,
+                divergencies = divergencies
+            });
         }
 
         await this.cartService.NotifyCheckout(customerCheckout, cart);

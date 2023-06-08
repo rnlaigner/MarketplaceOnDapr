@@ -2,6 +2,7 @@
 using Common.Events;
 using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
@@ -16,19 +17,22 @@ namespace StockMS.Services
         private readonly StockDbContext dbContext;
         private readonly IStockRepository stockRepository;
         private readonly DaprClient daprClient;
+        private readonly StockConfig config;
         private readonly ILogger<StockService> logger;
 
-        public StockService(StockDbContext dbContext, IStockRepository stockRepository, DaprClient daprClient, ILogger<StockService> logger)
+        public StockService(StockDbContext dbContext, IStockRepository stockRepository, DaprClient daprClient,
+            IOptions<StockConfig> config, ILogger<StockService> logger)
         {
             this.dbContext = dbContext;
             this.stockRepository = stockRepository;
             this.daprClient = daprClient;
+            this.config = config.Value;
             this.logger = logger;
         }
 
         public void ProcessProductUpdates(List<Product> products)
         {
-            var itemsToDelete = products.Where(p => !p.active).Select(p=>p.product_id).ToList();
+            var itemsToDelete = products.Where(p => !p.active).Select(p=> (p.seller_id, p.product_id)).ToList();
             if (itemsToDelete.Count() == 0) return;
 
             using (var txCtx = dbContext.Database.BeginTransaction())
@@ -61,7 +65,7 @@ namespace StockMS.Services
             if (product.active) return;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var stockItem = stockRepository.GetItemForUpdate(product.product_id);
+                var stockItem = stockRepository.GetItemForUpdate(product.seller_id, product.product_id);
                 if(stockItem is null)
                 {
                     this.logger.LogWarning("Attempt to delete product that does not exists in Stock DB {0}", product.product_id);
@@ -78,15 +82,15 @@ namespace StockMS.Services
 
         public void CancelReservation(PaymentFailed payment)
         {
-            List<long> ids = payment.items.Select(c => c.product_id).ToList();
+            var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
 
-                var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(c => c.product_id, c => c);
+                var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(p => (p.seller_id, p.product_id), c => c);
 
                 foreach (var item in payment.items)
                 {
-                    var stockItem = stockItems[item.product_id];
+                    var stockItem = stockItems[(item.seller_id,item.product_id)];
                     stockItem.qty_reserved -= item.quantity;
                     stockItem.updated_at = DateTime.Now;
                 }
@@ -99,15 +103,15 @@ namespace StockMS.Services
 
         public void ConfirmReservation(PaymentConfirmed payment)
         {
-            List<long> ids = payment.items.Select(c => c.product_id).ToList();
+            var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
 
-                var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(c => c.product_id, c => c);
+                var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(p => (p.seller_id, p.product_id), c => c);
 
                 foreach (var item in payment.items)
                 {
-                    var stockItem = stockItems[item.product_id];
+                    var stockItem = stockItems[(item.seller_id, item.product_id)];
                     stockItem.qty_available -= item.quantity;
                     stockItem.qty_reserved -= item.quantity;
                     stockItem.updated_at = DateTime.Now;
@@ -131,7 +135,7 @@ namespace StockMS.Services
                     return;
                 }
 
-                List<long> ids = checkout.items.Select(c => c.ProductId).ToList();
+                var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
 
                 if(checkout.items.Count() == 0)
                 {
@@ -235,10 +239,44 @@ namespace StockMS.Services
                 dbContext.StockItems.Add(stockItemModel);
                 dbContext.SaveChanges();
                 // publish stock info
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
+                if(config.StockStreaming)
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
                 txCtx.Commit();
             }
+        }
 
+        public async Task IncreaseStock(IncreaseStock increaseStock)
+        {
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+
+                var item = stockRepository.GetItemForUpdate(increaseStock.seller_id, increaseStock.product_id);
+                if (item is null)
+                {
+                    this.logger.LogWarning("Attempt to lock item {0},{1} has not succeeded", increaseStock.seller_id, increaseStock.product_id);
+                    throw new Exception("Attempt to lock item " + increaseStock.product_id + " has not succeeded");
+                }
+
+                item.qty_available += increaseStock.quantity;
+
+                dbContext.StockItems.Update(item);
+                dbContext.SaveChanges();
+
+                if (config.StockStreaming)
+                {
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), new StockItem()
+                    {
+                        seller_id = item.seller_id,
+                        product_id = item.product_id,
+                        qty_available = item.qty_available,
+                        qty_reserved = item.qty_reserved,
+                        order_count = item.order_count,
+                        ytd = item.ytd,
+                        data = item.data
+                    });
+                }
+                txCtx.Commit();
+            }
         }
     }
 

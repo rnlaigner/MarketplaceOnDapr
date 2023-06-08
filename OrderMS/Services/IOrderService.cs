@@ -8,9 +8,7 @@ namespace OrderMS.Services
 	{
         public void ProcessShipmentNotification(ShipmentNotification notification);
 
-        public InvoiceIssued ProcessCheckout(StockConfirmed checkout);
-
-        public Task ProcessCheckoutAsync(StockConfirmed checkout);
+        public Task<InvoiceIssued> ProcessCheckoutAsync(StockConfirmed checkout);
 
         public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
 

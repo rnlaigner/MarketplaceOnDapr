@@ -1,7 +1,9 @@
 {
+  "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "Order": {
+    "OrderMS": {
       "commandName": "Project",
+      "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5002",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

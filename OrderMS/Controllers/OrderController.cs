@@ -31,9 +31,9 @@ public class OrderController : ControllerBase
 
     [HttpPost("/checkout")]
     [ProducesResponseType(typeof(InvoiceIssued), (int)HttpStatusCode.OK)]
-    public ActionResult<InvoiceIssued> ProcessCheckout(StockConfirmed checkout)
+    public async Task<ActionResult<InvoiceIssued>> ProcessCheckout([FromBody] StockConfirmed checkout)
     {
-        InvoiceIssued invoice = this.orderService.ProcessCheckout(checkout);
+        InvoiceIssued invoice = await this.orderService.ProcessCheckoutAsync(checkout);
         return Ok(invoice);
     }
 

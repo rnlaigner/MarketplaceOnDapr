@@ -19,6 +19,8 @@ namespace CartMS.Repositories
         CartModel Insert(CartModel cart);
 
         void DeleteItems(long customerId);
+
+        CartItemModel UpdateItem(CartItemModel item);
     }
 }
 

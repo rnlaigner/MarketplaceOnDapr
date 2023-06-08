@@ -174,7 +174,7 @@ namespace OrderMS.Migrations
                         .HasPrecision(4, 2)
                         .HasColumnType("decimal");
 
-                    b.Property<DateTime?>("updated_at")
+                    b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("id");

@@ -5,6 +5,12 @@ using StockMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddOptions();
+
+// Add our Config object so it can be injected
+IConfigurationSection configSection = builder.Configuration.GetSection("StockConfig");
+builder.Services.Configure<StockConfig>(configSection);
+
 // Add services to the container
 builder.Services.AddDaprClient();
 

@@ -47,7 +47,7 @@ namespace OrderMS.Migrations
                     estimated_delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     count_items = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     total_amount = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     total_freight = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     total_incentive = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
