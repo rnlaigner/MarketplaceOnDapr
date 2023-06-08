@@ -4,6 +4,7 @@
     "OrderMS": {
       "commandName": "Project",
       "launchUrl": "swagger",
+      "launchBrowser": true,
       "applicationUrl": "http://localhost:5002",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

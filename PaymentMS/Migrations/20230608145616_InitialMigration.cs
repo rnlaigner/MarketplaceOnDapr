@@ -19,7 +19,7 @@ namespace PaymentMS.Migrations
                     payment_sequential = table.Column<int>(type: "integer", nullable: false),
                     payment_type = table.Column<string>(type: "text", nullable: false),
                     payment_installments = table.Column<int>(type: "integer", nullable: false),
-                    payment_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false)
+                    payment_value = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {

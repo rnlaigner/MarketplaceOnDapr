@@ -3,6 +3,7 @@ using Common.Entities;
 using Common.Events;
 using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PaymentMS.Infra;
 using PaymentMS.Integration;
 using PaymentMS.Models;
@@ -17,13 +18,16 @@ namespace PaymentMS.Services
 
         private readonly PaymentDbContext dbContext;
         private readonly DaprClient daprClient;
+        private readonly PaymentConfig config;
         private readonly IExternalProvider externalProvider;
         private readonly ILogger<PaymentService> logger;
 
-        public PaymentService(PaymentDbContext dbContext, DaprClient daprClient, IExternalProvider externalProvider, ILogger<PaymentService> logger)
+        public PaymentService(PaymentDbContext dbContext, DaprClient daprClient, IOptions<PaymentConfig> config,
+            IExternalProvider externalProvider, ILogger<PaymentService> logger)
 		{
             this.dbContext = dbContext;
             this.daprClient = daprClient;
+            this.config = config.Value;
             this.externalProvider = externalProvider;
             this.logger = logger;
 		}
@@ -58,12 +62,12 @@ namespace PaymentMS.Services
 
                 if (!intent.Status.Equals("succeeded"))
                 {
-                    var res = new PaymentFailed("payment_failed", paymentRequest.customer, paymentRequest.orderId,
+                    var res = new PaymentFailed(intent.Status, paymentRequest.customer, paymentRequest.orderId,
                         paymentRequest.items, paymentRequest.totalInvoice, paymentRequest.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), res);
                     this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
 
-                    dbContextTransaction.Commit();
+                    //dbContextTransaction.Commit();
                     return;
                 }
 
@@ -135,15 +139,16 @@ namespace PaymentMS.Services
                     dbContext.OrderPayments.AddRange(paymentLines);
                 dbContext.SaveChanges();
 
-                var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalInvoice, paymentRequest.items, DateTime.Today, paymentRequest.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
+                if (config.PaymentStreaming)
+                {
+                    var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalInvoice, paymentRequest.items, DateTime.Today, paymentRequest.instanceId);
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
+                }
                 this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
 
                 dbContextTransaction.Commit();
             
             }
-
-            return;
 
         }
     }

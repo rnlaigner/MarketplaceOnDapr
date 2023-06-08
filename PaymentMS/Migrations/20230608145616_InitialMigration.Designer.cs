@@ -12,7 +12,7 @@ using PaymentMS.Infra;
 namespace PaymentMS.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20230602111140_InitialMigration")]
+    [Migration("20230608145616_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -69,8 +69,7 @@ namespace PaymentMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("payment_value")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.HasKey("order_id", "payment_sequential");
 

@@ -1,21 +1,23 @@
 ﻿using System;
 using Common.Entities;
+using Microsoft.Extensions.Options;
+using PaymentMS.Infra;
 using PaymentMS.Integration;
 
 namespace PaymentMS.Services
 {
 	public class MockExternalProvider : IExternalProvider
 	{
-        private readonly int delay;
+        private readonly PaymentConfig config;
 
-		public MockExternalProvider(int delay = 1000)
+		public MockExternalProvider(IOptions<PaymentConfig> config, ILogger<MockExternalProvider> logger)
 		{
-            this.delay = delay;
+            this.config = config.Value;
 		}
 
         public async Task<PaymentIntent> Create(PaymentIntentCreateOptions options)
         {
-            await Task.Delay(delay);
+            await Task.Delay(config.Delay);
 
             // TODO perform http request to driver
             return new PaymentIntent()

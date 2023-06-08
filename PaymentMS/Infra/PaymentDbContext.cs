@@ -33,13 +33,6 @@ namespace PaymentMS.Infra
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
-        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-        {
-            configurationBuilder.Properties<decimal>()
-                .HaveColumnType("decimal")
-                .HavePrecision(4, 2);
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 

@@ -21,7 +21,7 @@ namespace PaymentMS.Integration
 		// example: pi_1GszdL2eZvKYlo2C4nORvwio
 		public string Id { get; set; } = "";
         public decimal Amount { get; set; }
-		public string Status { get; set; } = "";// 'succeeded', requires_payment_method
+		public string Status { get; set; } = "succeeded";// 'succeeded', requires_payment_method
         // example: pi_1GszdL2eZvKYlo2C4nORvwio_secret_F06b3J3jgLq8Ueo5JeZUF79mr
         public string client_secret { get; set; } = "";
         public string Currency { get; set; } = "";

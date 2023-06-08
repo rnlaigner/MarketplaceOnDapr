@@ -66,8 +66,7 @@ namespace PaymentMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("payment_value")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.HasKey("order_id", "payment_sequential");
 

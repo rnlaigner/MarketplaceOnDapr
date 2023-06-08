@@ -3,27 +3,24 @@ using PaymentMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<PaymentDbContext>();
+IConfigurationSection configSection = builder.Configuration.GetSection("PaymentConfig");
+builder.Services.Configure<PaymentConfig>(configSection);
+
 builder.Services.AddDaprClient();
 
-// builder.Services.AddScoped<IPaymentRepository, ShipmentRepository>();
+builder.Services.AddDbContext<PaymentDbContext>();
+builder.Services.AddScoped<IExternalProvider, MockExternalProvider>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddHealthChecks();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-7.0
-// mock esp
-var paymentProvider = Boolean.Parse( builder.Configuration["PaymentProvider:Active"]?? "false" );
-
-if (!paymentProvider)
-{
-    builder.Services.AddScoped<IExternalProvider, MockExternalProvider>();
-}
 
 var app = builder.Build();
 
@@ -45,7 +42,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCloudEvents();
+
 app.MapControllers();
 
-app.Run();
+app.MapHealthChecks("/health");
 
+app.MapSubscribeHandler();
+
+app.Run();
