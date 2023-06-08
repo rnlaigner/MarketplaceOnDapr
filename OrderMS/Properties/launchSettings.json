@@ -3,8 +3,8 @@
   "profiles": {
     "OrderMS": {
       "commandName": "Project",
-      "launchUrl": "swagger",
       "launchBrowser": true,
+      "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5002",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

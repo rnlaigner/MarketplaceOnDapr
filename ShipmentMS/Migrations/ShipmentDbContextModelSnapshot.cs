@@ -30,7 +30,7 @@ namespace ShipmentMS.Migrations
                     b.Property<int>("package_id")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("delivery_date")
+                    b.Property<DateTime?>("delivery_date")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("freight_value")

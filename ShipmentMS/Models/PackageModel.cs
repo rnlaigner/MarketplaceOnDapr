@@ -23,7 +23,7 @@ namespace ShipmentMS.Models
 
         public DateTime shipping_date { get; set; }
 
-        public DateTime delivery_date { get; set; }
+        public DateTime? delivery_date { get; set; }
 
         public int quantity { get; set; }
 

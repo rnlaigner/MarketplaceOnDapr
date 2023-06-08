@@ -20,6 +20,7 @@ namespace ShipmentMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"))
+                .AddInterceptors(new TransactionInterceptor())
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b
@@ -29,13 +30,6 @@ namespace ShipmentMS.Infra
                 .EnableDetailedErrors();
 
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-        }
-
-        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-        {
-            configurationBuilder.Properties<decimal>()
-                .HaveColumnType("decimal")
-                .HavePrecision(4, 2);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

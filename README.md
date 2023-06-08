@@ -74,3 +74,5 @@ cmhmod 775 deploy_macos.sh
 
 ## Useful links
 https://www.ibm.com/garage/method/practices/manage/health-check-apis/
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-7.0#set-environment-on-the-command-line
+https://laurentkempe.com/2023/02/27/debugging-dapr-applications-with-rider-or-visual-studio-a-better-way/

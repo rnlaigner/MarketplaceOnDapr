@@ -10,7 +10,7 @@ namespace Common.Events
         decimal totalAmount,
         IList<OrderItem> items,
         DateTime date,
-        string instanceId
+        string instanceId = ""
     );
 }
 

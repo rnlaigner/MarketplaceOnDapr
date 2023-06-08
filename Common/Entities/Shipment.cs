@@ -3,10 +3,6 @@ namespace Common.Entities
 {
 	public class Shipment
 	{
-		// PK
-		public long id;
-
-        // FK
         public long order_id;
         public long customer_id;
 

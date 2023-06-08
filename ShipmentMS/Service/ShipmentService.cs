@@ -3,6 +3,8 @@ using System.Data;
 using Common.Entities;
 using Common.Events;
 using Dapr.Client;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ShipmentMS.Infra;
 using ShipmentMS.Models;
 using ShipmentMS.Repositories;
@@ -13,16 +15,20 @@ namespace ShipmentMS.Service
     {
         private const string PUBSUB_NAME = "pubsub";
 
+        private readonly ShipmentDbContext dbContext;
         private readonly IShipmentRepository shipmentRepository;
         private readonly IPackageRepository packageRepository;
+        private readonly ShipmentConfig config;
         private readonly DaprClient daprClient;
         private readonly ILogger<ShipmentService> logger;
 
-        public ShipmentService(IShipmentRepository shipmentRepository, IPackageRepository packageRepository,
+        public ShipmentService(ShipmentDbContext dbContext, IShipmentRepository shipmentRepository, IPackageRepository packageRepository, IOptions<ShipmentConfig> config,
                                 DaprClient daprClient, ILogger<ShipmentService> logger)
         {
+            this.dbContext = dbContext;
             this.shipmentRepository = shipmentRepository;
             this.packageRepository = packageRepository;
+            this.config = config.Value;
             this.daprClient = daprClient;
             this.logger = logger;
         }
@@ -30,79 +36,90 @@ namespace ShipmentMS.Service
         /*
          * https://twitter.com/hnasr/status/1657569218609684480
          */
-        [Transactional]
         public async Task ProcessShipment(PaymentConfirmed paymentConfirmed)
         {
-            int package_id = 1;
-
-            var items = paymentConfirmed.items
-                        .GroupBy(x => x.seller_id)
-                        .OrderByDescending(g => g.Count())
-                        .SelectMany(x => x).ToList();
-
-            DateTime now = DateTime.Now;
-
-            ShipmentModel shipment = new()
+            using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                order_id = paymentConfirmed.orderId,
-                customer_id = paymentConfirmed.customer.CustomerId,
-                package_count = items.Count,
-                total_freight_value = items.Sum(i => i.freight_value),
-                request_date = now,
-                status = ShipmentStatus.approved,
-                first_name = paymentConfirmed.customer.FirstName,
-                last_name = paymentConfirmed.customer.LastName,
-                street = paymentConfirmed.customer.Street,
-                complement = paymentConfirmed.customer.Complement,
-                zip_code = paymentConfirmed.customer.ZipCode,
-                city = paymentConfirmed.customer.City,
-                state = paymentConfirmed.customer.State
-            };
+                int package_id = 1;
 
-            this.shipmentRepository.Insert(shipment);
+                var items = paymentConfirmed.items
+                            .GroupBy(x => x.seller_id)
+                            .OrderByDescending(g => g.Count())
+                            .SelectMany(x => x).ToList();
 
-            foreach (var item in items)
-            {
+                DateTime now = DateTime.Now;
 
-                PackageModel package = new()
+                ShipmentModel shipment = new()
                 {
                     order_id = paymentConfirmed.orderId,
-                    package_id = package_id,
-                    status = PackageStatus.shipped,
-                    freight_value = item.freight_value,
-                    shipping_date = now,
-                    seller_id = item.seller_id,
-                    product_id = item.product_id,
-                    product_name = item.product_name,
-                    quantity = item.quantity
+                    customer_id = paymentConfirmed.customer.CustomerId,
+                    package_count = items.Count,
+                    total_freight_value = items.Sum(i => i.freight_value),
+                    request_date = now,
+                    status = ShipmentStatus.approved,
+                    first_name = paymentConfirmed.customer.FirstName,
+                    last_name = paymentConfirmed.customer.LastName,
+                    street = paymentConfirmed.customer.Street,
+                    complement = paymentConfirmed.customer.Complement,
+                    zip_code = paymentConfirmed.customer.ZipCode,
+                    city = paymentConfirmed.customer.City,
+                    state = paymentConfirmed.customer.State
                 };
 
-                this.packageRepository.Insert(package);
-                package_id++;
+                this.shipmentRepository.Insert(shipment);
 
+                foreach (var item in items)
+                {
+                    PackageModel package = new()
+                    {
+                        order_id = paymentConfirmed.orderId,
+                        package_id = package_id,
+                        status = PackageStatus.shipped,
+                        freight_value = item.freight_value,
+                        shipping_date = now,
+                        seller_id = item.seller_id,
+                        product_id = item.product_id,
+                        product_name = item.product_name,
+                        quantity = item.quantity
+                    };
+                    this.packageRepository.Insert(package);
+                    package_id++;
+                }
+
+                // enqueue shipment notification
+                if (config.ShipmentStreaming)
+                {
+                    ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
+                }
+
+                dbContext.SaveChanges();
+                txCtx.Commit();
+
+                // TODO publish transactional event result
             }
-
-            // enqueue shipment notification
-            ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
-
-            // TODO publish transactional event result
         }
 
-        [Transactional(IsolationLevel.Serializable)]
-        public async void UpdateShipment(string instanceId = "")
+        public async Task UpdateShipment(string instanceId = "")
         {
-            // perform a sql query to query the objects. write lock...
-            var q = packageRepository.GetOldestOpenShipmentPerSeller();
-
-            List<Task> tasks = new();
-            foreach (var kv in q)
+            using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var packages_ = this.packageRepository.GetShippedPackagesByOrderAndSeller(kv.Value, kv.Key).ToList();
-                tasks.Add(UpdatePackageDelivery(packages_, instanceId));
-            }
+                // perform a sql query to query the objects. write lock...
+                var q = packageRepository.GetOldestOpenShipmentPerSeller();
 
-            await Task.WhenAll(tasks);
+                List<Task> tasks = new();
+                foreach (var kv in q)
+                {
+                    var packages_ = this.packageRepository.GetShippedPackagesByOrderAndSeller(kv.Value, kv.Key).ToList();
+                    tasks.Add(UpdatePackageDelivery(packages_, instanceId));
+                }
+
+                await Task.WhenAll(tasks);
+
+                dbContext.SaveChanges();
+                txCtx.Commit();
+
+            }
         }
 
         private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, string instanceId)

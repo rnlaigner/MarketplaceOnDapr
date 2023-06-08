@@ -12,7 +12,7 @@ using ShipmentMS.Infra;
 namespace ShipmentMS.Migrations
 {
     [DbContext(typeof(ShipmentDbContext))]
-    [Migration("20230602111140_InitialMigration")]
+    [Migration("20230608162200_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -33,7 +33,7 @@ namespace ShipmentMS.Migrations
                     b.Property<int>("package_id")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("delivery_date")
+                    b.Property<DateTime?>("delivery_date")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("freight_value")

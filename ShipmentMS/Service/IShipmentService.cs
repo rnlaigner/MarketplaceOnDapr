@@ -7,7 +7,7 @@ namespace ShipmentMS.Service
 	{
         public Task ProcessShipment(PaymentConfirmed paymentResult);
 
-        public void UpdateShipment(string instanceId = "");
+        public Task UpdateShipment(string instanceId = "");
     }
 }
 

@@ -47,7 +47,7 @@ namespace ShipmentMS.Migrations
                     product_name = table.Column<string>(type: "text", nullable: false),
                     freight_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
                     shipping_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     quantity = table.Column<int>(type: "integer", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false)
                 },
