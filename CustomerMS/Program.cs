@@ -1,4 +1,5 @@
-﻿using CustomerMS.Repositories;
+﻿using CustomerMS.Infra;
+using CustomerMS.Repositories;
 using CustomerMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,8 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDaprClient();
 
-builder.Services.AddSingleton<ICustomerRepository, CustomerRepository>();
-builder.Services.AddSingleton<ICustomerService, CustomerService>();
+builder.Services.AddDbContext<CustomerDbContext>();
+
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 builder.Services.AddControllers();
 
@@ -27,6 +30,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCloudEvents();
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<CustomerDbContext>();
+    context.Database.EnsureDeleted();
+    context.Database.EnsureCreated();
+}
 
 app.MapControllers();
 

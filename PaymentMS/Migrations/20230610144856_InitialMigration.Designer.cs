@@ -12,7 +12,7 @@ using PaymentMS.Infra;
 namespace PaymentMS.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20230608145616_InitialMigration")]
+    [Migration("20230610144856_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -60,6 +60,9 @@ namespace PaymentMS.Migrations
 
                     b.Property<int>("payment_sequential")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("payment_installments")
                         .HasColumnType("integer");

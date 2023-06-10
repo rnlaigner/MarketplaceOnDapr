@@ -37,7 +37,6 @@ if (app.Environment.IsDevelopment())
 app.UseCloudEvents();
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

@@ -24,10 +24,10 @@ public class PaymentController : ControllerBase
 
     [HttpPost("ProcessPayment")]
     [Topic(PUBSUB_NAME, nameof(Common.Events.InvoiceIssued))]
-    public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued paymentRequest)
+    public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued invoice)
     {
-        this.logger.LogInformation("[ProcessPayment] received: {0}.", paymentRequest.instanceId);
-        await this.paymentService.ProcessPayment(paymentRequest);
+        this.logger.LogInformation("[InvoiceIssued] received for order ID {0}.", invoice.orderId);
+        await this.paymentService.ProcessPayment(invoice);
         return Ok();
     }
 

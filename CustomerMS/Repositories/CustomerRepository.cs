@@ -3,68 +3,41 @@ using Common.Entities;
 using Common.Events;
 using System.Security.Cryptography.X509Certificates;
 using Dapr.Client;
+using CustomerMS.Infra;
+using CustomerMS.Models;
 
 namespace CustomerMS.Repositories
 {
 	public class CustomerRepository : ICustomerRepository
     {
-        public const string StoreName = "statestore";
-        private readonly DaprClient daprClient;
 
-        public CustomerRepository(DaprClient daprCLient)
+        private readonly CustomerDbContext dbContext;
+
+        public CustomerRepository(CustomerDbContext customerDbContext)
 		{
-            this.daprClient = daprCLient;
+            this.dbContext = customerDbContext;
         }
 
-        public async Task IncreaseDeliveryAtomically(long customerId)
+        public CustomerModel Insert(CustomerModel customer)
         {
-            var custIdStr = customerId.ToString();
-            while (true)
-            {
-                var entry = await daprClient.GetStateEntryAsync<Customer>(StoreName, custIdStr);
-                Customer customer = entry.Value;
-                customer.delivery_count++;
-
-                if (await daprClient.TrySaveStateAsync(StoreName, custIdStr, customer, entry.ETag))
-                {
-                    break;
-                }
-
-            }
+            customer.created_at = DateTime.Now;
+            customer.updated_at = customer.created_at;
+            var res = this.dbContext.Customers.Add(customer);
+            this.dbContext.SaveChanges();
+            return res.Entity;
         }
 
-        public async Task IncreasePaymentSuccessCount(PaymentConfirmed paymentConfirmed)
+        public CustomerModel Update(CustomerModel customer)
         {
-            var custIdStr = paymentConfirmed.customer.CustomerId.ToString();
-            while (true)
-            {
-                var entry = await daprClient.GetStateEntryAsync<Customer>(StoreName, custIdStr);
-                Customer customer = entry.Value;
-                customer.success_payment_count++;
-
-                if (await daprClient.TrySaveStateAsync(StoreName, custIdStr, customer, entry.ETag))
-                {
-                    break;
-                }
-
-            }
+            customer.updated_at = DateTime.Now;
+            var res = this.dbContext.Customers.Update(customer);
+            this.dbContext.SaveChanges();
+            return res.Entity;
         }
 
-        public async Task IncreasePaymentFailureCount(PaymentFailed paymentFailed)
+        public CustomerModel? GetById(long id)
         {
-            var custIdStr = paymentFailed.customer.CustomerId.ToString();
-            while (true)
-            {
-                var entry = await daprClient.GetStateEntryAsync<Customer>(StoreName, custIdStr);
-                Customer customer = entry.Value;
-                customer.failed_payment_count++;
-
-                if (await daprClient.TrySaveStateAsync(StoreName, custIdStr, customer, entry.ETag))
-                {
-                    break;
-                }
-
-            }
+            return this.dbContext.Customers.Find(id);
         }
 
     }

@@ -16,8 +16,7 @@ namespace StockMS.Controllers
         private readonly ILogger<EventController> logger;
         private readonly IStockService stockService;
 
-        public EventController(IStockService stockService,
-                               ILogger<EventController> logger)
+        public EventController(IStockService stockService, ILogger<EventController> logger)
         {
             this.stockService = stockService;
             this.logger = logger;
@@ -46,7 +45,7 @@ namespace StockMS.Controllers
         public ActionResult ProcessFailedPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
         {
             // this.stockService.ConfirmReservation(paymentConfirmed);
-            logger.LogWarning("Confirming that the message has been forwarded to the dead letter topic.");
+            logger.LogWarning("[ProcessFailedPaymentConfirmed] Confirming that the PaymentConfirmed event has been forwarded to the dead letter topic.");
             return Ok();
         }
 
@@ -66,17 +65,5 @@ namespace StockMS.Controllers
             return Ok();
         }
 
-        [HttpPost("BulkProductStreaming")]
-        [BulkSubscribe("BulkProductStreaming")]
-        [Topic(PUBSUB_NAME, "Products")]
-        public ActionResult<BulkSubscribeAppResponse> BulkProcessProductStream([FromBody] BulkSubscribeMessage<BulkMessageModel<Product>> bulkMessages)
-        {
-            this.stockService.ProcessProductUpdates(bulkMessages.Entries.Select(e => e.Event.Data).ToList());
-            List<BulkSubscribeAppResponseEntry>
-                responseEntries = bulkMessages.Entries.Select(message => new BulkSubscribeAppResponseEntry(message.EntryId, BulkSubscribeAppResponseStatus.SUCCESS)).ToList();
-            return new BulkSubscribeAppResponse(responseEntries);
-        }
-
     }
 }
-

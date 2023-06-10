@@ -58,6 +58,9 @@ namespace PaymentMS.Migrations
                     b.Property<int>("payment_sequential")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("payment_installments")
                         .HasColumnType("integer");
 

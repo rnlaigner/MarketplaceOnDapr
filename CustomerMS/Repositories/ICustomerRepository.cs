@@ -1,13 +1,14 @@
 ﻿using System;
 using Common.Events;
+using CustomerMS.Models;
 
 namespace CustomerMS.Repositories
 {
 	public interface ICustomerRepository
 	{
-		Task IncreaseDeliveryAtomically(long customerId);
-        Task IncreasePaymentSuccessCount(PaymentConfirmed paymentConfirmed);
-        Task IncreasePaymentFailureCount(PaymentFailed paymentFailed);
+        CustomerModel? GetById(long customerId);
+        CustomerModel Insert(CustomerModel customer);
+        CustomerModel Update(CustomerModel customer);
     }
 }
 

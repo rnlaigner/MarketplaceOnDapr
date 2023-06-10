@@ -43,6 +43,9 @@ namespace PaymentMS.Services
              * that guarantees exactly once payment processing even when 
              * a payment request is submitted more than once to them
              */
+            var now = DateTime.Now;
+            var cardExpParsed = DateTime.Parse(paymentRequest.customer.CardExpiration);
+
             PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
             {
                 Amount = paymentRequest.totalInvoice,
@@ -52,12 +55,12 @@ namespace PaymentMS.Services
                 {
                     Number = paymentRequest.customer.CardNumber,
                     Cvc = paymentRequest.customer.CardSecurityNumber,
-                    ExpMonth = paymentRequest.customer.CardExpiration, // TODO parse
-                    ExpYear = paymentRequest.customer.CardExpiration
+                    ExpMonth = cardExpParsed.Month.ToString(),
+                    ExpYear = cardExpParsed.Year.ToString()
                 }
             });
 
-            using (var dbContextTransaction = dbContext.Database.BeginTransaction())
+            using (var txCtx = dbContext.Database.BeginTransaction())
             {
 
                 if (!intent.Status.Equals("succeeded"))
@@ -66,8 +69,6 @@ namespace PaymentMS.Services
                         paymentRequest.items, paymentRequest.totalInvoice, paymentRequest.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), res);
                     this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
-
-                    //dbContextTransaction.Commit();
                     return;
                 }
 
@@ -93,7 +94,7 @@ namespace PaymentMS.Services
                         payment_sequential = seq,
                         card_number = paymentRequest.customer.CardNumber,
                         card_holder_name = paymentRequest.customer.CardHolderName,
-                        card_expiration = DateTime.MaxValue, // FIXME DateTime.Parse(paymentRequest.customer.CardExpiration),
+                        card_expiration = cardExpParsed,
                         card_brand = paymentRequest.customer.CardBrand
                     };
 
@@ -113,7 +114,8 @@ namespace PaymentMS.Services
                         payment_sequential = seq,
                         payment_type = PaymentType.BOLETO,
                         payment_installments = 1,
-                        payment_value = paymentRequest.totalInvoice
+                        payment_value = paymentRequest.totalInvoice,
+                        created_at = now
                     });
                     seq++;
                 }
@@ -141,12 +143,13 @@ namespace PaymentMS.Services
 
                 if (config.PaymentStreaming)
                 {
-                    var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId, paymentRequest.totalInvoice, paymentRequest.items, DateTime.Today, paymentRequest.instanceId);
+                    var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId,
+                        paymentRequest.totalInvoice, paymentRequest.items, now, paymentRequest.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
                 }
                 this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
 
-                dbContextTransaction.Commit();
+                txCtx.Commit();
             
             }
 

@@ -1,21 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
-using CartMS.Models;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using System;
+using System.Collections.Generic;
+using CustomerMS.Models;
+using Google.Api;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
-namespace CartMS.Infra
+namespace CustomerMS.Infra
 {
-	public class CartDbContext : DbContext
+	public class CustomerDbContext : DbContext
     {
-        public DbSet<CartModel> Carts => Set<CartModel>();
-        public DbSet<CartItemModel> CartItems => Set<CartItemModel>();
-        public DbSet<ProductModel> Products => Set<ProductModel>();
+
+        public DbSet<CustomerModel> Customers => Set<CustomerModel>();
 
         private readonly IConfiguration configuration;
 
-        public CartDbContext(IConfiguration configuration)
+        public CustomerDbContext(IConfiguration configuration)
         {
             this.configuration = configuration;
         }
+
+        public CustomerDbContext()
+		{
+		}
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
@@ -29,13 +35,6 @@ namespace CartMS.Infra
                 .EnableDetailedErrors();
 
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<CartModel>()
-                 .Property(e => e.status)
-                 .HasConversion<string>();
         }
 
     }

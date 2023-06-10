@@ -9,7 +9,6 @@ namespace CustomerMS.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-
         private const string PUBSUB_NAME = "pubsub";
 
         private readonly ICustomerService customerService;
@@ -20,7 +19,6 @@ namespace CustomerMS.Controllers
             this.customerService = customerService;
             this.logger = logger;
         }
-
 
         [HttpPost("ProcessPaymentConfirmed")]
         [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
@@ -51,7 +49,6 @@ namespace CustomerMS.Controllers
             this.logger.LogInformation("[ProcessDeliveryNotification] completed for customer {0}.", deliveryNotification.customerId);
             return Ok();
         }
-
 
     }
 }

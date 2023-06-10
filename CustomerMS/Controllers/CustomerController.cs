@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using Common.Entities;
 using Common.Events;
+using CustomerMS.Models;
+using CustomerMS.Repositories;
 using CustomerMS.Services;
 using Dapr;
 using Microsoft.AspNetCore.Mvc;
@@ -13,21 +15,41 @@ public class CustomerController : ControllerBase
 
     private const string PUBSUB_NAME = "pubsub";
 
-    private readonly ICustomerService customerService;
+    private readonly ICustomerRepository customerRepository;
     private readonly ILogger<CustomerController> logger;
 
-    public CustomerController(ICustomerService customerService, ILogger<CustomerController> logger)
+    public CustomerController(ICustomerRepository customerRepository, ILogger<CustomerController> logger)
     {
-        this.customerService = customerService;
+        this.customerRepository = customerRepository;
         this.logger = logger;
     }
 
     [HttpPost("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public IActionResult AddCustomer([FromBody] Customer customer)
+    public ActionResult AddCustomer([FromBody] Customer customer)
     {
         this.logger.LogInformation("[AddCustomer] received for id {0}", customer.id);
-        this.customerService.AddCustomer(customer);
+        this.customerRepository.Insert(new CustomerModel()
+        {
+            id = customer.id,
+            first_name = customer.first_name,
+            last_name = customer.last_name,
+            address = customer.address,
+            complement = customer.complement,
+            birth_date = customer.birth_date,
+            zip_code = customer.zip_code,
+            city = customer.city,
+            state = customer.state,
+            card_number = customer.card_number,
+            card_security_number = customer.card_security_number,
+            card_expiration = customer.card_expiration,
+            card_holder_name = customer.card_holder_name,
+            card_type = customer.card_type,
+            success_payment_count = customer.success_payment_count,
+            failed_payment_count = customer.failed_payment_count,
+            delivery_count = customer.delivery_count,
+            data = customer.first_name,
+        });
         this.logger.LogInformation("[AddCustomer] completed for id {0}.", customer.id);
         return StatusCode((int)HttpStatusCode.Created);
     }
@@ -35,12 +57,35 @@ public class CustomerController : ControllerBase
     [HttpGet("{customerId}")]
     [ProducesResponseType((int)HttpStatusCode.Found)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<Customer>> GetCustomers(long customerId)
+    public ActionResult<Customer> GetCustomerById(long customerId)
     {
-        this.logger.LogInformation("[GetCustomer] received for seller {0}", customerId);
-        Customer customer = await this.customerService.GetCustomer(customerId);
-        this.logger.LogInformation("[GetCustomer] completed for seller {0}.", customerId);
-        if (customer is not null) return StatusCode((int)HttpStatusCode.Found, customer);
+        this.logger.LogInformation("[GetCustomerById] received for customer ID {0}", customerId);
+        CustomerModel? customer = this.customerRepository.GetById(customerId);
+
+        this.logger.LogInformation("[GetCustomerById] completed for customer ID {0}.", customerId);
+
+        if (customer is not null) return StatusCode((int)HttpStatusCode.Found, new Customer()
+        {
+            id = customer.id,
+            first_name = customer.first_name,
+            last_name = customer.last_name,
+            address = customer.address,
+            complement = customer.complement,
+            birth_date = customer.birth_date,
+            zip_code = customer.zip_code,
+            city = customer.city,
+            state = customer.state,
+            card_number = customer.card_number,
+            card_security_number = customer.card_security_number,
+            card_expiration = customer.card_expiration,
+            card_holder_name = customer.card_holder_name,
+            card_type = customer.card_type,
+            success_payment_count = customer.success_payment_count,
+            failed_payment_count = customer.failed_payment_count,
+            delivery_count = customer.delivery_count,
+            data = customer.first_name,
+        });
+
         return NotFound();
     }
 

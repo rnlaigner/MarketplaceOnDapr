@@ -8,42 +8,43 @@ namespace CustomerMS.Services
 {
 	public class CustomerService : ICustomerService
 	{
-        public const string StoreName = "statestore";
-
-        private readonly DaprClient daprClient;
         private readonly ICustomerRepository customerRepository;
         private readonly ILogger<CustomerService> logger;
 
-        public CustomerService(DaprClient daprCLient, ICustomerRepository customerRepository, ILogger<CustomerService> logger)
+        public CustomerService(ICustomerRepository customerRepository, ILogger<CustomerService> logger)
 		{
-            this.daprClient = daprCLient;
             this.customerRepository = customerRepository;
             this.logger = logger;
 		}
 
-        public async void AddCustomer(Customer customer)
+        public void ProcessDeliveryNotification(DeliveryNotification deliveryNotification)
         {
-            await daprClient.SaveStateAsync(StoreName, customer.id.ToString(), customer);
+            var customer = this.customerRepository.GetById(deliveryNotification.customerId);
+            if(customer is not null)
+            {
+                customer.delivery_count++;
+                this.customerRepository.Update(customer);
+            }
         }
 
-        public async Task<Customer> GetCustomer(long id)
+        public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
-            return await daprClient.GetStateAsync<Customer>(StoreName, id.ToString());
+            var customer = this.customerRepository.GetById(paymentConfirmed.customer.CustomerId);
+            if (customer is not null)
+            {
+                customer.success_payment_count++;
+                this.customerRepository.Update(customer);
+            }
         }
 
-        public async void ProcessDeliveryNotification(DeliveryNotification deliveryNotification)
+        public void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
-            await this.customerRepository.IncreaseDeliveryAtomically(deliveryNotification.customerId);
-        }
-
-        public async void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
-        {
-            await this.customerRepository.IncreasePaymentSuccessCount(paymentConfirmed);
-        }
-
-        public async void ProcessPaymentFailed(PaymentFailed paymentFailed)
-        {
-            await this.customerRepository.IncreasePaymentFailureCount(paymentFailed);
+            var customer = this.customerRepository.GetById(paymentFailed.customer.CustomerId);
+            if (customer is not null)
+            {
+                customer.failed_payment_count++;
+                this.customerRepository.Update(customer);
+            }
         }
 
     }

@@ -19,7 +19,8 @@ namespace PaymentMS.Migrations
                     payment_sequential = table.Column<int>(type: "integer", nullable: false),
                     payment_type = table.Column<string>(type: "text", nullable: false),
                     payment_installments = table.Column<int>(type: "integer", nullable: false),
-                    payment_value = table.Column<decimal>(type: "numeric", nullable: false)
+                    payment_value = table.Column<decimal>(type: "numeric", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
