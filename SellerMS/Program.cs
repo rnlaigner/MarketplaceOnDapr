@@ -5,14 +5,15 @@ using SellerMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDaprClient();
+
 builder.Services.AddDbContextFactory<SellerDbContext>();
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 builder.Services.AddScoped<ISellerService, SellerService>();
 
-
 // Add services to the container.
-builder.Services.AddDaprClient();
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -27,6 +28,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCloudEvents();
+
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
@@ -40,7 +43,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
+
 app.MapSubscribeHandler();
 
 app.Run();
-

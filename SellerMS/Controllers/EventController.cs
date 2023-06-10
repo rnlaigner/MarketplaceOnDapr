@@ -14,8 +14,7 @@ public class EventController : ControllerBase
     private readonly ILogger<EventController> logger;
     private readonly ISellerService sellerService;
 
-    public EventController(ISellerService sellerService, 
-                           ILogger<EventController> logger)
+    public EventController(ISellerService sellerService, ILogger<EventController> logger)
     {
         this.sellerService = sellerService;
         this.logger = logger;
@@ -23,52 +22,63 @@ public class EventController : ControllerBase
 
     [HttpPost("ProcessPaymentConfirmed")]
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-    public async void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
+    public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
     {
-        await this.sellerService.ProcessPaymentConfirmed(paymentConfirmed);
+        this.logger.LogInformation("[PaymentConfirmed] received for order ID {0}.", paymentConfirmed.orderId);
+        this.sellerService.ProcessPaymentConfirmed(paymentConfirmed);
+        return Ok();
     }
 
     [HttpPost("ProcessPaymentFailed")]
     [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
-    public async void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
+    public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
     {
-        await this.sellerService.ProcessPaymentFailed(paymentFailed);
+        this.logger.LogInformation("[PaymentFailed] received for order ID {0}.", paymentFailed.orderId);
+        this.sellerService.ProcessPaymentFailed(paymentFailed);
+        return Ok();
     }
 
     [HttpPost("ProcessNewInvoice")]
     [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
-    public async void ProcessNewInvoice([FromBody] InvoiceIssued invoiceIssued)
+    public ActionResult ProcessNewInvoice([FromBody] InvoiceIssued invoiceIssued)
     {
-        await this.sellerService.ProcessNewInvoice(invoiceIssued);
+        this.logger.LogInformation("[InvoiceIssued] received for order ID {0}.", invoiceIssued.orderId);
+        this.sellerService.ProcessNewInvoice(invoiceIssued);
+        return Ok();
     }
 
-    [HttpPost("ProcessProductUpdate")]
-    [Topic(PUBSUB_NAME, nameof(Product))]
-    public async void ProcessProductUpdate([FromBody] Product product)
-    {
-        await this.sellerService.ProcessProductUpdate(product);
-    }
+    //[HttpPost("ProcessProductUpdate")]
+    //[Topic(PUBSUB_NAME, nameof(Product))]
+    //public void ProcessProductUpdate([FromBody] Product product)
+    //{
+    //    this.sellerService.ProcessProductUpdate(product);
+    //}
 
     [HttpPost("ProcessStockItem")]
     [Topic(PUBSUB_NAME, nameof(StockItem))]
-    public async void ProcessStockItem([FromBody] StockItem stockItem)
+    public ActionResult ProcessStockItem([FromBody] StockItem stockItem)
     {
-        await this.sellerService.ProcessStockItem(stockItem);
+        this.logger.LogInformation("[StockItem] received for item ID {0}.", stockItem.product_id);
+        this.sellerService.ProcessStockItem(stockItem);
+        return Ok();
     }
 
     [HttpPost("ProcessShipmentNotification")]
     [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
-    public async void ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
+    public ActionResult ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
     {
-        await this.sellerService.ProcessShipmentNotification(shipmentNotification);
+        this.logger.LogInformation("[ShipmentNotification] received for order ID {0}.", shipmentNotification.orderId);
+        this.sellerService.ProcessShipmentNotification(shipmentNotification);
+        return Ok();
     }
 
     [HttpPost("ProcessDeliveryNotification")]
     [Topic(PUBSUB_NAME, nameof(DeliveryNotification))]
-    public async void ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
+    public ActionResult ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
     {
-        await this.sellerService.ProcessDeliveryNotification(deliveryNotification);
+        this.logger.LogInformation("[DeliveryNotification] received for order ID {0}.", deliveryNotification.orderId);
+        this.sellerService.ProcessDeliveryNotification(deliveryNotification);
+        return Ok();
     }
 
 }
-

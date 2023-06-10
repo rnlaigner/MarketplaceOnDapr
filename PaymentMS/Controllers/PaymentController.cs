@@ -23,17 +23,12 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("ProcessPayment")]
-    [Topic(PUBSUB_NAME, nameof(Common.Events.InvoiceIssued), "poisonMessages", false)]
-    public async Task ProcessPayment(InvoiceIssued paymentRequest)
+    [Topic(PUBSUB_NAME, nameof(Common.Events.InvoiceIssued))]
+    public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued paymentRequest)
     {
         this.logger.LogInformation("[ProcessPayment] received: {0}.", paymentRequest.instanceId);
-        try
-        {
-            await this.paymentService.ProcessPayment(paymentRequest);
-        }catch(Exception e)
-        {
-            logger.LogError("[ProcessPayment] Error catch: {0}", e.Message);
-        }
+        await this.paymentService.ProcessPayment(paymentRequest);
+        return Ok();
     }
 
 }

@@ -8,16 +8,13 @@ namespace SellerMS.Services
 {
     public interface ISellerService
     {
-        void AddSeller(Seller seller);
-        Seller GetSeller(long id);
-
-        Task ProcessDeliveryNotification(DeliveryNotification deliveryNotification);
-        Task ProcessNewInvoice(InvoiceIssued invoiceIssued);
-        Task ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
-        Task ProcessPaymentFailed(PaymentFailed paymentFailed);
-        Task ProcessProductUpdate(Product product);
-        Task ProcessShipmentNotification(ShipmentNotification shipmentNotification);
-        Task ProcessStockItem(StockItem stockItem);
+        void ProcessDeliveryNotification(DeliveryNotification deliveryNotification);
+        void ProcessNewInvoice(InvoiceIssued invoiceIssued);
+        void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
+        void ProcessPaymentFailed(PaymentFailed paymentFailed);
+        void ProcessProductUpdate(Product product);
+        void ProcessShipmentNotification(ShipmentNotification shipmentNotification);
+        void ProcessStockItem(StockItem stockItem);
 
         SellerDashboard QueryDashboard(long sellerId);
     }

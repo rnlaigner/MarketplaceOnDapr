@@ -32,7 +32,7 @@ public class CustomerController : ControllerBase
         return StatusCode((int)HttpStatusCode.Created);
     }
 
-    [HttpGet("/{customerId}")]
+    [HttpGet("{customerId}")]
     [ProducesResponseType((int)HttpStatusCode.Found)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult<Customer>> GetCustomers(long customerId)
@@ -42,33 +42,6 @@ public class CustomerController : ControllerBase
         this.logger.LogInformation("[GetCustomer] completed for seller {0}.", customerId);
         if (customer is not null) return StatusCode((int)HttpStatusCode.Found, customer);
         return NotFound();
-    }
-
-    [HttpPost("ProcessPaymentConfirmed")]
-    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-    public void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
-    {
-        this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentConfirmed.customer.CustomerId);
-        this.customerService.ProcessPaymentConfirmed(paymentConfirmed);
-        this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentConfirmed.customer.CustomerId);
-    }
-
-    [HttpPost("ProcessPaymentFailed")]
-    [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
-    public void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
-    {
-        this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentFailed.customer.CustomerId);
-        this.customerService.ProcessPaymentFailed(paymentFailed);
-        this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentFailed.customer.CustomerId);
-    }
-
-    [HttpPost("ProcessDeliveryNotification")]
-    [Topic(PUBSUB_NAME, nameof(DeliveryNotification))]
-    public void ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
-    {
-        this.logger.LogInformation("[ProcessDeliveryNotification] received for customer {0}", deliveryNotification.customerId);
-        this.customerService.ProcessDeliveryNotification(deliveryNotification);
-        this.logger.LogInformation("[ProcessDeliveryNotification] completed for customer {0}.", deliveryNotification.customerId);
     }
 
 }

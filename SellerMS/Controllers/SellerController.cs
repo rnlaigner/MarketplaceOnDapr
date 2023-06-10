@@ -4,63 +4,83 @@ using Common.Events;
 using Microsoft.AspNetCore.Mvc;
 using SellerMS.DTO;
 using SellerMS.Services;
+using SellerMS.Repositories;
 
 namespace SellerMS.Controllers;
 
 [ApiController]
-[Route("[controller]")]
 public class SellerController : ControllerBase
 {
+    private readonly ISellerRepository sellerRepository;
     private readonly ISellerService sellerService;
     private readonly ILogger<SellerController> logger;
 
-    public SellerController(ISellerService sellerService, ILogger<SellerController> logger)
+    public SellerController(ISellerRepository sellerRepository, ISellerService sellerService, ILogger<SellerController> logger)
     {
+        this.sellerRepository = sellerRepository;
         this.sellerService = sellerService;
         this.logger = logger;
     }
 
     [HttpPost]
+    [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public IActionResult AddSeller([FromBody] Seller seller)
+    public ActionResult AddSeller([FromBody] Seller seller)
     {
-        this.logger.LogInformation("[AddCustomer] received for seller {0}", seller.id);
-        this.sellerService.AddSeller(seller);
-        this.logger.LogInformation("[AddCustomer] completed for seller {0}.", seller.id);
+        this.logger.LogInformation("[AddSeller] received for seller {0}", seller.id);
+        this.sellerRepository.Insert(new()
+        {
+            id = seller.id,
+            name = seller.name,
+            company_name = seller.company_name,
+            email = seller.email,
+            phone = seller.phone,
+            mobile_phone = seller.mobile_phone,
+            cpf = seller.cpf,
+            cnpj = seller.cnpj,
+            address = seller.address,
+            complement = seller.complement,
+            city = seller.city,
+            state = seller.state,
+            zip_code = seller.zip_code,
+        });
+        this.logger.LogInformation("[AddSeller] completed for seller {0}.", seller.id);
         return StatusCode((int)HttpStatusCode.Created);
     }
 
-    [HttpGet(Name = "GetSeller")]
-    [ProducesResponseType((int)HttpStatusCode.Found)]
+    [HttpGet]
+    [Route("/{sellerId}")]
+    [ProducesResponseType(typeof(Seller),(int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Seller> GetSeller([FromBody] long id)
+    public ActionResult<Seller> GetSeller([FromBody] long sellerId)
     {
-        this.logger.LogInformation("[GetSeller] received for seller {0}", id);
-        var seller = this.sellerService.GetSeller(id);
-        this.logger.LogInformation("[GetSeller] completed for seller {0}.", id);
-        if(seller is not null) return StatusCode((int)HttpStatusCode.Found, seller);
+        this.logger.LogInformation("[GetSeller] received for seller {0}", sellerId);
+        var seller = this.sellerRepository.Get(sellerId);
+        this.logger.LogInformation("[GetSeller] completed for seller {0}.", sellerId);
+        if(seller is not null) return Ok(new Seller()
+        {
+            id = seller.id,
+            name = seller.name,
+            company_name = seller.company_name,
+            email = seller.email,
+            phone = seller.phone,
+            mobile_phone = seller.mobile_phone,
+            cpf = seller.cpf,
+            cnpj = seller.cnpj,
+            address = seller.address,
+            complement = seller.complement,
+            city = seller.city,
+            state = seller.state,
+            zip_code = seller.zip_code,
+        });
         return NotFound();
     }
 
     [HttpGet]
     [Route("/dashboard/{sellerId}")]
+    [ProducesResponseType(typeof(SellerDashboard),(int)HttpStatusCode.OK)]
     public ActionResult<SellerDashboard> GetDashboard(long sellerId)
     {
-        // https://stackoverflow.com/questions/12636613/how-to-calculate-moving-average-without-keeping-the-count-and-data-total
-        // total overall in sales, revenue, number of orders, average order value, average revenue per order,
-        // top selling products (total number and revenue) and categories.
-        // overview recent orders. order date, payment info, shipping status, customer name
-        // inventory levels,
-        // open shipments. calculate how late they are.
-        // total number of shipments, avg shipment value per order, avg individual item shipment per order, average mean time to complete order
-
-        // what is the dynamic? seller updates are always preceding this view?
-        // instead of events, make sense to have aggregate all portions of the data here just as found in vldb
-
-        // compression
-        // https://stackoverflow.com/questions/11725078/restful-api-handling-large-amounts-of-data
-        // chunk on header
-        // https://medium.com/@michalbogacz/streaming-large-data-sets-f86a53e43472
         var dash = this.sellerService.QueryDashboard(sellerId);
         return Ok(dash);
     }

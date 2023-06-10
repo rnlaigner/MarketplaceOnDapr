@@ -21,7 +21,7 @@ namespace StockMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(@"Host=localhost;Port=5432;Database=stock;Username=postgres;Password=password")
-                .AddInterceptors(new TransactionInterceptor()) // even with FOR UPDATE, serializable is important for idempotency? or not?
+                .AddInterceptors(new TransactionInterceptor())
                 .UseLoggerFactory(
                     LoggerFactory.Create(
                         b => b

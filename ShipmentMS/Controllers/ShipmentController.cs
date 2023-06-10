@@ -26,7 +26,8 @@ public class ShipmentController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpGet("/{orderId}")]
+    [HttpGet]
+    [Route("/{orderId}")]
     [ProducesResponseType(typeof(Shipment), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public ActionResult<Shipment> GetShipment(long orderId)
@@ -44,18 +45,24 @@ public class ShipmentController : ControllerBase
     }
 
     [HttpPost("ProcessShipment")]
-    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed), "poisonMessages", false)]
-    public async Task ProcessShipment([FromBody] PaymentConfirmed paymentRequest)
+    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
+    public async Task<ActionResult> ProcessShipment([FromBody] PaymentConfirmed paymentRequest)
     {
         this.logger.LogInformation("[ProcessShipment] received for order id {0}", paymentRequest.orderId);
         await this.shipmentService.ProcessShipment(paymentRequest);
         this.logger.LogInformation("[ProcessShipment] succeeded for order id {0}", paymentRequest.orderId);
+        return Ok();
     }
 
-    [HttpPost("UpdateShipment")]
-    public void UpdateShipment([FromBody] long instanceId)
+    [HttpPatch("UpdateShipment")]
+    [Route("/updateShipment")]
+    [ProducesResponseType(typeof(Shipment), (int)HttpStatusCode.Accepted)]
+    public async Task<ActionResult> UpdateShipment()
     {
-        this.shipmentService.UpdateShipment();
+        this.logger.LogInformation("[UpdateShipment] received.");
+        await this.shipmentService.UpdateShipment();
+        this.logger.LogInformation("[UpdateShipment] completed.");
+        return Accepted();
     }
 
 }

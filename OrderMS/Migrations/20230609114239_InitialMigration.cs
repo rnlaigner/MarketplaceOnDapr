@@ -48,11 +48,11 @@ namespace OrderMS.Migrations
                     count_items = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    total_amount = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
-                    total_freight = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
-                    total_incentive = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
-                    total_invoice = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
-                    total_items = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false)
+                    total_amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    total_freight = table.Column<decimal>(type: "numeric", nullable: false),
+                    total_incentive = table.Column<decimal>(type: "numeric", nullable: false),
+                    total_invoice = table.Column<decimal>(type: "numeric", nullable: false),
+                    total_items = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -89,12 +89,12 @@ namespace OrderMS.Migrations
                     product_id = table.Column<long>(type: "bigint", nullable: false),
                     product_name = table.Column<string>(type: "text", nullable: false),
                     seller_id = table.Column<long>(type: "bigint", nullable: false),
-                    unit_price = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
+                    unit_price = table.Column<decimal>(type: "numeric", nullable: false),
                     shipping_limit_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    freight_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
+                    freight_value = table.Column<decimal>(type: "numeric", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),
-                    total_items = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
-                    total_amount = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false)
+                    total_items = table.Column<decimal>(type: "numeric", nullable: false),
+                    total_amount = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {

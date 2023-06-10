@@ -29,20 +29,12 @@ public class OrderController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpPost("/checkout")]
-    [ProducesResponseType(typeof(InvoiceIssued), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<InvoiceIssued>> ProcessCheckout([FromBody] StockConfirmed checkout)
-    {
-        InvoiceIssued invoice = await this.orderService.ProcessCheckoutAsync(checkout);
-        return Ok(invoice);
-    }
-
-    [HttpGet("/")]
+    [HttpGet("/{customerId}")]
     [ProducesResponseType(typeof(IEnumerable<Order>), (int)HttpStatusCode.OK)]
-    public ActionResult<IEnumerable<Order>> GetAll()
+    public ActionResult<IEnumerable<Order>> GetByCustomerId(long customerId)
     {
         // TODO parse http to get filters
-        return Ok(this.orderRepository.GetAll());
+        return Ok(this.orderRepository.GetByCustomerId(customerId));
     }
 
 }

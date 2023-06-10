@@ -12,7 +12,7 @@ using OrderMS.Infra;
 namespace OrderMS.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20230608104022_InitialMigration")]
+    [Migration("20230609114239_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -80,8 +80,7 @@ namespace OrderMS.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<decimal>("freight_value")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<long>("product_id")
                         .HasColumnType("bigint");
@@ -100,16 +99,13 @@ namespace OrderMS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("total_amount")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("total_items")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("unit_price")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.HasKey("order_id", "order_item_id");
 
@@ -158,24 +154,19 @@ namespace OrderMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("total_amount")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("total_freight")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("total_incentive")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("total_invoice")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("total_items")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");

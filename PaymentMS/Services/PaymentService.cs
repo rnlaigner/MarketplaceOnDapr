@@ -93,7 +93,7 @@ namespace PaymentMS.Services
                         payment_sequential = seq,
                         card_number = paymentRequest.customer.CardNumber,
                         card_holder_name = paymentRequest.customer.CardHolderName,
-                        card_expiration = DateTime.Parse(paymentRequest.customer.CardExpiration),
+                        card_expiration = DateTime.MaxValue, // FIXME DateTime.Parse(paymentRequest.customer.CardExpiration),
                         card_brand = paymentRequest.customer.CardBrand
                     };
 

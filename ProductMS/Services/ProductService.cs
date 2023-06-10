@@ -76,7 +76,7 @@ namespace ProductMS.Services
 
                     this.dbContext.SaveChanges();
 
-                    if (config.ProductStreaming) // TODO should we handle the commit exception with cancellation token?
+                    if (config.ProductStreaming)
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), Utils.AsProduct(input));
                 
                     txCtx.Commit();

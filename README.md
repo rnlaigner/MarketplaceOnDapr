@@ -73,6 +73,23 @@ cmhmod 775 deploy_macos.sh
 
 
 ## Useful links
+
+### Killing dapr process
+https://stackoverflow.com/questions/11583562/how-to-kill-a-process-running-on-particular-port-in-linux
+
+### Health checks
+could enable dapr health check instead of aspnet, but since it is preview feature, better keep like this
+https://docs.dapr.io/developing-applications/building-blocks/observability/app-health/
 https://www.ibm.com/garage/method/practices/manage/health-check-apis/
 https://learn.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-7.0#set-environment-on-the-command-line
 https://laurentkempe.com/2023/02/27/debugging-dapr-applications-with-rider-or-visual-studio-a-better-way/
+
+#### Dead letter queue
+https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-deadletter/
+
+### Metrics
+https://docs.dapr.io/operations/monitoring/metrics/metrics-overview/
+https://docs.dapr.io/operations/monitoring/metrics/prometheus/
+
+### Docker
+https://stackoverflow.com/questions/40513545/how-to-prevent-docker-from-starting-a-container-automatically-on-system-startup

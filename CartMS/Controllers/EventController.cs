@@ -106,8 +106,9 @@ public class EventController : ControllerBase
             this.productRepository.Delete(product_);
         }
 
+
+        this.logger.LogInformation("[ProcessProductStream] completed for product ID {0}", product.product_id);
         return Ok();
-        // this.logger.LogInformation("[UpdatePrice] completed for instanceId {0}", priceUpdate.instanceId);
     }
 
     /*
@@ -119,20 +120,22 @@ public class EventController : ControllerBase
      */
     [HttpPost("ProcessPaymentConfirmed")]
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-    public void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
+    public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
     {
         this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentConfirmed.customer.CustomerId);
         this.cartService.ProcessPaymentConfirmed(paymentConfirmed);
         this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentConfirmed.customer.CustomerId);
+        return Ok();
     }
 
     [HttpPost("ProcessPaymentFailed")]
     [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
-    public void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
+    public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
     {
         this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentFailed.customer.CustomerId);
         this.cartService.ProcessPaymentFailed(paymentFailed);
         this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentFailed.customer.CustomerId);
+        return Ok();
     }
 
 }

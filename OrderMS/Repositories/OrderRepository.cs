@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
 using OrderMS.Common.Repositories;
@@ -28,11 +29,14 @@ namespace OrderMS.Repositories
             return this.dbContext.Orders;
         }
 
-        public OrderModel GetOrderForUpdate(long orderId)
+        public IEnumerable<OrderModel> GetByCustomerId(long customerId)
         {
-            return this.dbContext.Orders
-                .FromSqlRaw(String.Format("SELECT * from orders where id = {0} FOR UPDATE", orderId))
-                .FirstAsync().Result;
+            return this.dbContext.Orders.Where(o => o.customer_id == customerId);
+        }
+
+        public OrderModel? GetOrder(long orderId)
+        {
+            return this.dbContext.Orders.Find(orderId);
         }
     }
 

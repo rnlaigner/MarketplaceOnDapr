@@ -19,7 +19,8 @@ namespace PaymentMS.Services
         {
             await Task.Delay(config.Delay);
 
-            // TODO perform http request to driver
+            // TODO perform http request to driver. but driver coould be overloaded/overhead. better to have a dumb
+            // server to provide sucess/fail given a percentage. the dumb server must provide idempotency.
             return new PaymentIntent()
             {
                   Id = Guid.NewGuid().ToString(),

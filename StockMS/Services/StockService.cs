@@ -37,7 +37,7 @@ namespace StockMS.Services
 
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var stockItems = stockRepository.GetItemsForUpdate(itemsToDelete);
+                var stockItems = stockRepository.GetItems(itemsToDelete);
                 if (stockItems.Count() == 0)
                 {
                     this.logger.LogWarning("Attempt to delete products ({0}) has failed in Stock DB.",itemsToDelete);
@@ -65,7 +65,7 @@ namespace StockMS.Services
             if (product.active) return;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var stockItem = stockRepository.GetItemForUpdate(product.seller_id, product.product_id);
+                var stockItem = stockRepository.GetItem(product.seller_id, product.product_id);
                 if(stockItem is null)
                 {
                     this.logger.LogWarning("Attempt to delete product that does not exists in Stock DB {0}", product.product_id);
@@ -86,7 +86,8 @@ namespace StockMS.Services
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
 
-                var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(p => (p.seller_id, p.product_id), c => c);
+                var items = stockRepository.GetItems(ids);
+                var stockItems = items.ToDictionary(p => (p.seller_id, p.product_id), c => c);
 
                 foreach (var item in payment.items)
                 {
@@ -95,7 +96,7 @@ namespace StockMS.Services
                     stockItem.updated_at = DateTime.Now;
                 }
 
-                this.dbContext.UpdateRange(stockItems);
+                this.dbContext.UpdateRange(items);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
             }
@@ -106,8 +107,8 @@ namespace StockMS.Services
             var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-
-                var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(p => (p.seller_id, p.product_id), c => c);
+                var items = stockRepository.GetItems(ids);
+                var stockItems = items.ToDictionary(p => (p.seller_id, p.product_id), c => c);
 
                 foreach (var item in payment.items)
                 {
@@ -117,7 +118,7 @@ namespace StockMS.Services
                     stockItem.updated_at = DateTime.Now;
                 }
 
-                this.dbContext.UpdateRange(stockItems);
+                this.dbContext.UpdateRange(items);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
             }
@@ -127,98 +128,96 @@ namespace StockMS.Services
         public async Task ReserveStockAsync(ReserveStock checkout)
         {
             // https://stackoverflow.com/questions/31273933/setting-transaction-isolation-level-in-net-entity-framework-for-sql-server
-            //try
-            //{
-                if(checkout.items is null)
+          
+            if(checkout.items is null)
+            {
+                logger.LogWarning("[ReserveStockAsync] ReserveStock event items is NULL!");
+                return;
+            }
+
+            var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
+
+            if(checkout.items.Count() == 0)
+            {
+                logger.LogWarning("[ReserveStockAsync] ReserveStock event has no items to reserve!");
+                return;
+            }
+
+            // could also do this:
+            /*
+            var conn = stockDbContext.Database.GetDbConnection();
+            var dbTransaction = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+            */
+
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                IEnumerable<StockItemModel> items = stockRepository.GetItems(ids);
+
+                var stockItems = items.ToDictionary(i => (i.seller_id, i.product_id), v=>v);
+
+                if (stockItems.Count() == 0)
                 {
-                    logger.LogWarning("ReserveStock items is NULL!");
+                    logger.LogWarning("[ReserveStockAsync] ReserveStock has locked no items!");
                     return;
                 }
 
-                var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
+                List<ProductStatus> unavailable = new();
+                List<CartItem> itemsReserved = new();
 
-                if(checkout.items.Count() == 0)
-                {
-                    logger.LogWarning("ReserveStock event has no items to reserve!");
-                    return;
-                }
-
-                // could also do this:
-                /*
-                var conn = stockDbContext.Database.GetDbConnection();
-                var dbTransaction = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
-                */
-
-                using (var txCtx = dbContext.Database.BeginTransaction())
+                foreach (var item in checkout.items)
                 {
 
-                    var stockItems = stockRepository.GetItemsForUpdate(ids).ToDictionary(c => c.product_id, c => c);
-
-                    if(stockItems.Count() == 0)
+                    if (!stockItems.ContainsKey((item.SellerId,item.ProductId)) || !stockItems[(item.SellerId, item.ProductId)].active)
                     {
-                        logger.LogWarning("ReserveStock has locked no items!");
-                        return;
+                        unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
+                        continue;
                     }
 
-                    List<ProductStatus> unavailable = new();
-                    List<CartItem> itemsReserved = new();
+                    var stockItem = stockItems[(item.SellerId, item.ProductId)];
 
-                    foreach (var item in checkout.items)
+                    // blindly increase or check here too?
+                    // dbms will also check due to the constraint
+                    if (stockItem.qty_available < (stockItem.qty_reserved + item.Quantity))
                     {
-
-                        if (!stockItems.ContainsKey(item.ProductId) || !stockItems[item.ProductId].active)
-                        {
-                            unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
-                            continue;
-                        }
-
-                        var stockItem = stockItems[item.ProductId];
-
-                        // blindly increase or check here too?
-                        // dbms will also check due to the constraint
-                        if (stockItem.qty_available >= (stockItem.qty_reserved + item.Quantity))
-                        {
-                            unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
-                            continue;
-                        }
+                        unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
+                        continue;
+                    }
                             
-                        // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
-                        stockItem.qty_reserved += item.Quantity;
-                        stockItem.updated_at = DateTime.Now;
-                        itemsReserved.Add(item);
-                    }
+                    // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
+                    stockItem.qty_reserved += item.Quantity;
+                    stockItem.updated_at = DateTime.Now;
+                    itemsReserved.Add(item);
+                }
 
-                    if(itemsReserved.Count() > 0)
+                if(itemsReserved.Count() > 0)
+                {
+                    this.dbContext.UpdateRange(items);
+                    int entriesWritten = this.dbContext.SaveChanges();
+                    logger.LogInformation("[ReserveStockAsync] Entries written: {0}", entriesWritten);
+                    if (config.StockStreaming)
                     {
-                        this.dbContext.UpdateRange(stockItems);
-                        this.dbContext.SaveChanges();
                         // send to order
                         StockConfirmed checkoutRequest = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
                             itemsReserved,
                             checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
                     }
+                }
 
-                    if(unavailable.Count() > 0)
+                if (unavailable.Count() > 0)
+                {
+                    if (config.StockStreaming)
                     {
                         // notify cart and customer
                         ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
                             unavailable, checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
                     }
-
-                    txCtx.Commit();
-                    
                 }
 
-            //}
-            //catch (Exception e)
-            //{
-            //    // https://learn.microsoft.com/en-us/ef/core/saving/concurrency?tabs=data-annotations
-            //    bool conflict = e is DbUpdateConcurrencyException;
-            //    bool update = e is DbUpdateException;
-            //    this.logger.LogError("Exception (conflict: {0} | update {1}) caught in [ReserveStock] method: {2}", conflict, update, e.Message);
-            //}
+                txCtx.Commit();
+                    
+            }
         }
 
         public async Task CreateStockItem(StockItem stockItem)
@@ -250,7 +249,7 @@ namespace StockMS.Services
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
 
-                var item = stockRepository.GetItemForUpdate(increaseStock.seller_id, increaseStock.product_id);
+                var item = dbContext.StockItems.Find(increaseStock.seller_id, increaseStock.product_id);
                 if (item is null)
                 {
                     this.logger.LogWarning("Attempt to lock item {0},{1} has not succeeded", increaseStock.seller_id, increaseStock.product_id);

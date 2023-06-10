@@ -57,7 +57,11 @@ namespace OrderMS.Handlers
         {
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                OrderModel order = orderRepository.GetOrderForUpdate(shipmentNotification.orderId);
+                OrderModel? order = orderRepository.GetOrder(shipmentNotification.orderId);
+                if (order is null)
+                {
+                    throw new Exception("Cannot find order ID " + shipmentNotification.orderId);
+                }
 
                 DateTime now = DateTime.Now;
 
@@ -92,9 +96,8 @@ namespace OrderMS.Handlers
          * Require idempotent computation, otherwise orders will get duplicated
          * (although with different IDs due to PostgreSQL ID generation)
          */
-        public async Task<InvoiceIssued> ProcessCheckoutAsync(StockConfirmed checkout)
+        public async Task ProcessCheckout(StockConfirmed checkout)
 		{
-            InvoiceIssued invoice;
             // multi-key transaction. to ensure atomicity
 
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
@@ -150,29 +153,25 @@ namespace OrderMS.Handlers
                 // 50-20220928-001
                 // it is inefficient to get count(*) on customer orders. better to have a table like tpc-c does for next_order_id
 
-                var customer_order = this.dbContext.CustomerOrders
-                                    .FromSqlRaw(String.Format("SELECT * from customer_orders where customer_id = {0} FOR UPDATE", checkout.customerCheckout.CustomerId))
-                                    // .Select(q=>q.next_order_id)
-                                    .FirstOrDefault();
-
-                if (customer_order is null)
+                var customerOrder = this.dbContext.CustomerOrders.Find(checkout.customerCheckout.CustomerId);
+                if (customerOrder is null)
                 {
-                    customer_order = new()
+                    customerOrder = new()
                     {
                         customer_id = checkout.customerCheckout.CustomerId,
                         next_order_id = 1
                     };
-                    customer_order = this.dbContext.CustomerOrders.Add(customer_order).Entity;
+                    customerOrder = this.dbContext.CustomerOrders.Add(customerOrder).Entity;
                 }
                 else
                 {
-                    customer_order.next_order_id += 1;
-                    this.dbContext.CustomerOrders.Update(customer_order);
+                    customerOrder.next_order_id += 1;
+                    this.dbContext.CustomerOrders.Update(customerOrder);
                 }
 
                 StringBuilder stringBuilder = new StringBuilder().Append(checkout.customerCheckout.CustomerId)
                                                                  .Append("-").Append(now.ToString("d", enUS))
-                                                                 .Append("-").Append(customer_order.next_order_id);
+                                                                 .Append("-").Append(customerOrder.next_order_id);
 
                 OrderModel newOrder = new()
                 {
@@ -237,17 +236,16 @@ namespace OrderMS.Handlers
 
                 this.dbContext.SaveChanges();
 
-                invoice = new InvoiceIssued(checkout.customerCheckout, orderPersisted.id,  newOrder.invoice_number,
-                    now, newOrder.total_invoice, orderItems, checkout.instanceId);
-
                 // publish
-                if(config.OrderStreaming)
+                if (config.OrderStreaming)
+                {
+                    InvoiceIssued invoice = new InvoiceIssued(checkout.customerCheckout, orderPersisted.id, newOrder.invoice_number,
+                    now, newOrder.total_invoice, orderItems, checkout.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(InvoiceIssued), invoice);
+                }
 
                 txCtx.Commit();
             }
-
-            return invoice;
 		}
 
         private OrderItem AsOrderItem(OrderItemModel orderItem, decimal[] vouchers)
@@ -290,7 +288,11 @@ namespace OrderMS.Handlers
             var now = DateTime.Now;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                OrderModel order = orderRepository.GetOrderForUpdate(paymentConfirmed.orderId);
+                OrderModel? order = orderRepository.GetOrder(paymentConfirmed.orderId);
+                if(order is null)
+                {
+                    throw new Exception("Cannot find order ID "+ paymentConfirmed.orderId);
+                }
                 order.status = OrderStatus.PAYMENT_PROCESSED;
                 order.payment_date = paymentConfirmed.date;
                 order.updated_at = now;
@@ -314,7 +316,12 @@ namespace OrderMS.Handlers
             var now = DateTime.Now;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                OrderModel order = orderRepository.GetOrderForUpdate(paymentFailed.orderId);
+                OrderModel? order = orderRepository.GetOrder(paymentFailed.orderId);
+                if (order is null)
+                {
+                    throw new Exception("Cannot find order ID " + paymentFailed.orderId);
+                }
+
                 order.status = OrderStatus.PAYMENT_FAILED;
                 order.updated_at = now;
 

@@ -4,7 +4,6 @@ namespace StockMS.Repositories
 {
 	public interface IStockRepository
 	{
-        StockItemModel? GetItemForUpdate(long sellerId, long productId);
 
         StockItemModel? GetItem(long sellerId, long productId);
 
@@ -12,7 +11,7 @@ namespace StockMS.Repositories
 
         IEnumerable<StockItemModel> GetAll();
 
-        IEnumerable<StockItemModel> GetItemsForUpdate(List<(long SellerId, long ProductId)> ids);
+        IEnumerable<StockItemModel> GetItems(List<(long SellerId, long ProductId)> ids);
     }
 }
 

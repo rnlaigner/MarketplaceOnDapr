@@ -94,7 +94,8 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpPost("/")]
+    [HttpPost]
+    [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public async Task<ActionResult> AddProduct([FromBody] Product product)
@@ -107,7 +108,8 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpPut("/")]
+    [HttpPut]
+    [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public async Task<ActionResult> UpdateProduct([FromBody] Product product)

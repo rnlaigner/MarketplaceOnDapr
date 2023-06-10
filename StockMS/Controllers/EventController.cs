@@ -13,43 +13,49 @@ namespace StockMS.Controllers
 	public class EventController : ControllerBase
 	{
         private const string PUBSUB_NAME = "pubsub";
-
-        private readonly DaprClient daprClient;
-
         private readonly ILogger<EventController> logger;
         private readonly IStockService stockService;
 
-        public EventController(DaprClient daprClient,
-                                IStockService stockService,
-                                
-                                ILogger<EventController> logger)
+        public EventController(IStockService stockService,
+                               ILogger<EventController> logger)
         {
-            this.daprClient = daprClient;
-            this.logger = logger;
             this.stockService = stockService;
+            this.logger = logger;
         }
 
         [HttpPost("ReserveStock")]
         [Topic(PUBSUB_NAME, nameof(ReserveStock))]
-        public async Task ReserveStock([FromBody] ReserveStock checkout)
+        public async Task<ActionResult> ProcessReserveStock([FromBody] ReserveStock checkout)
         {
             this.logger.LogInformation("[ReserveStock] received for instanceId {0}", checkout.instanceId);
             await this.stockService.ReserveStockAsync(checkout);
             this.logger.LogInformation("[ReserveStock] completed for instanceId {0}", checkout.instanceId);
+            return Ok();
         }
 
         [HttpPost("ProcessPaymentConfirmed")]
-        [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-        public void ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
+        [Topic(PUBSUB_NAME, nameof(PaymentConfirmed), DeadLetterTopic ="failedConfirmReservation")]
+        public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
         {
             this.stockService.ConfirmReservation(paymentConfirmed);
+            return Ok();
+        }
+
+        [HttpPost("failedConfirmReservation")]
+        [Topic(PUBSUB_NAME, "failedConfirmReservation")]
+        public ActionResult ProcessFailedPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
+        {
+            // this.stockService.ConfirmReservation(paymentConfirmed);
+            logger.LogWarning("Confirming that the message has been forwarded to the dead letter topic.");
+            return Ok();
         }
 
         [HttpPost("ProcessPaymentFailed")]
-        [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
-        public void ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
+        [Topic(PUBSUB_NAME, nameof(PaymentFailed), DeadLetterTopic = "failedCancelReservation")]
+        public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
         {
             this.stockService.CancelReservation(paymentFailed);
+            return Ok();
         }
 
         [HttpPost("ProductStreaming")]
@@ -58,7 +64,6 @@ namespace StockMS.Controllers
         {
             this.stockService.ProcessProductUpdate(product);
             return Ok();
-            // this.logger.LogInformation("[UpdatePrice] completed for instanceId {0}", priceUpdate.instanceId);
         }
 
         [HttpPost("BulkProductStreaming")]

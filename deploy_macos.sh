@@ -31,7 +31,7 @@ if `echo "$*" | grep -q cart`; then
     fi
 fi
 
-if [ `echo "$*" | grep -q order` ]; then
+if `echo "$*" | grep -q order`; then
     o=`dapr list | grep -c order`
     if [ $o = $var1 ]
     then
