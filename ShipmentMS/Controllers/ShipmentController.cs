@@ -27,7 +27,7 @@ public class ShipmentController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/{orderId}")]
+    [Route("{orderId}")]
     [ProducesResponseType(typeof(Shipment), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public ActionResult<Shipment> GetShipment(long orderId)

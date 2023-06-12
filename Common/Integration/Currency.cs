@@ -1,5 +1,5 @@
 ﻿using System;
-namespace PaymentMS.Integration
+namespace Common.Integration
 {
 	public enum Currency
 	{

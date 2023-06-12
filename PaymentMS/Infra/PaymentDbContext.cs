@@ -37,11 +37,15 @@ namespace PaymentMS.Infra
         {
 
             modelBuilder.Entity<OrderPaymentModel>().ToTable(t => t.HasCheckConstraint(
-                "CK_OrderPayment_PaymentValue", "payment_value >= 0"
+                "CK_OrderPayment_Value", "value >= 0"
                 ));
 
             modelBuilder.Entity<OrderPaymentModel>()
-                       .Property(e => e.payment_type)
+                       .Property(e => e.type)
+                       .HasConversion<string>();
+
+            modelBuilder.Entity<OrderPaymentModel>()
+                       .Property(e => e.status)
                        .HasConversion<string>();
 
             modelBuilder.Entity<OrderPaymentModel>()

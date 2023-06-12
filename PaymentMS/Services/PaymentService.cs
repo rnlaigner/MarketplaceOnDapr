@@ -5,9 +5,11 @@ using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PaymentMS.Infra;
-using PaymentMS.Integration;
+using Common.Integration;
 using PaymentMS.Models;
 using PaymentMS.Repositories;
+using System.Globalization;
+using System.Buffers.Text;
 
 namespace PaymentMS.Services
 {
@@ -38,15 +40,20 @@ namespace PaymentMS.Services
          */
         public async Task ProcessPayment(InvoiceIssued paymentRequest)
         {
+
+            this.logger.LogInformation("[ProcessPayment] started for order ID {0}.", paymentRequest.orderId);
+
             /*
              * We assume the payment provider exposes an idempotency ID 
              * that guarantees exactly once payment processing even when 
              * a payment request is submitted more than once to them
              */
             var now = DateTime.Now;
-            var cardExpParsed = DateTime.Parse(paymentRequest.customer.CardExpiration);
 
-            PaymentIntent intent = await externalProvider.Create(new PaymentIntentCreateOptions()
+            // https://stackoverflow.com/questions/49727809
+            var cardExpParsed = DateTime.ParseExact(paymentRequest.customer.CardExpiration, "MMyy", CultureInfo.InvariantCulture);
+
+            var options = new PaymentIntentCreateOptions()
             {
                 Amount = paymentRequest.totalInvoice,
                 Customer = paymentRequest.customer.CustomerId.ToString(),
@@ -58,20 +65,21 @@ namespace PaymentMS.Services
                     ExpMonth = cardExpParsed.Month.ToString(),
                     ExpYear = cardExpParsed.Year.ToString()
                 }
-            });
+            };
+
+            PaymentIntent? intent = await externalProvider.Create(options);
+
+            if(intent is null)
+            {
+                throw new ApplicationException("[ProcessPayment] It was not possible to retrieve payment intent from external provider");
+            }
 
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
 
-                if (!intent.Status.Equals("succeeded"))
-                {
-                    var res = new PaymentFailed(intent.Status, paymentRequest.customer, paymentRequest.orderId,
-                        paymentRequest.items, paymentRequest.totalInvoice, paymentRequest.instanceId);
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), res);
-                    this.logger.LogInformation("[ProcessPayment] failed: {0}.", paymentRequest.instanceId);
-                    return;
-                }
-
+                // Based on: https://stripe.com/docs/payments/payment-intents/verifying-status
+                PaymentStatus status = intent.status.Equals("succeeded") ? PaymentStatus.succeeded : PaymentStatus.requires_payment_method;
+                
                 int seq = 1;
 
                 var cc = paymentRequest.customer.PaymentType.Equals(PaymentType.CREDIT_CARD.ToString());
@@ -81,10 +89,12 @@ namespace PaymentMS.Services
                     var cardPaymentLine = new OrderPaymentModel()
                     {
                         order_id = paymentRequest.orderId,
-                        payment_sequential = seq,
-                        payment_type = cc ? PaymentType.CREDIT_CARD : PaymentType.DEBIT_CARD,
-                        payment_installments = paymentRequest.customer.Installments,
-                        payment_value = paymentRequest.totalInvoice
+                        sequential = seq,
+                        type = cc ? PaymentType.CREDIT_CARD : PaymentType.DEBIT_CARD,
+                        installments = paymentRequest.customer.Installments,
+                        value = paymentRequest.totalInvoice,
+                        status = status,
+                        created_at = now
                     };
 
                     // create an entity for credit card payment details with FK to order payment
@@ -111,29 +121,35 @@ namespace PaymentMS.Services
                     paymentLines.Add(new OrderPaymentModel()
                     {
                         order_id = paymentRequest.orderId,
-                        payment_sequential = seq,
-                        payment_type = PaymentType.BOLETO,
-                        payment_installments = 1,
-                        payment_value = paymentRequest.totalInvoice,
-                        created_at = now
+                        sequential = seq,
+                        type = PaymentType.BOLETO,
+                        installments = 1,
+                        value = paymentRequest.totalInvoice,
+                        created_at = now,
+                        status = status
                     });
                     seq++;
                 }
 
-                // then one line for each voucher
-                foreach(var item in paymentRequest.items)
+                // vouchers apply only if payment is succeded
+                if (intent.status.Equals("succeeded"))
                 {
-                    foreach(var voucher in item.vouchers)
+                    // then one line for each voucher
+                    foreach (var item in paymentRequest.items)
                     {
-                        paymentLines.Add(new OrderPaymentModel()
+                        foreach (var voucher in item.vouchers)
                         {
-                            order_id = paymentRequest.orderId,
-                            payment_sequential = seq,
-                            payment_type = PaymentType.VOUCHER,
-                            payment_installments = 1,
-                            payment_value = voucher
-                        });
-                        seq++;
+                            paymentLines.Add(new OrderPaymentModel()
+                            {
+                                order_id = paymentRequest.orderId,
+                                sequential = seq,
+                                type = PaymentType.VOUCHER,
+                                installments = 1,
+                                value = voucher,
+                                created_at = now
+                            });
+                            seq++;
+                        }
                     }
                 }
 
@@ -143,11 +159,24 @@ namespace PaymentMS.Services
 
                 if (config.PaymentStreaming)
                 {
-                    var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId,
-                        paymentRequest.totalInvoice, paymentRequest.items, now, paymentRequest.instanceId);
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
+
+                    if (intent.status.Equals("succeeded"))
+                    {
+                        this.logger.LogInformation("[ProcessPayment] publishing payment confirmed event for order ID: {0}.", paymentRequest.orderId);
+                        var paymentRes = new PaymentConfirmed(paymentRequest.customer, paymentRequest.orderId,
+                            paymentRequest.totalInvoice, paymentRequest.items, now, paymentRequest.instanceId);
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
+                    }
+                    else
+                    {
+                        this.logger.LogInformation("[ProcessPayment] publishing payment failed event for order ID: {0}.", paymentRequest.orderId);
+                        var res = new PaymentFailed(intent.status, paymentRequest.customer, paymentRequest.orderId,
+                               paymentRequest.items, paymentRequest.totalInvoice, paymentRequest.instanceId);
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentFailed), res);
+                        this.logger.LogInformation("[ProcessPayment] failed for order ID: {0}.", paymentRequest.orderId);
+                    }
                 }
-                this.logger.LogInformation("[ProcessPayment] confirmed: {0}.", paymentRequest.instanceId);
+                this.logger.LogInformation("[ProcessPayment] confirmed for order ID {0}.", paymentRequest.orderId);
 
                 txCtx.Commit();
             

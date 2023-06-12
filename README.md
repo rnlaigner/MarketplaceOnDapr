@@ -84,12 +84,17 @@ https://www.ibm.com/garage/method/practices/manage/health-check-apis/
 https://learn.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-7.0#set-environment-on-the-command-line
 https://laurentkempe.com/2023/02/27/debugging-dapr-applications-with-rider-or-visual-studio-a-better-way/
 
+### Retry policies
+https://docs.dapr.io/operations/resiliency/policies
+
 #### Dead letter queue
 https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-deadletter/
 
 ### Metrics
 https://docs.dapr.io/operations/monitoring/metrics/metrics-overview/
 https://docs.dapr.io/operations/monitoring/metrics/prometheus/
+https://github.com/RicardoNiepel/dapr-docs/blob/master/howto/setup-monitoring-tools/observe-metrics-with-prometheus-locally.md
+https://prometheus.io/docs/prometheus/latest/getting_started/
 
 ### Docker
 https://stackoverflow.com/questions/40513545/how-to-prevent-docker-from-starting-a-container-automatically-on-system-startup

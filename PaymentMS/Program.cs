@@ -1,4 +1,5 @@
 ﻿using PaymentMS.Infra;
+using PaymentMS.Repositories;
 using PaymentMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,8 +9,10 @@ builder.Services.Configure<PaymentConfig>(configSection);
 
 builder.Services.AddDaprClient();
 
+builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddDbContext<PaymentDbContext>();
-builder.Services.AddScoped<IExternalProvider, MockExternalProvider>();
+builder.Services.AddScoped<IExternalProvider, ExternalProviderProxy>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Add services to the container.
@@ -25,7 +28,6 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

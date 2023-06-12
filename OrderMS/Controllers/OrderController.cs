@@ -29,7 +29,7 @@ public class OrderController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpGet("/{customerId}")]
+    [HttpGet("{customerId}")]
     [ProducesResponseType(typeof(IEnumerable<Order>), (int)HttpStatusCode.OK)]
     public ActionResult<IEnumerable<Order>> GetByCustomerId(long customerId)
     {

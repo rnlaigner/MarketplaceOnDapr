@@ -55,7 +55,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpGet("{customerId}")]
-    [ProducesResponseType((int)HttpStatusCode.Found)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public ActionResult<Customer> GetCustomerById(long customerId)
     {
@@ -64,7 +64,7 @@ public class CustomerController : ControllerBase
 
         this.logger.LogInformation("[GetCustomerById] completed for customer ID {0}.", customerId);
 
-        if (customer is not null) return StatusCode((int)HttpStatusCode.Found, new Customer()
+        if (customer is not null) return Ok(new Customer()
         {
             id = customer.id,
             first_name = customer.first_name,

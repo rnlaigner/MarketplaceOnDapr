@@ -15,6 +15,7 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
     <PackageReference Include="Dapr.AspNetCore" Version="1.10.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,14 +23,12 @@
     <None Remove="Infra\" />
     <None Remove="Repositories\" />
     <None Remove="Services\" />
-    <None Remove="Integration\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Infra\" />
     <Folder Include="Repositories\" />
     <Folder Include="Services\" />
-    <Folder Include="Integration\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

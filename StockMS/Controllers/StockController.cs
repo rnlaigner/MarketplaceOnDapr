@@ -62,7 +62,7 @@ public class StockController : ControllerBase
         return StatusCode((int)HttpStatusCode.InternalServerError);
     }
 
-    [HttpGet("/{itemId}")]
+    [HttpGet("{itemId}")]
     [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public ActionResult<StockItem> GetStockItem(long itemId)

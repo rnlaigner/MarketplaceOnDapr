@@ -49,10 +49,10 @@ public class SellerController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/{sellerId}")]
+    [Route("{sellerId}")]
     [ProducesResponseType(typeof(Seller),(int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Seller> GetSeller([FromBody] long sellerId)
+    public ActionResult<Seller> GetSeller(long sellerId)
     {
         this.logger.LogInformation("[GetSeller] received for seller {0}", sellerId);
         var seller = this.sellerRepository.Get(sellerId);

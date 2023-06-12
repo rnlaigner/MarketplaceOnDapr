@@ -1,30 +1,34 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Common.Entities;
+using Common.Integration;
 using Microsoft.EntityFrameworkCore;
 
 namespace PaymentMS.Models
 {
 
     [Table("order_payments")]
-    [PrimaryKey(nameof(order_id), nameof(payment_sequential))]
+    [PrimaryKey(nameof(order_id), nameof(sequential))]
     public class OrderPaymentModel
 	{
         public long order_id { get; set; }
 
         // e.g., 1 - credit card, 2 - coupon, 3 - coupon
-        public int payment_sequential { get; set; }
+        public int sequential { get; set; }
 
         // e.g., coupon, credit card
-        public PaymentType payment_type { get; set; }
+        public PaymentType type { get; set; }
 
         // number of times the credit card is charged (usually once a month)
-        public int payment_installments { get; set; }
+        public int installments { get; set; }
 
         // respective to this line (ie. coupon)
-        public decimal payment_value { get; set; }
+        public decimal value { get; set; }
 
         public DateTime created_at { get; set; }
+
+        // vouchers dont need to have this field filled
+        public PaymentStatus? status { get; set; }
 
         public OrderPaymentCardModel? orderPaymentCard { get; set; }
 

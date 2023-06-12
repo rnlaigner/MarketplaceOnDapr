@@ -16,16 +16,17 @@ namespace PaymentMS.Migrations
                 columns: table => new
                 {
                     order_id = table.Column<long>(type: "bigint", nullable: false),
-                    payment_sequential = table.Column<int>(type: "integer", nullable: false),
-                    payment_type = table.Column<string>(type: "text", nullable: false),
-                    payment_installments = table.Column<int>(type: "integer", nullable: false),
-                    payment_value = table.Column<decimal>(type: "numeric", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    sequential = table.Column<int>(type: "integer", nullable: false),
+                    type = table.Column<string>(type: "text", nullable: false),
+                    installments = table.Column<int>(type: "integer", nullable: false),
+                    value = table.Column<decimal>(type: "numeric", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    status = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_order_payments", x => new { x.order_id, x.payment_sequential });
-                    table.CheckConstraint("CK_OrderPayment_PaymentValue", "payment_value >= 0");
+                    table.PrimaryKey("PK_order_payments", x => new { x.order_id, x.sequential });
+                    table.CheckConstraint("CK_OrderPayment_Value", "value >= 0");
                 });
 
             migrationBuilder.CreateTable(
@@ -46,7 +47,7 @@ namespace PaymentMS.Migrations
                         name: "FK_order_payment_cards_order_payments_order_id_payment_sequent~",
                         columns: x => new { x.order_id, x.payment_sequential },
                         principalTable: "order_payments",
-                        principalColumns: new[] { "order_id", "payment_sequential" });
+                        principalColumns: new[] { "order_id", "sequential" });
                 });
         }
 

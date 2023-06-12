@@ -26,7 +26,7 @@ if `echo "$*" | grep -q cart`; then
         echo "cart already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5001 --app-id cart --app-protocol http --dapr-http-port 3501 -- dotnet run --project '$current_dir'/CartMS/CartMS.csproj"
+            do script "dapr run --app-port 5001 --app-id cart --app-protocol http --dapr-http-port 3501 --metrics-port 9091 -- dotnet run --project '$current_dir'/CartMS/CartMS.csproj"
         end tell'
     fi
 fi
@@ -62,7 +62,7 @@ if `echo "$*" | grep -q payment`; then
         echo "payment already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5004 --app-id payment --app-protocol http --dapr-http-port 3504 -- dotnet run --project '$current_dir'/PaymentMS/PaymentMS.csproj"
+            do script "dapr run --app-port 5004 --app-id payment --app-protocol http --dapr-http-port 3504 --metrics-port 9094 -- dotnet run --project '$current_dir'/PaymentMS/PaymentMS.csproj"
         end tell'
     fi
 fi

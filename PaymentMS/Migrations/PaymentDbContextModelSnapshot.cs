@@ -55,27 +55,30 @@ namespace PaymentMS.Migrations
                     b.Property<long>("order_id")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("payment_sequential")
+                    b.Property<int>("sequential")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("payment_installments")
+                    b.Property<int>("installments")
                         .HasColumnType("integer");
 
-                    b.Property<string>("payment_type")
+                    b.Property<string>("status")
+                        .HasColumnType("text");
+
+                    b.Property<string>("type")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("payment_value")
+                    b.Property<decimal>("value")
                         .HasColumnType("numeric");
 
-                    b.HasKey("order_id", "payment_sequential");
+                    b.HasKey("order_id", "sequential");
 
                     b.ToTable("order_payments", t =>
                         {
-                            t.HasCheckConstraint("CK_OrderPayment_PaymentValue", "payment_value >= 0");
+                            t.HasCheckConstraint("CK_OrderPayment_Value", "value >= 0");
                         });
                 });
 

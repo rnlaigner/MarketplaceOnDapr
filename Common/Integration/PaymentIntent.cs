@@ -1,5 +1,5 @@
 ﻿using System;
-namespace PaymentMS.Integration
+namespace Common.Integration
 {
 	/**
      * Inspired by Stripe payment system
@@ -19,15 +19,23 @@ namespace PaymentMS.Integration
 	public class PaymentIntent
 	{
 		// example: pi_1GszdL2eZvKYlo2C4nORvwio
-		public string Id { get; set; } = "";
-        public decimal Amount { get; set; }
-		public string Status { get; set; } = "succeeded";// 'succeeded', requires_payment_method
+		public string id { get; set; } = "";
+
+        public decimal amount { get; set; }
+
+        // https://stripe.com/docs/api/errors#errors-setup_intent-status
+        public string status { get; set; } = PaymentStatus.succeeded.ToString();
+
         // example: pi_1GszdL2eZvKYlo2C4nORvwio_secret_F06b3J3jgLq8Ueo5JeZUF79mr
         public string client_secret { get; set; } = "";
-        public string Currency { get; set; } = "";
-        public string Customer { get; set; } = "";
-        public string FailureMessage { get; set; } = "";
-        public long Created { get; set; }
+
+        public string currency { get; set; } = "";
+
+        public string customer { get; set; } = "";
+
+		public string confirmation_method = "automatic";
+
+        public long created { get; set; }
 
 	}
 }
