@@ -34,6 +34,12 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     public ActionResult AddItem(long customerId, [FromBody] CartItem item)
     {
+        this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
+        if (item.Quantity <= 0)
+        {
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
+        }
+
         // check if it is already on the way to checkout.... if so, cannot add product
         var cart = this.cartRepository.GetCart(customerId);
         if (cart != null && cart.status == CartStatus.CHECKOUT_SENT)
@@ -42,27 +48,16 @@ public class CartController : ControllerBase
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart for customer " + cart.customer_id + " already sent for checkout.");
         }
 
-        this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
-        if (item.Quantity <= 0)
-        {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
-        }
-
         if (cart is null) {
             cart = cartRepository.Insert(new()
             {
                 customer_id = customerId,
             });
         }
-        else
-        {
-            cartRepository.Update(cart);
-        }
 
         string? vouchersInput = null;
         if(item.Vouchers is not null && item.Vouchers.Count() > 0)
         {
-            // vouchersInput = String.Join(",", item.Vouchers);
             vouchersInput = String.Join(",", item.Vouchers.Select(v => v.ToString(CultureInfo.InvariantCulture)));
         }
 
@@ -78,14 +73,9 @@ public class CartController : ControllerBase
             vouchers = vouchersInput
         };
 
-        var res = this.cartRepository.AddItem(cartItemModel);
-        if (res is not null)
-        {
-            this.logger.LogInformation("Customer {0} added item successfully.", customerId);
-            return Ok();
-        }
-
-        return Conflict();
+        this.cartRepository.AddItem(cartItemModel);
+        this.logger.LogInformation("Customer {0} added item successfully.", customerId);
+        return Accepted();
     }
 
     [HttpGet("{customerId}")]
@@ -129,7 +119,7 @@ public class CartController : ControllerBase
         var cart = this.cartRepository.Delete(customerId);
         if (cart is null)
             return NotFound();
-        return Ok();
+        return Accepted();
     }
 
     [Route("{customerId}/seal")]
@@ -148,7 +138,7 @@ public class CartController : ControllerBase
          * Seal is a terminal state, so no need to check for concurrent operation
          */
         this.cartService.Seal(cart);
-        return Ok();
+        return Accepted();
     }
 
     [Route("{customerId}/checkout")]

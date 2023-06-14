@@ -74,7 +74,7 @@ cmhmod 775 deploy_macos.sh
 
 ## Useful links
 
-### Killing dapr process
+### Killing Dapr process
 https://stackoverflow.com/questions/11583562/how-to-kill-a-process-running-on-particular-port-in-linux
 
 ### Health checks
@@ -98,3 +98,6 @@ https://prometheus.io/docs/prometheus/latest/getting_started/
 
 ### Docker
 https://stackoverflow.com/questions/40513545/how-to-prevent-docker-from-starting-a-container-automatically-on-system-startup
+
+## Virtualized deployments
+https://mikehadlow.com/posts/2022-06-24-writing-dotnet-services-for-kubernetes/

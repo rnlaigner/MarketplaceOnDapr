@@ -78,31 +78,4 @@ public class EventController : ControllerBase
         return Ok();
     }
 
-    /*
-     * "In order to tell Dapr that a message was processed successfully, return a 200 OK response. 
-     * If Dapr receives any other return status code than 200, or if your app crashes, 
-     * Dapr will attempt to redeliver the message following at-least-once semantics."
-     * Source: https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-publish-subscribe/
-     * 
-     */
-    [HttpPost("ProcessPaymentConfirmed")]
-    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-    public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
-    {
-        this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentConfirmed.customer.CustomerId);
-        this.cartService.ProcessPaymentConfirmed(paymentConfirmed);
-        this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentConfirmed.customer.CustomerId);
-        return Ok();
-    }
-
-    [HttpPost("ProcessPaymentFailed")]
-    [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
-    public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
-    {
-        this.logger.LogInformation("[ProcessPaymentConfirmed] received for customer {0}", paymentFailed.customer.CustomerId);
-        this.cartService.ProcessPaymentFailed(paymentFailed);
-        this.logger.LogInformation("[ProcessPaymentConfirmed] completed for customer {0}.", paymentFailed.customer.CustomerId);
-        return Ok();
-    }
-
 }

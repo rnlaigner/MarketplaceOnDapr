@@ -13,6 +13,7 @@ namespace StockMS.Controllers
 	public class EventController : ControllerBase
 	{
         private const string PUBSUB_NAME = "pubsub";
+
         private readonly ILogger<EventController> logger;
         private readonly IStockService stockService;
 
@@ -44,7 +45,6 @@ namespace StockMS.Controllers
         [Topic(PUBSUB_NAME, "failedConfirmReservation")]
         public ActionResult ProcessFailedPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
         {
-            // this.stockService.ConfirmReservation(paymentConfirmed);
             logger.LogWarning("[ProcessFailedPaymentConfirmed] Confirming that the PaymentConfirmed event has been forwarded to the dead letter topic.");
             return Ok();
         }

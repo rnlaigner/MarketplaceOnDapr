@@ -60,7 +60,7 @@ namespace OrderMS.Handlers
                 OrderModel? order = orderRepository.GetOrder(shipmentNotification.orderId);
                 if (order is null)
                 {
-                    throw new Exception("Cannot find order ID " + shipmentNotification.orderId);
+                    throw new ApplicationException("Cannot find order ID " + shipmentNotification.orderId);
                 }
 
                 DateTime now = DateTime.Now;

@@ -15,16 +15,19 @@ namespace CartMS.Services
         private const string PUBSUB_NAME = "pubsub";
 
         private readonly DaprClient daprClient;
+        private readonly CartDbContext dbContext;
+
         private readonly ICartRepository cartRepository;
         private readonly IProductRepository productRepository;
 
         private readonly CartConfig config;
         private readonly ILogger<CartService> logger;
 
-        public CartService(DaprClient daprClient, ICartRepository cartRepository, IProductRepository productRepository,
+        public CartService(DaprClient daprClient, CartDbContext cartDbContext, ICartRepository cartRepository, IProductRepository productRepository,
                             IOptions<CartConfig> config, ILogger<CartService> logger)
 		{
             this.daprClient = daprClient;
+            this.dbContext = cartDbContext;
             this.cartRepository = cartRepository;
             this.productRepository = productRepository;
             this.config = config.Value;
@@ -35,7 +38,10 @@ namespace CartMS.Services
         {
             cart.status = CartStatus.OPEN;
             if (cleanItems)
+            {
                 cartRepository.DeleteItems(cart.customer_id);
+            }
+            cart.updated_at = DateTime.Now;
             this.cartRepository.Update(cart);   
         }
 
@@ -43,26 +49,31 @@ namespace CartMS.Services
 
         public async Task NotifyCheckout(CustomerCheckout customerCheckout, CartModel cart)
         {
-            cart.status = CartStatus.CHECKOUT_SENT;
-            this.cartRepository.Update(cart);
-
-            IList<CartItemModel> items = cartRepository.GetItems(cart.customer_id);
-
-            var cartItems = items.Select(i => new CartItem()
+            using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                 SellerId = i.seller_id,
-                 ProductId = i.product_id,
-                 ProductName = i.product_name,
-                 UnitPrice = i.unit_price,
-                 FreightValue = i.freight_value,
-                 Quantity = i.quantity,
-                 Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
-            }).ToList();
+                cart.status = CartStatus.CHECKOUT_SENT;
+                this.cartRepository.Update(cart);
 
-            this.logger.LogInformation("Customer {0} cart has been submitted to checkout. Publishing checkout event...", customerCheckout.CustomerId);
+                IList<CartItemModel> items = cartRepository.GetItems(cart.customer_id);
 
-            ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cartItems);
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);  
+                var cartItems = items.Select(i => new CartItem()
+                {
+                    SellerId = i.seller_id,
+                    ProductId = i.product_id,
+                    ProductName = i.product_name,
+                    UnitPrice = i.unit_price,
+                    FreightValue = i.freight_value,
+                    Quantity = i.quantity,
+                    Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
+                }).ToList();
+
+                ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cartItems);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
+                this.logger.LogInformation("Customer {0} cart has been submitted to checkout.", customerCheckout.CustomerId);
+                this.Seal(cart);
+
+                txCtx.Commit();
+            }
         }
 
         public List<ProductStatus> CheckCartForDivergencies(CartModel cart)
@@ -78,16 +89,20 @@ namespace CartMS.Services
                 var ids = items.Select(i => (i.seller_id,i.product_id)).ToList();
                 IList<ProductModel> products = productRepository.GetProducts(ids);
 
-                foreach (var product in products)
+                using (var txCtx = dbContext.Database.BeginTransaction())
                 {
-                    var item = itemsDict[(product.seller_id, product.product_id)];
-                    var currPrice = item.unit_price;
-                    if (currPrice != product.price)
+                    foreach (var product in products)
                     {
-                        item.unit_price = product.price;
-                        cartRepository.UpdateItem(item);
-                        divergencies.Add(new ProductStatus(product.product_id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
+                        var item = itemsDict[(product.seller_id, product.product_id)];
+                        var currPrice = item.unit_price;
+                        if (currPrice != product.price)
+                        {
+                            item.unit_price = product.price;
+                            cartRepository.UpdateItem(item);
+                            divergencies.Add(new ProductStatus(product.product_id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
+                        }
                     }
+                    txCtx.Commit();
                 }
             }
 
@@ -119,19 +134,5 @@ namespace CartMS.Services
             return divergencies;
         }
 
-        public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
-        {
-            CartModel? cart = this.cartRepository.GetCart(paymentConfirmed.customer.CustomerId);
-            if(cart is not null)
-                this.Seal(cart);
-        }
-
-        public void ProcessPaymentFailed(PaymentFailed paymentFailed)
-        {
-            CartModel? cart = this.cartRepository.GetCart(paymentFailed.customer.CustomerId);
-            if (cart is not null)
-                this.Seal(cart);
-        }
     }
 }
-

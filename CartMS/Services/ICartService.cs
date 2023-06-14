@@ -11,10 +11,6 @@ namespace CartMS.Services
 
         public Task NotifyCheckout(CustomerCheckout customerCheckout, CartModel cart);
 
-        void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
-
-        void ProcessPaymentFailed(PaymentFailed paymentFailed);
-
         public List<ProductStatus> CheckCartForDivergencies(CartModel cart);
     }
 }

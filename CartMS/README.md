@@ -11,7 +11,7 @@ to run cart migration:
 dotnet ef migrations add InitialMigration -c CartDbContext
 
 to run cart microservice:
-dapr run --app-port 5001 --app-id cart --app-protocol http --dapr-http-port 3501 -- dotnet run --project CartMS.csproj
+dapr run --app-port 5001 --app-id cart --app-protocol http --dapr-http-port 3501 --metrics-port 9091 -- dotnet run --project CartMS.csproj
 
 "In self-hosted mode, running the Dapr CLI run command launches the daprd executable
 with the provided application executable. This is the recommended way of running the

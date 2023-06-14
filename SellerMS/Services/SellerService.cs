@@ -1,4 +1,5 @@
-﻿using Common.Entities;
+﻿using System.Security.Cryptography;
+using Common.Entities;
 using Common.Events;
 using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +10,6 @@ using SellerMS.Repositories;
 
 namespace SellerMS.Services
 {
-    /*
-     * May need to adjust other services?
-     * https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/
-     * But according to this (https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/#dbcontext-in-dependency-injection-for-aspnet-core)
-     * it seems that the othe configuration is also correct...
-     */
     public class SellerService : ISellerService
     {
 
@@ -70,30 +65,21 @@ namespace SellerMS.Services
          */
         public void ProcessDeliveryNotification(DeliveryNotification deliveryNotification)
         {
-
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
                 OrderEntry? oe = dbContext.OrderEntries.Find(deliveryNotification.orderId, deliveryNotification.productId);
+                if (oe is null) throw new ApplicationException("[ProcessDeliveryNotification] Cannot find respective order entry for order id "+ deliveryNotification.orderId + " and product id "+ deliveryNotification.productId);
 
-                if (oe is not null)
-                {
-                    oe.package_id = deliveryNotification.packageId;
-                    oe.delivery_date = deliveryNotification.deliveryDate;
-                    oe.delivery_status = deliveryNotification.status;
+                oe.package_id = deliveryNotification.packageId;
+                oe.delivery_date = deliveryNotification.deliveryDate;
+                oe.delivery_status = deliveryNotification.status;
 
-                    dbContext.OrderEntries.Update(oe);
+                dbContext.OrderEntries.Update(oe);
 
-                    dbContext.SaveChanges();
+                dbContext.SaveChanges();
 
-                    txCtx.Commit();
-                }
-                else
-                {
-                    logger.LogError("[DeliveryNotification] Cannot find respective order entry for order id {0} and product id {1}", deliveryNotification.orderId, deliveryNotification.productId);
-                }
-
+                txCtx.Commit();
             }
-
         }
 
         /**
@@ -170,6 +156,10 @@ namespace SellerMS.Services
 
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
+
+                OrderEntryDetails? oed = dbContext.OrderEntryDetails.Find(paymentConfirmed.orderId);
+                if (oed is null) throw new ApplicationException("[ProcessPaymentConfirmed] Cannot find corresponding order entry " + paymentConfirmed.orderId);
+
                 var entries = dbContext.OrderEntries.Where(oe => oe.order_id == paymentConfirmed.orderId);
 
                 foreach (var oe in entries)
@@ -179,16 +169,11 @@ namespace SellerMS.Services
 
                 dbContext.OrderEntries.UpdateRange(entries);
 
-                OrderEntryDetails? oed = dbContext.OrderEntryDetails.Find(paymentConfirmed.orderId);
-
-                if (oed is not null)
-                {
-                    oed.status = OrderStatus.PAYMENT_PROCESSED;
-                    dbContext.OrderEntryDetails.Update(oed);
-                    dbContext.SaveChanges();
-                    txCtx.Commit();
-
-                }
+                oed.status = OrderStatus.PAYMENT_PROCESSED;
+                dbContext.OrderEntryDetails.Update(oed);
+                dbContext.SaveChanges();
+                txCtx.Commit();
+                
             }
 
         }
@@ -198,6 +183,10 @@ namespace SellerMS.Services
 
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
+
+                OrderEntryDetails? oed = dbContext.OrderEntryDetails.Find(paymentFailed.orderId);
+                if (oed is null) throw new ApplicationException("[ProcessPaymentConfirmed] Cannot find corresponding order entry " + paymentFailed.orderId);
+
                 var entries = dbContext.OrderEntries.Where(oe => oe.order_id == paymentFailed.orderId);
 
                 foreach (var oe in entries)
@@ -207,14 +196,9 @@ namespace SellerMS.Services
 
                 dbContext.OrderEntries.UpdateRange(entries);
 
-                OrderEntryDetails? oed = dbContext.OrderEntryDetails.Find(paymentFailed.orderId);
-
-                if (oed is not null)
-                {
-                    oed.status = OrderStatus.PAYMENT_FAILED;
-                    dbContext.OrderEntryDetails.Update(oed);
-                }
-
+                oed.status = OrderStatus.PAYMENT_FAILED;
+                dbContext.OrderEntryDetails.Update(oed);
+                
                 dbContext.SaveChanges();
                 txCtx.Commit();
             }
@@ -235,11 +219,10 @@ namespace SellerMS.Services
         {
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-
                 return new SellerDashboard(
                 dbContext.OrderSellerView.Where(v => v.seller_id == sellerId).FirstOrDefault(new OrderSellerView()),
                 dbContext.OrderEntries.Where(oe => oe.seller_id == sellerId && (oe.order_status == OrderStatus.INVOICED || oe.order_status == OrderStatus.READY_FOR_SHIPMENT ||
-                                                                                oe.order_status == OrderStatus.IN_TRANSIT || oe.order_status == OrderStatus.PAYMENT_PROCESSED)).ToList()
+                                                               oe.order_status == OrderStatus.IN_TRANSIT || oe.order_status == OrderStatus.PAYMENT_PROCESSED)).ToList()
                 );
             }
 
