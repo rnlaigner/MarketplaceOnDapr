@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Common.Entities;
+using Common.Integration;
 
 namespace Common.Events
 {
@@ -9,7 +10,7 @@ namespace Common.Events
         DateTime timestamp,
         CustomerCheckout customerCheckout,
         IList<ProductStatus> products,
-        string instanceId = ""
+        int instanceId
     );
 }
 

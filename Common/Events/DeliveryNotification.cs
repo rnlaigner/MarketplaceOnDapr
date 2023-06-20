@@ -12,7 +12,7 @@ namespace Common.Events
         string productName,
         PackageStatus status,
         DateTime deliveryDate,
-        string instanceId
+        int instanceId
     );
 
 }

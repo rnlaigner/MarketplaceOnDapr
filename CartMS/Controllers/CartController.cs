@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using CartMS.Models;
@@ -6,6 +7,7 @@ using CartMS.Repositories;
 using CartMS.Services;
 using Common.Entities;
 using Common.Events;
+using Common.Integration;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartMS.Controllers;
@@ -24,8 +26,6 @@ public class CartController : ControllerBase
         this.cartRepository = cartRepository;
         this.logger = logger;
     }
-
-    private static readonly decimal[] emptyArray = Array.Empty<decimal>();
 
     [Route("{customerId}/add")]
     [HttpPatch]
@@ -77,6 +77,8 @@ public class CartController : ControllerBase
         this.logger.LogInformation("Customer {0} added item successfully.", customerId);
         return Accepted();
     }
+
+    private static readonly decimal[] emptyArray = Array.Empty<decimal>();
 
     [HttpGet("{customerId}")]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
@@ -148,7 +150,6 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> NotifyCheckout(long customerId, [FromBody] CustomerCheckout customerCheckout)
     {
-        // TODO log a transaction event
         this.logger.LogInformation("[NotifyCheckout] received request.");
 
         if (customerId != customerCheckout.CustomerId)
@@ -168,7 +169,13 @@ public class CartController : ControllerBase
         if (cart.status == CartStatus.CHECKOUT_SENT)
         {
             this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer "+ customerCheckout.CustomerId + " cart has already been submitted to checkout");
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer "+ customerCheckout.CustomerId + " cart has already been submitted for checkout");
+        }
+
+        var items = this.cartRepository.GetItems(customerCheckout.CustomerId);
+        if(items is null || items.Count == 0)
+        {
+            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer " + customerCheckout.CustomerId + " cart has no items to be submitted for checkout");
         }
 
         List<ProductStatus> divergencies = this.cartService.CheckCartForDivergencies(cart);

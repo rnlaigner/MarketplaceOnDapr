@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Common.Entities
+namespace Common.Integration
 {
     /**
      * A sub-type of customer.
@@ -47,8 +47,9 @@ namespace Common.Entities
         string CardBrand,
 
         // if no credit card, must be 1
-        int Installments
+        int Installments,
 
+        int instanceId
     );
     
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using Common.Entities;
+using Common.Integration;
 
 namespace Common.Events
 {
@@ -8,7 +9,7 @@ namespace Common.Events
         DateTime timestamp,
         CustomerCheckout customerCheckout,
         List<CartItem> items,
-        string instanceId = ""
+        int instanceId
     );
 }
 

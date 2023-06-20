@@ -8,7 +8,7 @@ namespace Common.Events
         long customerId,
         long orderId,
         DateTime eventDate,
-        string instanceId,
+        int instanceId,
         ShipmentStatus status = ShipmentStatus.approved
     );
 }

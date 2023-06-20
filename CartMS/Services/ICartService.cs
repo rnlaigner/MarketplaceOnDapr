@@ -1,6 +1,7 @@
 ﻿using CartMS.Models;
 using Common.Entities;
 using Common.Events;
+using Common.Integration;
 
 namespace CartMS.Services
 {

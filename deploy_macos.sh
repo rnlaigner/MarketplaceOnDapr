@@ -38,7 +38,7 @@ if `echo "$*" | grep -q order`; then
         echo "order already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5002 --app-id order --app-protocol http --dapr-http-port 3502 -- dotnet run --project '$current_dir'/OrderMS/OrderMS.csproj"
+            do script "dapr run --app-port 5002 --app-id order --app-protocol http --dapr-http-port 3502 --metrics-port 9092 -- dotnet run --project '$current_dir'/OrderMS/OrderMS.csproj"
         end tell'
     fi
 fi
@@ -50,7 +50,7 @@ if `echo "$*" | grep -q stock`; then
         echo "stock already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5003 --app-id stock --app-protocol http --dapr-http-port 3503 -- dotnet run --project '$current_dir'/StockMS/StockMS.csproj"
+            do script "dapr run --app-port 5003 --app-id stock --app-protocol http --dapr-http-port 3503 --metrics-port 9093 -- dotnet run --project '$current_dir'/StockMS/StockMS.csproj"
         end tell'
     fi
 fi
@@ -74,7 +74,7 @@ if `echo "$*" | grep -q shipment`; then
         echo "shipment already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5005 --app-id shipment --app-protocol http --dapr-http-port 3505 -- dotnet run --project '$current_dir'/ShipmentMS/ShipmentMS.csproj"
+            do script "dapr run --app-port 5005 --app-id shipment --app-protocol http --dapr-http-port 3505 --metrics-port 9095 -- dotnet run --project '$current_dir'/ShipmentMS/ShipmentMS.csproj"
         end tell'
     fi
 fi
@@ -86,7 +86,7 @@ if `echo "$*" | grep -q seller`; then
         echo "seller already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 -- dotnet run --project '$current_dir'/SellerMS/SellerMS.csproj"
+            do script "dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 --metrics-port 9096 -- dotnet run --project '$current_dir'/SellerMS/SellerMS.csproj"
         end tell'
     fi
 fi
@@ -98,7 +98,7 @@ if `echo "$*" | grep -q customer`; then
         echo "customer already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5007 --app-id customer --app-protocol http --dapr-http-port 3507 -- dotnet run --project '$current_dir'/CustomerMS/CustomerMS.csproj"
+            do script "dapr run --app-port 5007 --app-id customer --app-protocol http --dapr-http-port 3507 --metrics-port 9097 -- dotnet run --project '$current_dir'/CustomerMS/CustomerMS.csproj"
         end tell'
     fi
 fi
@@ -110,7 +110,7 @@ if `echo "$*" | grep -q product`; then
         echo "product already running"
     else
         osascript -e 'tell app "Terminal"
-            do script "dapr run --app-port 5008 --app-id product --app-protocol http --dapr-http-port 3508 -- dotnet run --project '$current_dir'/ProductMS/ProductMS.csproj"
+            do script "dapr run --app-port 5008 --app-id product --app-protocol http --dapr-http-port 3508 --metrics-port 9098 -- dotnet run --project '$current_dir'/ProductMS/ProductMS.csproj"
         end tell'
     fi
 fi

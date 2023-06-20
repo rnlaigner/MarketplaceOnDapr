@@ -1,5 +1,6 @@
 ﻿using System;
 using Common.Entities;
+using Common.Integration;
 
 namespace Common.Events
 {
@@ -17,7 +18,7 @@ namespace Common.Events
         DateTime issueDate,
         decimal totalInvoice,
         IList<OrderItem> items,
-        string instanceId = ""
+        int instanceId
     );
 }
 

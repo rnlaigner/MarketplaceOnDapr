@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Common.Entities
@@ -13,7 +14,7 @@ namespace Common.Entities
 
         public IList<CartItem> items { get; set; } = new List<CartItem>();
 
-        public string instanceId { get; set; } = "";
+        public int instanceId { get; set; }
 
         // to return
         public List<ProductStatus>? divergencies { get; set; }
@@ -21,13 +22,9 @@ namespace Common.Entities
         // for dapr
         public Cart() { }
 
-        public Cart(long customerId) {
-            this.customerId = customerId;
-        }
-
         public override string ToString()
         {
-            return new StringBuilder().Append("CustomerId : ").Append(customerId).ToString();
+            return new StringBuilder().Append("customerId : ").Append(customerId).Append("status").Append(status.ToString()).ToString();
         }
 
     }

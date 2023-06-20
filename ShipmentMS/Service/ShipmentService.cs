@@ -100,7 +100,7 @@ namespace ShipmentMS.Service
             }
         }
 
-        public async Task UpdateShipment(string instanceId = "")
+        public async Task UpdateShipment(int instanceId)
         {
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
@@ -122,7 +122,7 @@ namespace ShipmentMS.Service
             }
         }
 
-        private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, string instanceId)
+        private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, int instanceId)
         {
             long orderId = sellerPackages.ElementAt(0).order_id;
             long sellerId = sellerPackages.ElementAt(0).seller_id;
