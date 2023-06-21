@@ -68,7 +68,7 @@ namespace SellerMS.Services
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
                 OrderEntry? oe = dbContext.OrderEntries.Find(deliveryNotification.orderId, deliveryNotification.productId);
-                if (oe is null) throw new ApplicationException("[ProcessDeliveryNotification] Cannot find respective order entry for order id "+ deliveryNotification.orderId + " and product id "+ deliveryNotification.productId);
+                if (oe is null) throw new Exception("[ProcessDeliveryNotification] Cannot find respective order entry for order id "+ deliveryNotification.orderId + " and product id "+ deliveryNotification.productId);
 
                 oe.package_id = deliveryNotification.packageId;
                 oe.delivery_date = deliveryNotification.deliveryDate;
@@ -158,7 +158,7 @@ namespace SellerMS.Services
             {
 
                 OrderEntryDetails? oed = dbContext.OrderEntryDetails.Find(paymentConfirmed.orderId);
-                if (oed is null) throw new ApplicationException("[ProcessPaymentConfirmed] Cannot find corresponding order entry " + paymentConfirmed.orderId);
+                if (oed is null) throw new Exception("[ProcessPaymentConfirmed] Cannot find corresponding order entry " + paymentConfirmed.orderId);
 
                 var entries = dbContext.OrderEntries.Where(oe => oe.order_id == paymentConfirmed.orderId);
 
@@ -185,7 +185,7 @@ namespace SellerMS.Services
             {
 
                 OrderEntryDetails? oed = dbContext.OrderEntryDetails.Find(paymentFailed.orderId);
-                if (oed is null) throw new ApplicationException("[ProcessPaymentConfirmed] Cannot find corresponding order entry " + paymentFailed.orderId);
+                if (oed is null) throw new Exception("[ProcessPaymentConfirmed] Cannot find corresponding order entry " + paymentFailed.orderId);
 
                 var entries = dbContext.OrderEntries.Where(oe => oe.order_id == paymentFailed.orderId);
 

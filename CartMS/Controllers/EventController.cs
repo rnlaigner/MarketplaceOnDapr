@@ -43,12 +43,8 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(Product))]
     public ActionResult ProcessProductStream([FromBody] Product product)
     {
-        ProductModel? product_ = productRepository.GetProduct(product.seller_id, product.product_id);
-
-        if(product_ is null)
-        {
             var now = DateTime.Now;
-            product_ = new()
+            ProductModel product_ = new()
             {
                 seller_id = product.seller_id,
                 product_id = product.product_id,
@@ -63,17 +59,34 @@ public class EventController : ControllerBase
                 active = product.active
             };
             this.productRepository.Insert(product_);
+
+        this.logger.LogInformation("[ProcessProductStream] completed for product ID {0}", product.product_id);
+        return Ok();
+    }
+
+    [HttpPost("ProductUpdateStreaming")]
+    [Topic(PUBSUB_NAME, nameof(Product))]
+    public ActionResult ProcessProductUpdateStream([FromBody] ProductUpdate update)
+    {
+        ProductModel? product = this.productRepository.GetProduct(update.seller_id, update.product_id);
+
+        if(product is null)
+        {
+            this.logger.LogInformation("[ProcessProductUpdateStream] Cannot find seller {0} product ID {0}", update.seller_id, update.product_id);
+            return Ok();
         }
 
-        if (product.active)
+        var now = DateTime.Now;
+        if (update.active)
         {
-            this.productRepository.Update(product_);
+            product.price = update.price;
+            product.updated_at = now;
+            this.productRepository.Update(product);
+            this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(update.instanceId, "PRICE_UPDATE"));
         } else
         {
-            this.productRepository.Delete(product_);
+            this.productRepository.Delete(product);
         }
-
-
         this.logger.LogInformation("[ProcessProductStream] completed for product ID {0}", product.product_id);
         return Ok();
     }

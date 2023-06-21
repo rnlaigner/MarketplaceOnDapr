@@ -71,7 +71,7 @@ namespace PaymentMS.Services
 
             if(intent is null)
             {
-                throw new ApplicationException("[ProcessPayment] It was not possible to retrieve payment intent from external provider");
+                throw new Exception("[ProcessPayment] It was not possible to retrieve payment intent from external provider");
             }
 
             using (var txCtx = dbContext.Database.BeginTransaction())
@@ -156,10 +156,11 @@ namespace PaymentMS.Services
                 if (paymentLines.Count() > 0)
                     dbContext.OrderPayments.AddRange(paymentLines);
                 dbContext.SaveChanges();
+                txCtx.Commit();
 
+                this.logger.LogInformation("[ProcessPayment] confirmed for order ID {0}.", paymentRequest.orderId);
                 if (config.PaymentStreaming)
                 {
-
                     if (intent.status.Equals("succeeded"))
                     {
                         this.logger.LogInformation("[ProcessPayment] publishing payment confirmed event for order ID: {0}.", paymentRequest.orderId);
@@ -176,10 +177,7 @@ namespace PaymentMS.Services
                         this.logger.LogInformation("[ProcessPayment] failed for order ID: {0}.", paymentRequest.orderId);
                     }
                 }
-                this.logger.LogInformation("[ProcessPayment] confirmed for order ID {0}.", paymentRequest.orderId);
 
-                txCtx.Commit();
-            
             }
 
         }

@@ -8,6 +8,7 @@ using CartMS.Services;
 using Common.Entities;
 using Common.Events;
 using Common.Integration;
+using Common.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartMS.Controllers;
@@ -173,7 +174,7 @@ public class CartController : ControllerBase
         }
 
         var items = this.cartRepository.GetItems(customerCheckout.CustomerId);
-        if(items is null || items.Count == 0)
+        if(items is null || items.Count() == 0)
         {
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer " + customerCheckout.CustomerId + " cart has no items to be submitted for checkout");
         }

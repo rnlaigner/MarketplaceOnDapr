@@ -2,6 +2,7 @@
 using Common.Entities;
 using Common.Events;
 using Common.Integration;
+using Common.Requests;
 
 namespace CartMS.Services
 {

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using ShipmentMS.Infra;
 using ShipmentMS.Models;
 using ShipmentMS.Repositories;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ShipmentMS.Service
 {
@@ -86,17 +87,21 @@ namespace ShipmentMS.Service
                     package_id++;
                 }
 
+                dbContext.SaveChanges();
+                txCtx.Commit();
+
                 // enqueue shipment notification
                 if (config.ShipmentStreaming)
                 {
                     ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
+
+                    await Task.WhenAll(
+                        this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification),
+                        // publish transaction event result
+                        this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(paymentConfirmed.instanceId, "CUSTOMER_SESSION"))
+                    );
                 }
 
-                dbContext.SaveChanges();
-                txCtx.Commit();
-
-                // TODO publish transactional event result
             }
         }
 
@@ -115,10 +120,12 @@ namespace ShipmentMS.Service
                 }
 
                 await Task.WhenAll(tasks);
-
                 dbContext.SaveChanges();
-                txCtx.Commit();
 
+                // not necessary since it is a http response expected by the driver
+                // await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(instanceId, "UPDATE_DELIVERY"));
+
+                txCtx.Commit();
             }
         }
 

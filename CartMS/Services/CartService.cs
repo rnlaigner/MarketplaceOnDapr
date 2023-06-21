@@ -5,6 +5,7 @@ using CartMS.Repositories;
 using Common.Entities;
 using Common.Events;
 using Common.Integration;
+using Common.Requests;
 using Dapr.Client;
 using Microsoft.Extensions.Options;
 
@@ -68,12 +69,15 @@ namespace CartMS.Services
                     Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
                 }).ToList();
 
-                ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cartItems, customerCheckout.instanceId);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
-                this.logger.LogInformation("Customer {0} cart has been submitted to checkout.", customerCheckout.CustomerId);
                 this.Seal(cart);
-
                 txCtx.Commit();
+
+                if (config.CartStreaming)
+                {
+                    ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cartItems, customerCheckout.instanceId);
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
+                    this.logger.LogInformation("Customer {0} cart has been submitted to checkout.", customerCheckout.CustomerId);
+                }
             }
         }
 

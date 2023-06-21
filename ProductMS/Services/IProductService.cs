@@ -1,15 +1,16 @@
 ﻿using System;
 using Common.Entities;
 using Common.Events;
+using Common.Integration;
+using Common.Requests;
 using ProductMS.Models;
 
 namespace ProductMS.Services
 {
 	public interface IProductService
 	{
-        public Task<bool> Upsert(Product productToUpdate);
-        public Task<bool> Delete(ProductModel productToDelete);
-
+        Task ProcessNewProduct(Product productToUpdate);
+        Task ProcessDelete(DeleteProduct productToDelete);
+        Task ProcessUpdate(UpdatePrice update);
     }
 }
-

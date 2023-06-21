@@ -1,4 +1,7 @@
 ﻿using Common.Entities;
+using Common.Events;
+using Common.Integration;
+using Common.Requests;
 using Dapr.Client;
 using Microsoft.Extensions.Options;
 using ProductMS.Infra;
@@ -27,70 +30,86 @@ namespace ProductMS.Services
             this.logger = logger;
         }
 
-        public async Task<bool> Delete(ProductModel productToDelete)
+        public async Task ProcessDelete(DeleteProduct productToDelete)
         {
-            try
+            using (var txCtx = this.dbContext.Database.BeginTransaction())
             {
-                using (var txCtx = this.dbContext.Database.BeginTransaction())
+                var product = this.productRepository.GetProduct(productToDelete.sellerId, productToDelete.productId);
+                if(product is null)
                 {
-
-                    this.productRepository.Delete(productToDelete);
-                   
-                    if(config.ProductStreaming)
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), productToDelete);
-
-                    txCtx.Commit();
-
+                    logger.LogWarning("[ProcessDelete] Cannot find seller {0} product {1}.", productToDelete.sellerId, productToDelete.productId);
+                    return;
                 }
-                return true;
+
+                this.productRepository.Delete(product);
+                txCtx.Commit();
+                if (config.ProductStreaming)
+                {
+                    ProductUpdate productUpdate = new()
+                    {
+                        seller_id = productToDelete.sellerId,
+                        product_id = productToDelete.productId,
+                        price = product.price,
+                        active = false,
+                        instanceId = productToDelete.instanceId
+                    };
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdate), productUpdate);
+                }
             }
-            catch(Exception e)
+            
+        }
+
+        public async Task ProcessUpdate(UpdatePrice update)
+        {
+            using (var txCtx = this.dbContext.Database.BeginTransaction())
             {
-                logger.LogWarning("[Delete] Exception {0}", e.Message);
-                return false;
+                var product = this.productRepository.GetProduct(update.sellerId, update.productId);
+
+                if (product is null)
+                {
+                    logger.LogWarning("[ProcessProductUpdate] Cannot find seller {0} product {1}.", update.sellerId, update.productId);
+                    return;
+                }
+
+                product.updated_at = DateTime.Now;
+                product.price = update.price;
+
+                this.productRepository.Update(product);
+
+                if (config.ProductStreaming) {
+                    ProductUpdate productUpdate = new()
+                    {
+                        seller_id = product.seller_id,
+                        product_id = product.product_id,
+                        price = product.price,
+                        active = true,
+                        instanceId = update.instanceId
+                    };
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdate), productUpdate);
+                }
+
+                txCtx.Commit();
             }
         }
 
         /*
          * Maybe use postgresql UPSERT: https://stackoverflow.com/questions/1109061/
          */
-        public async Task<bool> Upsert(Product productToUpdate)
+        public async Task ProcessNewProduct(Product productToUpdate)
         {
-            try
-            { 
-                using (var txCtx = this.dbContext.Database.BeginTransaction()) {
+            using (var txCtx = this.dbContext.Database.BeginTransaction()) {
+                ProductModel input = Utils.AsProductModel(productToUpdate);
+                input.created_at = DateTime.Now;
+                input.updated_at = input.created_at;
+                this.productRepository.Insert(input);
 
-                    ProductModel? product = this.productRepository.GetProduct(productToUpdate.seller_id, productToUpdate.product_id);
-                    ProductModel input = Utils.AsProductModel(productToUpdate);
-
-                    if (product is null)
-                    {
-                        input.created_at = DateTime.Now;
-                        input.updated_at = input.created_at;
-                        this.productRepository.Insert(input);
-                    } else
-                    {
-                        input.updated_at = DateTime.Now;
-                        this.productRepository.Update(input);
-                    }
-
-                    this.dbContext.SaveChanges();
-
-                    if (config.ProductStreaming)
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), Utils.AsProduct(input));
-                
-                    txCtx.Commit();
-
+                txCtx.Commit();
+                if (config.ProductStreaming)
+                {
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), Utils.AsProduct(input));
                 }
-                return true;
-            }
-            catch (Exception e)
-            {
-                logger.LogWarning("[Upsert] Exception {0}", e.Message);
-                return false;
-            }
+            }   
         }
 
 	}
 }
-

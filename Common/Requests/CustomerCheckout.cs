@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Common.Integration
+namespace Common.Requests
 {
     /**
      * A sub-type of customer.

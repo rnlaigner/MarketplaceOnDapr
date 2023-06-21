@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using Common.Entities;
 using Common.Events;
+using Common.Integration;
+using Common.Requests;
 using Dapr;
 using Microsoft.AspNetCore.Mvc;
 using ProductMS.Repositories;
@@ -25,40 +27,58 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
-    [Route("sellers/{sellerId}")]
+    [Route("{sellerId}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetBySeller(long sellerId)
+    [ProducesResponseType(typeof(List<Product>), (int)HttpStatusCode.OK)]
+    public ActionResult<List<Product>> GetBySeller(long sellerId)
     {
         this.logger.LogInformation("[GetBySeller] received for seller {0}", sellerId);
         if (sellerId <= 0)
         {
             return BadRequest();
         }
-        var product = this.productRepository.GetBySeller(sellerId);
+        var products = this.productRepository.GetBySeller(sellerId);
 
-        if (product != null)
+        if (products is not null && products.Count() > 0)
         {
-            this.logger.LogInformation("[GetBySeller] returning seller {0}", sellerId);
-            return Ok(product);
+            List<Product> productsResp = new List<Product>(products.Count());
+            foreach(var product in products)
+            {
+                productsResp.Add(
+                new Product()
+                {
+                    seller_id = product.seller_id,
+                    product_id = product.product_id,
+                    name = product.name,
+                    sku = product.sku,
+                    category = product.category,
+                    description = product.description,
+                    price = product.price,
+                    freight_value = product.freight_value,
+                    status = product.status,
+                    active = product.active
+                });
+            }
+            this.logger.LogInformation("[GetBySeller] returning seller {0} products...", sellerId);
+            return Ok(productsResp);
         }
         return NotFound();
     }
 
     [HttpGet]
-    [Route("{productId}")]
+    [Route("{sellerId}/{productId}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetById(long productId)
+    public ActionResult<Product> GetById(long sellerId, long productId)
     {
         this.logger.LogInformation("[GetById] received for product {0}", productId);
         if (productId <= 0)
         {
             return BadRequest();
         }
-        var product = this.productRepository.GetProduct(productId);
+        var product = this.productRepository.GetProduct(sellerId, productId);
 
         if (product != null)
         {
@@ -81,45 +101,31 @@ public class ProductController : ControllerBase
     }
 
     [HttpDelete]
-    [Route("{productId}")]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<ActionResult> DeleteById(long productId)
+    public async Task<ActionResult> DeleteProduct([FromBody] DeleteProduct deleteProduct)
     {
-        var product = this.productRepository.GetProduct(productId);
-        if (product != null) { 
-            await this.productService.Delete(product);
-            return Accepted();
-        }
-        return NotFound();
+        await this.productService.ProcessDelete(deleteProduct);
+        return Accepted();
     }
 
     [HttpPost]
     [Route("/")]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public async Task<ActionResult> AddProduct([FromBody] Product product)
     {
-        bool res = await this.productService.Upsert(product);
-        if (res)
-        {
-            return StatusCode((int)HttpStatusCode.Created);
-        }
-        return NotFound();
+        await this.productService.ProcessNewProduct(product);
+        return StatusCode((int)HttpStatusCode.Created);
     }
 
     [HttpPut]
     [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<ActionResult> UpdateProduct([FromBody] Product product)
+    public async Task<ActionResult> UpdateProduct([FromBody] UpdatePrice update)
     {
-        bool res = await this.productService.Upsert(product);
-        if (res)
-        {
-            return Accepted();
-        }
-        return NotFound();
+        await this.productService.ProcessUpdate(update);
+        return Accepted();
     }
 
 }

@@ -30,38 +30,13 @@ namespace StockMS.Services
             this.logger = logger;
         }
 
-        public void ProcessProductUpdates(List<Product> products)
-        {
-            var itemsToDelete = products.Where(p => !p.active).Select(p=> (p.seller_id, p.product_id)).ToList();
-            if (itemsToDelete.Count() == 0) return;
-
-            using (var txCtx = dbContext.Database.BeginTransaction())
-            {
-                var stockItems = stockRepository.GetItems(itemsToDelete);
-                if (stockItems.Count() == 0)
-                {
-                    this.logger.LogWarning("Attempt to delete products ({0}) has failed in Stock DB.",itemsToDelete);
-                    return;
-                }
-
-                foreach(var stockItem in stockItems)
-                {
-                    stockItem.active = false;
-                }
-
-                this.dbContext.UpdateRange(stockItems);
-                this.dbContext.SaveChanges();
-                txCtx.Commit();
-
-            }
-        }
-
         /**
          * What if the product has been reserved?
          * the order should proceed and if necessary, be cancelled afterwards by an external process
          */
-        public void ProcessProductUpdate(Product product)
+        public void ProcessProductUpdate(ProductUpdate product)
         {
+            // discard price updates
             if (product.active) return;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
@@ -76,8 +51,8 @@ namespace StockMS.Services
                 this.dbContext.Update(stockItem);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
-
             }
+            this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(product.instanceId, "DELETE_PRODUCT"));
         }
 
         public void CancelReservation(PaymentFailed payment)
@@ -189,12 +164,19 @@ namespace StockMS.Services
                     itemsReserved.Add(item);
                 }
 
-                if(itemsReserved.Count() > 0)
+                if (itemsReserved.Count() > 0)
                 {
                     this.dbContext.UpdateRange(items);
                     int entriesWritten = this.dbContext.SaveChanges();
                     logger.LogInformation("[ReserveStockAsync] Entries written: {0}", entriesWritten);
-                    if (config.StockStreaming)
+
+                }
+
+                txCtx.Commit();
+
+                if (config.StockStreaming)
+                {
+                    if (itemsReserved.Count() > 0)
                     {
                         // send to order
                         StockConfirmed checkoutRequest = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
@@ -202,20 +184,16 @@ namespace StockMS.Services
                             checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
                     }
-                }
 
-                if (unavailable.Count() > 0)
-                {
-                    if (config.StockStreaming)
+                    if (unavailable.Count() > 0)
                     {
                         // notify cart and customer
                         ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
                             unavailable, checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
                     }
-                }
 
-                txCtx.Commit();
+                }
                     
             }
         }
@@ -237,10 +215,13 @@ namespace StockMS.Services
             {
                 dbContext.StockItems.Add(stockItemModel);
                 dbContext.SaveChanges();
-                // publish stock info
-                if(config.StockStreaming)
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
                 txCtx.Commit();
+            }
+
+            // publish stock info
+            if (config.StockStreaming)
+            {
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
             }
         }
 

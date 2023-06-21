@@ -65,9 +65,9 @@ public class ShipmentController : ControllerBase
         return Ok();
     }
 
-    [HttpPatch("UpdateShipment")]
-    [Route("/updateShipment/{instanceId}")]
-    [ProducesResponseType(typeof(Shipment), (int)HttpStatusCode.Accepted)]
+    [HttpPatch("UpdateShipments")]
+    [Route("{instanceId}")]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public async Task<ActionResult> UpdateShipment(int instanceId)
     {
         this.logger.LogInformation("[UpdateShipment] received.");

@@ -1,6 +1,7 @@
 ﻿using System;
 using Common.Entities;
 using Common.Integration;
+using Common.Requests;
 
 namespace Common.Events
 {

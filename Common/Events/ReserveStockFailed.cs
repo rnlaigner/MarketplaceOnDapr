@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Common.Entities;
 using Common.Integration;
+using Common.Requests;
 
 namespace Common.Events
 {

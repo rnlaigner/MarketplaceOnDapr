@@ -57,9 +57,9 @@ namespace StockMS.Controllers
             return Ok();
         }
 
-        [HttpPost("ProductStreaming")]
-        [Topic(PUBSUB_NAME, nameof(Product))]
-        public ActionResult ProcessProductStream([FromBody] Product product)
+        [HttpPost("ProductUpdateStreaming")]
+        [Topic(PUBSUB_NAME, nameof(ProductUpdate))]
+        public ActionResult ProcessProductStream([FromBody] ProductUpdate product)
         {
             this.stockService.ProcessProductUpdate(product);
             return Ok();

@@ -14,11 +14,13 @@
     <None Remove="Events\" />
     <None Remove="Utils\" />
     <None Remove="Integration\" />
+    <None Remove="Requests\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Entities\" />
     <Folder Include="Events\" />
     <Folder Include="Utils\" />
     <Folder Include="Integration\" />
+    <Folder Include="Requests\" />
   </ItemGroup>
 </Project>
