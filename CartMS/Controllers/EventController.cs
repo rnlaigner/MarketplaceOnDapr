@@ -1,9 +1,11 @@
 ﻿using System.Linq;
+using System.Text;
 using System.Text.Json;
 using CartMS.Infra;
 using CartMS.Models;
 using CartMS.Repositories;
 using CartMS.Services;
+using Common.Driver;
 using Common.Entities;
 using Common.Events;
 using Dapr;
@@ -65,8 +67,8 @@ public class EventController : ControllerBase
     }
 
     [HttpPost("ProductUpdateStreaming")]
-    [Topic(PUBSUB_NAME, nameof(Product))]
-    public ActionResult ProcessProductUpdateStream([FromBody] ProductUpdate update)
+    [Topic(PUBSUB_NAME, nameof(ProductUpdate))]
+    public async Task<ActionResult> ProcessProductUpdateStream([FromBody] ProductUpdate update)
     {
         ProductModel? product = this.productRepository.GetProduct(update.seller_id, update.product_id);
 
@@ -82,7 +84,9 @@ public class EventController : ControllerBase
             product.price = update.price;
             product.updated_at = now;
             this.productRepository.Update(product);
-            this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(update.instanceId, "PRICE_UPDATE"));
+
+            string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(update.seller_id).ToString();
+            await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(update.instanceId, TransactionType.PRICE_UPDATE));
         } else
         {
             this.productRepository.Delete(product);

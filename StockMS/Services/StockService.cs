@@ -1,4 +1,6 @@
-﻿using Common.Entities;
+﻿using Common.Driver;
+using System.Text;
+using Common.Entities;
 using Common.Events;
 using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +8,7 @@ using Microsoft.Extensions.Options;
 using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace StockMS.Services
 {
@@ -52,7 +55,8 @@ namespace StockMS.Services
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
             }
-            this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(product.instanceId, "DELETE_PRODUCT"));
+            string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(product.seller_id).ToString();
+            this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.instanceId, TransactionType.DELETE_PRODUCT));
         }
 
         public void CancelReservation(PaymentFailed payment)

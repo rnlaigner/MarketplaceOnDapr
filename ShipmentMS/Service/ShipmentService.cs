@@ -1,5 +1,6 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
+using System.Text;
+using Common.Driver;
 using Common.Entities;
 using Common.Events;
 using Dapr.Client;
@@ -8,7 +9,6 @@ using Microsoft.Extensions.Options;
 using ShipmentMS.Infra;
 using ShipmentMS.Models;
 using ShipmentMS.Repositories;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ShipmentMS.Service
 {
@@ -95,10 +95,12 @@ namespace ShipmentMS.Service
                 {
                     ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
 
+                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(paymentConfirmed.customer.CustomerId).ToString();
+
                     await Task.WhenAll(
                         this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification),
                         // publish transaction event result
-                        this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(paymentConfirmed.instanceId, "CUSTOMER_SESSION"))
+                        this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(paymentConfirmed.instanceId, TransactionType.CUSTOMER_SESSION))
                     );
                 }
 

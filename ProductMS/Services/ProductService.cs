@@ -73,10 +73,11 @@ namespace ProductMS.Services
 
                 product.updated_at = DateTime.Now;
                 product.price = update.price;
-
                 this.productRepository.Update(product);
+                txCtx.Commit();
 
-                if (config.ProductStreaming) {
+                if (config.ProductStreaming)
+                {
                     ProductUpdate productUpdate = new()
                     {
                         seller_id = product.seller_id,
@@ -87,8 +88,6 @@ namespace ProductMS.Services
                     };
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdate), productUpdate);
                 }
-
-                txCtx.Commit();
             }
         }
 

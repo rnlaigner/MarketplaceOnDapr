@@ -10,7 +10,5 @@ namespace CartMS.Infra
         public bool CartStreaming { get; set; } = true;
         public bool CheckPriceUpdateOnCheckout { get; set; } = true;
         public bool CheckIfProductExistsOnCheckout { get; set; } = true;
-        public bool SealAfterCheckout { get; set; } = false;
     }
 }
-
