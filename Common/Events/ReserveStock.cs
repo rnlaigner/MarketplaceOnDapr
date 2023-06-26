@@ -1,6 +1,4 @@
-﻿using System;
-using Common.Entities;
-using Common.Integration;
+﻿using Common.Entities;
 using Common.Requests;
 
 namespace Common.Events
@@ -13,4 +11,3 @@ namespace Common.Events
         int instanceId
     );
 }
-
