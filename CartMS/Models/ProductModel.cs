@@ -1,10 +1,9 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CartMS.Models
 {
-    [Table("products")]
+    [Table("replica_products")]
     [PrimaryKey(nameof(seller_id), nameof(product_id))]
     public class ProductModel
     {

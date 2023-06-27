@@ -1,5 +1,6 @@
 ﻿using Google.Api;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProductMS.Infra;
 using ProductMS.Repositories;
 using ProductMS.Services;
@@ -28,21 +29,6 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks();
 
-/*
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    // options.SuppressModelStateInvalidFilter = true;
-    options.InvalidModelStateResponseFactory = actionContext =>
-    {
-        // Do what you need here for specific cases with `actionContext` 
-        // I believe you can cehck the action attributes 
-        // if you'd like to make mark / handle specific cases by action attributes. 
-
-        return new BadRequestObjectResult(actionContext.ModelState);
-    };
-});
-*/
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -58,8 +44,8 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ProductDbContext>();
-    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
+    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 
 // Configure the HTTP request pipeline.

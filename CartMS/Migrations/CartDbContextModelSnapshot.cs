@@ -119,7 +119,7 @@ namespace CartMS.Migrations
 
                     b.HasKey("seller_id", "product_id");
 
-                    b.ToTable("products");
+                    b.ToTable("replica_products");
                 });
 
             modelBuilder.Entity("CartMS.Models.CartItemModel", b =>

@@ -1,4 +1,5 @@
 ﻿using Dapr.Client;
+using Microsoft.EntityFrameworkCore;
 using ShipmentMS.Infra;
 using ShipmentMS.Repositories;
 using ShipmentMS.Service;
@@ -39,14 +40,13 @@ if (app.Environment.IsDevelopment())
 app.UseCloudEvents();
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<ShipmentDbContext>();
-    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
+    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 
 app.MapControllers();

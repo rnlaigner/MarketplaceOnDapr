@@ -1,6 +1,7 @@
 ﻿using CustomerMS.Infra;
 using CustomerMS.Repositories;
 using CustomerMS.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,8 +38,8 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<CustomerDbContext>();
-    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
+    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 
 app.MapControllers();

@@ -1,7 +1,7 @@
 ﻿using StockMS.Repositories;
-using Microsoft.OpenApi.Models;
 using StockMS.Infra;
 using StockMS.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,8 +42,8 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<StockDbContext>();
-    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
+    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 
 // Configure the HTTP request pipeline.

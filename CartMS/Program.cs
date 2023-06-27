@@ -1,6 +1,7 @@
 ﻿using CartMS.Infra;
 using CartMS.Repositories;
 using CartMS.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,8 +45,8 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<CartDbContext>();
-    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
+    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 
 app.MapControllers();

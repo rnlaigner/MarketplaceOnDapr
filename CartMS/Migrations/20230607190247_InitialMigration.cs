@@ -28,7 +28,7 @@ namespace CartMS.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "products",
+                name: "replica_products",
                 columns: table => new
                 {
                     seller_id = table.Column<long>(type: "bigint", nullable: false),
@@ -45,7 +45,7 @@ namespace CartMS.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_products", x => new { x.seller_id, x.product_id });
+                    table.PrimaryKey("PK_replica_products", x => new { x.seller_id, x.product_id });
                 });
 
             migrationBuilder.CreateTable(
@@ -80,7 +80,7 @@ namespace CartMS.Migrations
                 name: "cart_items");
 
             migrationBuilder.DropTable(
-                name: "products");
+                name: "replica_products");
 
             migrationBuilder.DropTable(
                 name: "carts");

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Xml;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
 using StockMS.Models;
 
 namespace StockMS.Infra
@@ -20,7 +17,7 @@ namespace StockMS.Infra
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseNpgsql(@"Host=localhost;Port=5432;Database=stock;Username=postgres;Password=password")
+            options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .AddInterceptors(new TransactionInterceptor())
                 .UseLoggerFactory(
                     LoggerFactory.Create(

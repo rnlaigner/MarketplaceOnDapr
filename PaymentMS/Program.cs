@@ -1,4 +1,5 @@
-﻿using PaymentMS.Infra;
+﻿using Microsoft.EntityFrameworkCore;
+using PaymentMS.Infra;
 using PaymentMS.Repositories;
 using PaymentMS.Services;
 
@@ -27,16 +28,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-
-    var context = services.GetRequiredService<PaymentDbContext>();
-    context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
-}
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -45,6 +36,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCloudEvents();
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<PaymentDbContext>();
+    context.Database.EnsureCreated();
+    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
+}
 
 app.MapControllers();
 
