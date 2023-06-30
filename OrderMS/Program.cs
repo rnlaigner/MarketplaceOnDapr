@@ -2,6 +2,7 @@
 using System.Security.Authentication;
 using Google.Api;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -54,8 +55,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<OrderDbContext>();
-    context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
+    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 
 app.MapControllers();

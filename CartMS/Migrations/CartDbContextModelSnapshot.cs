@@ -106,6 +106,9 @@ namespace CartMS.Migrations
                     b.Property<decimal>("price")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal>("freight_value")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("sku")
                         .IsRequired()
                         .HasColumnType("text");

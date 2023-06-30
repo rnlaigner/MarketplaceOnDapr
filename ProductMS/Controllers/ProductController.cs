@@ -1,9 +1,6 @@
 ﻿using System.Net;
 using Common.Entities;
-using Common.Events;
-using Common.Integration;
 using Common.Requests;
-using Dapr;
 using Microsoft.AspNetCore.Mvc;
 using ProductMS.Repositories;
 using ProductMS.Services;
@@ -13,8 +10,6 @@ namespace ProductMS.Controllers;
 [ApiController]
 public class ProductController : ControllerBase
 {
-    private const string PUBSUB_NAME = "pubsub";
-
     private readonly ILogger<ProductController> logger;
     private readonly IProductRepository productRepository;
     private readonly IProductService productService;
@@ -26,12 +21,11 @@ public class ProductController : ControllerBase
         this.productRepository = productRepository;
     }
 
-    [HttpGet]
-    [Route("{sellerId}")]
+    [HttpGet("{sellerId}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(List<Product>), (int)HttpStatusCode.OK)]
-    public ActionResult<List<Product>> GetBySeller(long sellerId)
+    public ActionResult<List<Product>> GetBySellerId(long sellerId)
     {
         this.logger.LogInformation("[GetBySeller] received for seller {0}", sellerId);
         if (sellerId <= 0)
@@ -66,12 +60,11 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpGet]
-    [Route("{sellerId}/{productId}")]
+    [HttpGet("{sellerId:long}/{productId:long}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetById(long sellerId, long productId)
+    public ActionResult<Product> GetBySellerIdAndProductId(long sellerId, long productId)
     {
         this.logger.LogInformation("[GetById] received for product {0}", productId);
         if (productId <= 0)

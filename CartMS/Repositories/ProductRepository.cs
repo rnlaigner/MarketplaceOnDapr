@@ -1,8 +1,5 @@
-﻿using System;
-using CartMS.Infra;
+﻿using CartMS.Infra;
 using CartMS.Models;
-using Common.Entities;
-using Dapr.Client;
 
 namespace CartMS.Repositories
 {
@@ -14,24 +11,26 @@ namespace CartMS.Repositories
      */
     public class ProductRepository : IProductRepository
     {
-        private readonly CartDbContext cartDbContext;
+        private readonly CartDbContext dbContext;
 
         private readonly ILogger<ProductRepository> logger;
 
-        public ProductRepository(CartDbContext cartDbContext, ILogger<ProductRepository> logger)
+        public ProductRepository(CartDbContext dbContext, ILogger<ProductRepository> logger)
         {
-            this.cartDbContext = cartDbContext;
+            this.dbContext = dbContext;
             this.logger = logger;
         }
 
         public ProductModel Delete(ProductModel product)
         {
-            return cartDbContext.Products.Remove(product).Entity;
+            var track = dbContext.Products.Remove(product);
+            dbContext.SaveChanges();
+            return track.Entity;
         }
 
         public ProductModel? GetProduct(long sellerId, long productId)
         {
-            return cartDbContext.Products.Find(sellerId, productId);
+            return dbContext.Products.Find(sellerId, productId);
         }
 
         public IList<ProductModel> GetProducts(IList<(long, long)> ids)
@@ -39,7 +38,7 @@ namespace CartMS.Repositories
             List<ProductModel> products = new List<ProductModel>();
             foreach(var entry in ids)
             {
-                var res = cartDbContext.Products.Find(entry.Item1, entry.Item2);
+                var res = dbContext.Products.Find(entry.Item1, entry.Item2);
                 if (res is not null)
                     products.Add(res);
             }
@@ -48,12 +47,16 @@ namespace CartMS.Repositories
 
         public ProductModel Insert(ProductModel product)
         {
-            return cartDbContext.Products.Add(product).Entity;
+            var track = dbContext.Products.Add(product);
+            dbContext.SaveChanges();
+            return track.Entity;
         }
 
         public ProductModel Update(ProductModel product)
         {
-            return cartDbContext.Products.Update(product).Entity;
+            var track = dbContext.Products.Update(product);
+            dbContext.SaveChanges();
+            return track.Entity;
         }
     }
 }

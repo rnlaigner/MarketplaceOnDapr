@@ -1,20 +1,9 @@
-﻿using Google.Api;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ProductMS.Infra;
 using ProductMS.Repositories;
 using ProductMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// https://docs.dapr.io/developing-applications/building-blocks/state-management/howto-share-state/
-
-// Add functionality to inject IOptions<T>
-builder.Services.AddOptions();
-
-// Add our Config object so it can be injected
-IConfigurationSection configSection = builder.Configuration.GetSection("ProductConfig");
-builder.Services.Configure<ProductConfig>(configSection);
 
 builder.Services.AddDaprClient();
 
@@ -24,10 +13,17 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddControllers();
+
+builder.Services.AddHealthChecks();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHealthChecks();
+// Add functionality to inject IOptions<T>
+builder.Services.AddOptions();
+
+// Add our Config object so it can be injected
+builder.Services.Configure<ProductConfig>(builder.Configuration.GetSection("ProductConfig"));
 
 var app = builder.Build();
 
@@ -44,7 +40,6 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ProductDbContext>();
-    context.Database.EnsureCreated();
     RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 

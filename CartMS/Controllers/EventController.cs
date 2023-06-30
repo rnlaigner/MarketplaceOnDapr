@@ -55,6 +55,7 @@ public class EventController : ControllerBase
                 category = product.category,
                 description = product.description,
                 price = product.price,
+                freight_value = product.freight_value,
                 created_at = now,
                 updated_at = now,
                 status = product.status,

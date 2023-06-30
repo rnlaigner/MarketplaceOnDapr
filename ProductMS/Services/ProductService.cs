@@ -1,6 +1,5 @@
 ﻿using Common.Entities;
 using Common.Events;
-using Common.Integration;
 using Common.Requests;
 using Dapr.Client;
 using Microsoft.Extensions.Options;

@@ -43,7 +43,6 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<PaymentDbContext>();
-    context.Database.EnsureCreated();
     RelationalDatabaseFacadeExtensions.Migrate(context.Database);
 }
 

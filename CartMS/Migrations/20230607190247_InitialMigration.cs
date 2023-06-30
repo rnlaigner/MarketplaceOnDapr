@@ -38,6 +38,7 @@ namespace CartMS.Migrations
                     category = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
                     price = table.Column<decimal>(type: "numeric", nullable: false),
+                    freight_value = table.Column<decimal>(type: "numeric", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),

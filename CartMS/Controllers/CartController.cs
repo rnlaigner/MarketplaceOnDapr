@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using CartMS.Models;
 using CartMS.Repositories;
 using CartMS.Services;
 using Common.Entities;
-using Common.Events;
-using Common.Integration;
 using Common.Requests;
 using Microsoft.AspNetCore.Mvc;
 
