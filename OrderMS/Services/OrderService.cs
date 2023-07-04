@@ -183,8 +183,7 @@ namespace OrderMS.Handlers
                 {
                     order_id = orderPersisted.id,
                     created_at = newOrder.created_at,
-                    status = OrderStatus.INVOICED,
-                    // data = JsonSerializer.Serialize(checkout.customerCheckout)
+                    status = OrderStatus.INVOICED
                 });
 
                 this.dbContext.SaveChanges();

@@ -1,12 +1,5 @@
-﻿using System;
-using Common.Entities;
-using Dapr.Client;
-using CartMS.Controllers;
-using Common.Events;
-using System.Net;
-using CartMS.Infra;
+﻿using CartMS.Infra;
 using CartMS.Models;
-using static Grpc.Core.Metadata;
 
 namespace CartMS.Repositories
 {
@@ -41,6 +34,8 @@ namespace CartMS.Repositories
 
         public CartModel Insert(CartModel cart)
         {
+            cart.created_at = DateTime.Now;
+            cart.updated_at = cart.created_at;
             var f = dbContext.Add(cart);
             dbContext.SaveChanges();
             return f.Entity;

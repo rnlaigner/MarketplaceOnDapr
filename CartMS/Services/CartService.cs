@@ -38,13 +38,23 @@ namespace CartMS.Services
 
         public void Seal(CartModel cart, bool cleanItems = true)
         {
-            cart.status = CartStatus.OPEN;
             if (cleanItems)
             {
                 cartRepository.DeleteItems(cart.customer_id);
             }
             cart.updated_at = DateTime.UtcNow;
-            this.cartRepository.Update(cart);   
+            this.cartRepository.Update(cart);
+        }
+
+        public void SaveHistory(CartModel cart, List<CartItem> items)
+        {
+            CartHistoryModel cartHistory = new CartHistoryModel();
+            cartHistory.customer_id = cart.customer_id;
+            cartHistory.status = CartStatus.CHECKOUT_SENT;
+            cartHistory.created_at = DateTime.Now;
+            cartHistory.items = items;
+            dbContext.CartHistory.Add(cartHistory);
+            dbContext.SaveChanges();
         }
 
         private static readonly decimal[] emptyArray = Array.Empty<decimal>();
@@ -53,9 +63,6 @@ namespace CartMS.Services
         {
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                cart.status = CartStatus.CHECKOUT_SENT;
-                this.cartRepository.Update(cart);
-
                 IList<CartItemModel> items = cartRepository.GetItems(cart.customer_id);
 
                 var cartItems = items.Select(i => new CartItem()
@@ -70,6 +77,9 @@ namespace CartMS.Services
                 }).ToList();
 
                 this.Seal(cart);
+
+                this.SaveHistory(cart, cartItems);
+
                 txCtx.Commit();
 
                 if (config.CartStreaming)
@@ -107,6 +117,13 @@ namespace CartMS.Services
                             divergencies.Add(new ProductStatus(product.product_id, ItemStatus.PRICE_DIVERGENCE, product.price, currPrice));
                         }
                     }
+
+                    if(divergencies.Count() > 0)
+                    {
+                        cart.status = CartStatus.PRODUCT_DIVERGENCE;
+                        cartRepository.Update(cart);
+                    }
+
                     txCtx.Commit();
                 }
             }

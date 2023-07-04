@@ -9,6 +9,8 @@ namespace CartMS.Infra
         public DbSet<CartItemModel> CartItems => Set<CartItemModel>();
         public DbSet<ProductModel> Products => Set<ProductModel>();
 
+        public DbSet<CartHistoryModel> CartHistory => Set<CartHistoryModel>();
+
         private readonly IConfiguration configuration;
 
         public CartDbContext(IConfiguration configuration)
@@ -30,6 +32,18 @@ namespace CartMS.Infra
             modelBuilder.Entity<CartModel>()
                  .Property(e => e.status)
                  .HasConversion<string>();
+
+            modelBuilder.HasSequence<long>("CartHistorySeq").IncrementsBy(1).StartsAt(1);
+
+            modelBuilder.Entity<CartHistoryModel>()
+                .Property(o => o.id)
+                .UseIdentityAlwaysColumn()
+                .HasDefaultValueSql("nextval('\"CartHistorySeq\"')");
+
+            modelBuilder.Entity<CartHistoryModel>()
+                 .Property(e => e.status)
+                 .HasConversion<string>();
+
         }
 
     }

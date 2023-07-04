@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace Common.Entities
 {
@@ -20,7 +18,9 @@ namespace Common.Entities
         public List<ProductStatus>? divergencies { get; set; }
 
         // for dapr
-        public Cart() { }
+        public Cart() {
+            this.status = CartStatus.OPEN;
+        }
 
         public override string ToString()
         {
