@@ -1,14 +1,7 @@
-﻿using System;
-using System.Net;
-using OrderMS.Repositories;
-using Common.Entities;
-using Common.Events;
+﻿using Common.Events;
 using Dapr;
-using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
-using OrderMS.Common.Repositories;
 using Microsoft.Extensions.Logging;
-using OrderMS.Handlers;
 using OrderMS.Services;
 using System.Threading.Tasks;
 

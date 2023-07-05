@@ -1,6 +1,5 @@
 ﻿using Common.Entities;
 using System.Net;
-using Common.Events;
 using Microsoft.AspNetCore.Mvc;
 using SellerMS.DTO;
 using SellerMS.Services;

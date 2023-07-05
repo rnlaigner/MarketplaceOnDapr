@@ -1,10 +1,6 @@
 ﻿using System.Net;
-using System.Text.Json;
 using Common.Entities;
 using Common.Events;
-using Dapr;
-using Dapr.AspNetCore;
-using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using StockMS.Models;
 using StockMS.Repositories;
@@ -15,7 +11,6 @@ namespace StockMS.Controllers;
 [ApiController]
 public class StockController : ControllerBase
 {
-    private const string PUBSUB_NAME = "pubsub";
 
     private readonly IStockService stockService;
 
@@ -83,6 +78,15 @@ public class StockController : ControllerBase
             });
         
         return NotFound();
+    }
+
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        this.stockService.Cleanup();
+        return Ok();
     }
 
 }

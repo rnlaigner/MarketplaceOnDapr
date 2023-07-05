@@ -2,7 +2,6 @@
 using System.Net;
 using Common.Events;
 using Dapr;
-using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using ShipmentMS.Service;
 using ShipmentMS.Repositories;

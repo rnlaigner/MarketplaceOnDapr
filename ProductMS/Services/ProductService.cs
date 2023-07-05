@@ -2,6 +2,7 @@
 using Common.Events;
 using Common.Requests;
 using Dapr.Client;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ProductMS.Infra;
 using ProductMS.Models;
@@ -109,5 +110,11 @@ namespace ProductMS.Services
             }   
         }
 
-	}
+        public void Cleanup()
+        {
+            this.dbContext.Products.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
+    }
 }

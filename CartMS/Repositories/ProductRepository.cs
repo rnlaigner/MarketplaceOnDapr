@@ -3,12 +3,6 @@ using CartMS.Models;
 
 namespace CartMS.Repositories
 {
-    /**
-     * Represents the repository of replicated products
-     * The format P|{productId} is used to differentiate 
-     * from possible clashes with the cart, that uses
-     * customerId as key
-     */
     public class ProductRepository : IProductRepository
     {
         private readonly CartDbContext dbContext;

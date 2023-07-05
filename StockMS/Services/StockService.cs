@@ -3,12 +3,11 @@ using System.Text;
 using Common.Entities;
 using Common.Events;
 using Dapr.Client;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.EntityFrameworkCore;
 
 namespace StockMS.Services
 {
@@ -54,9 +53,14 @@ namespace StockMS.Services
                 this.dbContext.Update(stockItem);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
+                if (config.StockStreaming)
+                {
+                    this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", product.instanceId, product.product_id);
+                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(product.seller_id).ToString();
+                    this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.instanceId, TransactionType.DELETE_PRODUCT));
+                }
             }
-            string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(product.seller_id).ToString();
-            this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.instanceId, TransactionType.DELETE_PRODUCT));
+           
         }
 
         public void CancelReservation(PaymentFailed payment)
@@ -140,7 +144,7 @@ namespace StockMS.Services
                     return;
                 }
 
-                List<ProductStatus> unavailable = new();
+                List<ProductStatus> unavailableItems = new();
                 List<CartItem> itemsReserved = new();
 
                 foreach (var item in checkout.items)
@@ -148,7 +152,7 @@ namespace StockMS.Services
 
                     if (!stockItems.ContainsKey((item.SellerId,item.ProductId)) || !stockItems[(item.SellerId, item.ProductId)].active)
                     {
-                        unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
+                        unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
                         continue;
                     }
 
@@ -158,7 +162,7 @@ namespace StockMS.Services
                     // dbms will also check due to the constraint
                     if (stockItem.qty_available < (stockItem.qty_reserved + item.Quantity))
                     {
-                        unavailable.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
+                        unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
                         continue;
                     }
                             
@@ -173,7 +177,6 @@ namespace StockMS.Services
                     this.dbContext.UpdateRange(items);
                     int entriesWritten = this.dbContext.SaveChanges();
                     logger.LogInformation("[ReserveStockAsync] Entries written: {0}", entriesWritten);
-
                 }
 
                 txCtx.Commit();
@@ -189,11 +192,11 @@ namespace StockMS.Services
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
                     }
 
-                    if (unavailable.Count() > 0)
+                    if (unavailableItems.Count() > 0)
                     {
                         // notify cart and customer
                         ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
-                            unavailable, checkout.instanceId);
+                            unavailableItems, checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
                     }
 
@@ -202,7 +205,7 @@ namespace StockMS.Services
             }
         }
 
-        public async Task CreateStockItem(StockItem stockItem)
+        public Task CreateStockItem(StockItem stockItem)
         {
             var stockItemModel = new StockItemModel()
             {
@@ -222,11 +225,12 @@ namespace StockMS.Services
                 txCtx.Commit();
             }
 
+            return Task.CompletedTask;
             // publish stock info
-            if (config.StockStreaming)
-            {
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
-            }
+            //if (config.StockStreaming)
+            //{
+            //    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
+            //}
         }
 
         public async Task IncreaseStock(IncreaseStock increaseStock)
@@ -262,6 +266,13 @@ namespace StockMS.Services
                 txCtx.Commit();
             }
         }
+
+        public void Cleanup()
+        {
+            this.dbContext.StockItems.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
     }
 
 }

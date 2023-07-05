@@ -17,6 +17,8 @@ namespace StockMS.Services
         Task CreateStockItem(StockItem stockItem);
 
         Task IncreaseStock(IncreaseStock increaseStock);
+
+        void Cleanup();
     }
 }
 

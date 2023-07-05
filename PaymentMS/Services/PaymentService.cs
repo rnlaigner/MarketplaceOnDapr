@@ -1,15 +1,11 @@
-﻿using System;
-using Common.Entities;
+﻿using Common.Entities;
 using Common.Events;
 using Dapr.Client;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PaymentMS.Infra;
 using Common.Integration;
 using PaymentMS.Models;
-using PaymentMS.Repositories;
 using System.Globalization;
-using System.Buffers.Text;
 
 namespace PaymentMS.Services
 {

@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 using OrderMS.Common.Repositories;
 using System.Text;
 using System.Globalization;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using OrderMS.Services;
 using Microsoft.Extensions.Options;
 using OrderMS.Common.Infra;
@@ -103,7 +101,7 @@ namespace OrderMS.Handlers
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var now = System.DateTime.Now;
+                var now = DateTime.Now;
 
                 // calculate total freight_value
                 decimal total_freight = 0;

@@ -121,6 +121,15 @@ public class CartController : ControllerBase
         return Accepted();
     }
 
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        this.cartService.Cleanup();
+        return Ok();
+    }
+
     [Route("{customerId}/seal")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]

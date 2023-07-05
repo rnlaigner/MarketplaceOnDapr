@@ -12,5 +12,6 @@ namespace ProductMS.Services
         Task ProcessNewProduct(Product productToUpdate);
         Task ProcessDelete(DeleteProduct productToDelete);
         Task ProcessUpdate(UpdatePrice update);
+        void Cleanup();
     }
 }

@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SellerMS.Models
+﻿namespace SellerMS.Models
 {
     /*
     [Table("product_entries")]

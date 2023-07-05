@@ -1,5 +1,4 @@
-﻿using Common.Entities;
-using Common.Events;
+﻿using Common.Events;
 using Dapr;
 using Microsoft.AspNetCore.Mvc;
 using SellerMS.Services;
@@ -54,14 +53,14 @@ public class EventController : ControllerBase
     //    this.sellerService.ProcessProductUpdate(product);
     //}
 
-    [HttpPost("ProcessStockItem")]
-    [Topic(PUBSUB_NAME, nameof(StockItem))]
-    public ActionResult ProcessStockItem([FromBody] StockItem stockItem)
-    {
-        this.logger.LogInformation("[StockItem] received for item ID {0}.", stockItem.product_id);
-        this.sellerService.ProcessStockItem(stockItem);
-        return Ok();
-    }
+    //[HttpPost("ProcessStockItem")]
+    //[Topic(PUBSUB_NAME, nameof(StockItem))]
+    //public ActionResult ProcessStockItem([FromBody] StockItem stockItem)
+    //{
+    //    this.logger.LogInformation("[StockItem] received for item ID {0}.", stockItem.product_id);
+    //    this.sellerService.ProcessStockItem(stockItem);
+    //    return Ok();
+    //}
 
     [HttpPost("ProcessShipmentNotification")]
     [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]

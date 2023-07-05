@@ -1,12 +1,11 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using CartMS.Infra;
+﻿using CartMS.Infra;
 using CartMS.Models;
 using CartMS.Repositories;
 using Common.Entities;
 using Common.Events;
-using Common.Integration;
 using Common.Requests;
 using Dapr.Client;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace CartMS.Services
@@ -139,5 +138,13 @@ namespace CartMS.Services
             return divergencies;
         }
 
+        public void Cleanup()
+        {
+            // this.dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE carts");
+            this.dbContext.Carts.ExecuteDelete();
+            this.dbContext.CartItems.ExecuteDelete();
+            this.dbContext.Products.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
     }
 }

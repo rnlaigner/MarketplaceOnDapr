@@ -111,7 +111,7 @@ public class ProductController : ControllerBase
         return StatusCode((int)HttpStatusCode.Created);
     }
 
-    [HttpPut]
+    [HttpPatch]
     [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
@@ -119,6 +119,15 @@ public class ProductController : ControllerBase
     {
         await this.productService.ProcessUpdate(update);
         return Accepted();
+    }
+
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        this.productService.Cleanup();
+        return Ok();
     }
 
 }

@@ -1,10 +1,7 @@
-﻿using System.Transactions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SellerMS.Models;
 using Laraue.EfCoreTriggers.PostgreSql.Extensions;
-using Google.Api;
 using Laraue.EfCoreTriggers.Common.Extensions;
-using Common.Utils;
 using Common.Entities;
 
 namespace SellerMS.Infra
@@ -31,8 +28,8 @@ namespace SellerMS.Infra
                                                             $"AS SELECT seller_id, COUNT(DISTINCT order_id) as count_orders, COUNT(product_id) as count_items, SUM(total_amount) as total_amount, SUM(freight_value) as total_freight, " +
                                                             $"SUM(total_items - total_amount) as total_incentive, SUM(total_invoice) as total_invoice, SUM(total_items) as total_items " +
                                                             $"FROM order_entries " +
-                                                            $"WHERE order_status = \'{OrderStatus.INVOICED.ToString()}\' OR order_status = \'{OrderStatus.PAYMENT_PROCESSED.ToString()}\' " +
-                                                            $"OR order_status = \'{OrderStatus.READY_FOR_SHIPMENT.ToString()}\' OR order_status = \'{OrderStatus.IN_TRANSIT.ToString()}\' GROUP BY seller_id";
+                                                            $"WHERE order_status = \'{OrderStatus.INVOICED}\' OR order_status = \'{OrderStatus.PAYMENT_PROCESSED}\' " +
+                                                            $"OR order_status = \'{OrderStatus.READY_FOR_SHIPMENT}\' OR order_status = \'{OrderStatus.IN_TRANSIT}\' GROUP BY seller_id";
 
         public const string OrderSellerViewSqlIndex = $"CREATE UNIQUE INDEX IF NOT EXISTS order_seller_index ON {nameof(Models.OrderSellerView)} (seller_id)";
 
@@ -58,7 +55,7 @@ namespace SellerMS.Infra
             // https://stackoverflow.com/questions/60285154/how-to-set-partial-index-with-npgsql
             modelBuilder.Entity<OrderEntry>(e =>
             {
-                e.HasIndex(oe => oe.order_status, "order_entry_open_idx").HasFilter($"order_status = \'{OrderStatus.INVOICED.ToString()}\' OR order_status = \'{OrderStatus.PAYMENT_PROCESSED.ToString()}\' OR order_status = \'{OrderStatus.READY_FOR_SHIPMENT.ToString()}\' OR order_status = \'{OrderStatus.IN_TRANSIT.ToString()}\'");
+                e.HasIndex(oe => oe.order_status, "order_entry_open_idx").HasFilter($"order_status = \'{OrderStatus.INVOICED}\' OR order_status = \'{OrderStatus.PAYMENT_PROCESSED}\' OR order_status = \'{OrderStatus.READY_FOR_SHIPMENT}\' OR order_status = \'{OrderStatus.IN_TRANSIT}\'");
                 e.Property(e => e.order_status)
                        .HasConversion<string>();
                 e.Property(e => e.delivery_status)

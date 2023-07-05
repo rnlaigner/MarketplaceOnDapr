@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Common.Events;
 using Dapr;
-using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using PaymentMS.Models;
 using PaymentMS.Repositories;
@@ -27,7 +26,7 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("ProcessPayment")]
-    [Topic(PUBSUB_NAME, nameof(Common.Events.InvoiceIssued))]
+    [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
     public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued invoice)
     {
         this.logger.LogInformation("[InvoiceIssued] received for order ID {0}.", invoice.orderId);

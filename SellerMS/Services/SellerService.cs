@@ -1,12 +1,8 @@
-﻿using System.Security.Cryptography;
-using Common.Entities;
+﻿using Common.Entities;
 using Common.Events;
-using Dapr.Client;
-using Microsoft.EntityFrameworkCore;
 using SellerMS.DTO;
 using SellerMS.Infra;
 using SellerMS.Models;
-using SellerMS.Repositories;
 
 namespace SellerMS.Services
 {

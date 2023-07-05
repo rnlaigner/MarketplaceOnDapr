@@ -1,9 +1,5 @@
-﻿using System;
-using Common.Entities;
-using Common.Events;
+﻿using Common.Events;
 using Dapr;
-using Dapr.AspNetCore;
-using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
 using StockMS.Services;
 
@@ -34,23 +30,15 @@ namespace StockMS.Controllers
         }
 
         [HttpPost("ProcessPaymentConfirmed")]
-        [Topic(PUBSUB_NAME, nameof(PaymentConfirmed), DeadLetterTopic ="failedConfirmReservation")]
+        [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
         public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
         {
             this.stockService.ConfirmReservation(paymentConfirmed);
             return Ok();
         }
 
-        [HttpPost("failedConfirmReservation")]
-        [Topic(PUBSUB_NAME, "failedConfirmReservation")]
-        public ActionResult ProcessFailedPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
-        {
-            logger.LogWarning("[ProcessFailedPaymentConfirmed] Confirming that the PaymentConfirmed event has been forwarded to the dead letter topic.");
-            return Ok();
-        }
-
         [HttpPost("ProcessPaymentFailed")]
-        [Topic(PUBSUB_NAME, nameof(PaymentFailed), DeadLetterTopic = "failedCancelReservation")]
+        [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
         public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
         {
             this.stockService.CancelReservation(paymentFailed);

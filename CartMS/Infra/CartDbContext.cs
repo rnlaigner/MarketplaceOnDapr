@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using CartMS.Models;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CartMS.Infra
 {
