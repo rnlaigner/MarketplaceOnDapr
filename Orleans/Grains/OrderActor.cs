@@ -43,8 +43,8 @@ namespace Orleans.Grains
 
             foreach (var item in reserveStock.items)
             {
-                var stockActor = GrainFactory.GetGrain<IStockActor>(item.ProductId);
-                statusResp.Add(stockActor.AttemptReservation(item.ProductId, item.Quantity));
+                var stockActor = GrainFactory.GetGrain<IStockActor>(item.SellerId, item.ProductId.ToString(), null);
+                statusResp.Add(stockActor.AttemptReservation(item.Quantity));
             }
 
             await Task.WhenAll(statusResp);
@@ -56,8 +56,8 @@ namespace Orleans.Grains
                 if (statusResp[idx].Result == ItemStatus.IN_STOCK)
                 {
                     itemsToCheckout.Add(item);
-                    var stockActor = GrainFactory.GetGrain<IStockActor>(item.ProductId);
-                    stockTasks.Add(stockActor.ConfirmReservation(item.ProductId, item.Quantity));
+                    var stockActor = GrainFactory.GetGrain<IStockActor>(item.SellerId, item.ProductId.ToString(), null);
+                    stockTasks.Add(stockActor.ConfirmReservation(item.Quantity));
                 }
             }
 

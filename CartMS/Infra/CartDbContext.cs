@@ -8,7 +8,6 @@ namespace CartMS.Infra
         public DbSet<CartModel> Carts => Set<CartModel>();
         public DbSet<CartItemModel> CartItems => Set<CartItemModel>();
         public DbSet<ProductModel> Products => Set<ProductModel>();
-
         public DbSet<CartHistoryModel> CartHistory => Set<CartHistoryModel>();
 
         private readonly IConfiguration configuration;

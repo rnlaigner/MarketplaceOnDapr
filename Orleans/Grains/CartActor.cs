@@ -19,7 +19,7 @@ namespace Orleans.Grains
 
         public CartActor([PersistentState(
             stateName: "cart",
-            storageName: "OrleansStorage")] IPersistentState<Cart> state, 
+            storageName: Infra.Constants.storage)] IPersistentState<Cart> state, 
             ILogger<CartActor> _logger)
         {
             this.cart = state;

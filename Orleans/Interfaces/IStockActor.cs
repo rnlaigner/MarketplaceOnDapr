@@ -2,13 +2,13 @@
 
 namespace Orleans.Interfaces
 {
-    public interface IStockActor : IGrainWithIntegerKey
+    public interface IStockActor : IGrainWithIntegerCompoundKey
     {
-        public Task<ItemStatus> AttemptReservation(long productId, int quantity);
-        public Task CancelReservation(long productId, int quantity);
-        public Task ConfirmReservation(long productId, int quantity);
+        public Task<ItemStatus> AttemptReservation(int quantity);
+        public Task CancelReservation(int quantity);
+        public Task ConfirmReservation(int quantity);
 
-        public Task DeleteItem(long productId);
+        public Task DeleteItem();
 
         public Task AddItem(StockItem item);
 

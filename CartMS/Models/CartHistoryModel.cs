@@ -19,7 +19,7 @@ namespace CartMS.Models
         public DateTime created_at { get; set; }
 
         [Column(TypeName = "jsonb")]
-        public List<CartItem>? items { get; set; }
+        public List<CartItem> items { get; set; } = new();
 
         public CartHistoryModel() { }
     }

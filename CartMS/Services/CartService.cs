@@ -52,7 +52,7 @@ namespace CartMS.Services
             cartHistory.customer_id = cart.customer_id;
             cartHistory.status = CartStatus.CHECKOUT_SENT;
             cartHistory.created_at = DateTime.Now;
-            cartHistory.items = items;
+            cartHistory.items.AddRange(items);
             dbContext.CartHistory.Add(cartHistory);
             dbContext.SaveChanges();
         }
@@ -161,6 +161,7 @@ namespace CartMS.Services
             this.dbContext.Carts.ExecuteDelete();
             this.dbContext.CartItems.ExecuteDelete();
             this.dbContext.Products.ExecuteDelete();
+            this.dbContext.CartHistory.ExecuteDelete();
             this.dbContext.SaveChanges();
         }
 

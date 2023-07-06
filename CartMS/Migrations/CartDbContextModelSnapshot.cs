@@ -19,7 +19,7 @@ namespace CartMS.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "7.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -42,6 +42,7 @@ namespace CartMS.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<List<CartItem>>("items")
+                        .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<string>("status")

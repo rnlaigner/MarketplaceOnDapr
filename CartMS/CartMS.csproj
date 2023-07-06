@@ -26,9 +26,11 @@
     <None Remove="Models\" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Repositories\" />
     <Folder Include="Infra\" />
     <Folder Include="Services\" />
+	<Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

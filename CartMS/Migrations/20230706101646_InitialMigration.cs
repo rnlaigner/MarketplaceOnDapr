@@ -26,7 +26,7 @@ namespace CartMS.Migrations
                     customer_id = table.Column<long>(type: "bigint", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    items = table.Column<List<CartItem>>(type: "jsonb", nullable: true)
+                    items = table.Column<List<CartItem>>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
