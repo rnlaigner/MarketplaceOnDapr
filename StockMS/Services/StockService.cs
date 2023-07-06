@@ -56,8 +56,8 @@ namespace StockMS.Services
                 if (config.StockStreaming)
                 {
                     this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", product.instanceId, product.product_id);
-                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(product.seller_id).ToString();
-                    this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.instanceId, TransactionType.DELETE_PRODUCT));
+                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
+                    this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.instanceId, TransactionType.DELETE_PRODUCT, product.seller_id));
                 }
             }
            

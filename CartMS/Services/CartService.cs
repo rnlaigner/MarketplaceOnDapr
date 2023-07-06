@@ -1,12 +1,16 @@
-﻿using CartMS.Infra;
+﻿using System.Text;
+using CartMS.Infra;
 using CartMS.Models;
 using CartMS.Repositories;
+using Common.Driver;
 using Common.Entities;
 using Common.Events;
 using Common.Requests;
 using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CartMS.Services
 {
@@ -140,11 +144,47 @@ namespace CartMS.Services
 
         public void Cleanup()
         {
-            // this.dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE carts");
             this.dbContext.Carts.ExecuteDelete();
             this.dbContext.CartItems.ExecuteDelete();
             this.dbContext.Products.ExecuteDelete();
             this.dbContext.SaveChanges();
+        }
+
+        public async Task ProcessProductUpdate(ProductUpdate productUpdate)
+        {
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                ProductModel? product = this.productRepository.GetProduct(productUpdate.seller_id, productUpdate.product_id);
+                if (product is null)
+                {
+                    this.logger.LogWarning("[ProcessProductUpdateStream] Cannot find seller {0} product ID {0}", productUpdate.seller_id, productUpdate.product_id);
+                    return;
+                }
+
+                var now = DateTime.Now;
+                if (productUpdate.active)
+                {
+                    product.price = productUpdate.price;
+                    product.updated_at = now;
+                    this.productRepository.Update(product);
+                }
+                else
+                {
+                    this.productRepository.Delete(product);
+                }
+
+                txCtx.Commit();
+
+                if (config.CartStreaming && productUpdate.active)
+                {
+                    this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, product.product_id);
+                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.PRICE_UPDATE, productUpdate.seller_id));
+                }
+
+                this.logger.LogInformation("[ProcessProductStream] completed for seller {0} product {1}", productUpdate.seller_id, productUpdate.product_id);
+
+            }
         }
     }
 }

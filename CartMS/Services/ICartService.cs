@@ -1,5 +1,6 @@
 ﻿using CartMS.Models;
 using Common.Entities;
+using Common.Events;
 using Common.Requests;
 
 namespace CartMS.Services
@@ -14,6 +15,8 @@ namespace CartMS.Services
         List<ProductStatus> CheckCartForDivergencies(CartModel cart);
 
         void Cleanup();
+
+        Task ProcessProductUpdate(ProductUpdate updatePrice);
     }
 }
 

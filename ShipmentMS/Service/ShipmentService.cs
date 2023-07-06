@@ -95,12 +95,12 @@ namespace ShipmentMS.Service
                 {
                     ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
 
-                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(paymentConfirmed.customer.CustomerId).ToString();
+                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
 
                     await Task.WhenAll(
                         this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification),
                         // publish transaction event result
-                        this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(paymentConfirmed.instanceId, TransactionType.CUSTOMER_SESSION))
+                        this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(paymentConfirmed.instanceId, TransactionType.CUSTOMER_SESSION, paymentConfirmed.customer.CustomerId))
                     );
                 }
 

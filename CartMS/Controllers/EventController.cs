@@ -1,8 +1,6 @@
-﻿using System.Text;
-using CartMS.Models;
+﻿using CartMS.Models;
 using CartMS.Repositories;
 using CartMS.Services;
-using Common.Driver;
 using Common.Entities;
 using Common.Events;
 using Dapr;
@@ -66,29 +64,7 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(ProductUpdate))]
     public async Task<ActionResult> ProcessProductUpdateStream([FromBody] ProductUpdate update)
     {
-        ProductModel? product = this.productRepository.GetProduct(update.seller_id, update.product_id);
-
-        if(product is null)
-        {
-            this.logger.LogWarning("[ProcessProductUpdateStream] Cannot find seller {0} product ID {0}", update.seller_id, update.product_id);
-            return Ok();
-        }
-
-        var now = DateTime.Now;
-        if (update.active)
-        {
-            product.price = update.price;
-            product.updated_at = now;
-            this.productRepository.Update(product);
-
-            this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", update.instanceId, product.product_id);
-            string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(update.seller_id).ToString();
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(update.instanceId, TransactionType.PRICE_UPDATE));
-        } else
-        {
-            this.productRepository.Delete(product);
-        }
-        this.logger.LogInformation("[ProcessProductStream] completed for product ID {0}", product.product_id);
+        await this.cartService.ProcessProductUpdate(update);
         return Ok();
     }
 
