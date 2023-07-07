@@ -45,5 +45,14 @@ public class PaymentController : ControllerBase
         return res is not null ? Ok( res ) : NotFound();
     }
 
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        this.paymentService.Cleanup();
+        return Ok();
+    }
+
 }
 

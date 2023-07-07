@@ -338,6 +338,15 @@ namespace OrderMS.Handlers
             }
         }
 
+        public void Cleanup()
+        {
+            this.dbContext.OrderItems.ExecuteDelete();
+            this.dbContext.Orders.ExecuteDelete();
+            this.dbContext.OrderHistory.ExecuteDelete();
+            this.dbContext.CustomerOrders.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
     }
 }
 

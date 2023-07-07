@@ -1,5 +1,4 @@
-﻿using System;
-using Common.Events;
+﻿using Common.Events;
 
 namespace ShipmentMS.Service
 {
@@ -8,6 +7,8 @@ namespace ShipmentMS.Service
         public Task ProcessShipment(PaymentConfirmed paymentResult);
 
         public Task UpdateShipment(int instanceId);
+
+        void Cleanup();
     }
 }
 

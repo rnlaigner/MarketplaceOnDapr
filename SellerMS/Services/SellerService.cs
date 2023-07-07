@@ -1,5 +1,6 @@
 ﻿using Common.Entities;
 using Common.Events;
+using Microsoft.EntityFrameworkCore;
 using SellerMS.DTO;
 using SellerMS.Infra;
 using SellerMS.Models;
@@ -221,7 +222,14 @@ namespace SellerMS.Services
                                                                oe.order_status == OrderStatus.IN_TRANSIT || oe.order_status == OrderStatus.PAYMENT_PROCESSED)).ToList()
                 );
             }
-
         }
+
+        public void Reset()
+        {
+            this.dbContext.OrderEntries.ExecuteDelete();
+            this.dbContext.OrderEntryDetails.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
     }
 }

@@ -1,8 +1,6 @@
-﻿using System;
-using Common.Entities;
+﻿using Common.Entities;
 using Common.Events;
 using SellerMS.DTO;
-using SellerMS.Models;
 
 namespace SellerMS.Services
 {
@@ -17,6 +15,8 @@ namespace SellerMS.Services
         void ProcessStockItem(StockItem stockItem);
 
         SellerDashboard QueryDashboard(long sellerId);
+
+        void Reset();
     }
 }
 

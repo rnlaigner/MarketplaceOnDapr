@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using CustomerMS.Models;
-using Google.Api;
+﻿using CustomerMS.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace CustomerMS.Infra
 {
@@ -18,10 +14,6 @@ namespace CustomerMS.Infra
         {
             this.configuration = configuration;
         }
-
-        public CustomerDbContext()
-		{
-		}
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {

@@ -17,6 +17,8 @@ namespace CartMS.Services
         void Cleanup();
 
         Task ProcessProductUpdate(ProductUpdate updatePrice);
+
+        void Reset();
     }
 }
 

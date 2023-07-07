@@ -130,4 +130,13 @@ public class ProductController : ControllerBase
         return Ok();
     }
 
+    [Route("/reset")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Reset()
+    {
+        this.productService.Reset();
+        return Ok();
+    }
+
 }

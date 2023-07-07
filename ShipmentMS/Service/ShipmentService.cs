@@ -187,5 +187,12 @@ namespace ShipmentMS.Service
             await Task.WhenAll(tasks);
         }
 
+        public void Cleanup()
+        {
+            this.dbContext.Packages.ExecuteDelete();
+            this.dbContext.Shipments.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
     }
 }

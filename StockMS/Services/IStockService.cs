@@ -1,6 +1,5 @@
 ﻿using Common.Entities;
 using Common.Events;
-using StockMS.Models;
 
 namespace StockMS.Services
 {
@@ -19,6 +18,8 @@ namespace StockMS.Services
         Task IncreaseStock(IncreaseStock increaseStock);
 
         void Cleanup();
+
+        void Reset();
     }
 }
 

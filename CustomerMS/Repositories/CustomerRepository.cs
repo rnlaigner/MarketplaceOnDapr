@@ -1,16 +1,10 @@
-﻿using System;
-using Common.Entities;
-using Common.Events;
-using System.Security.Cryptography.X509Certificates;
-using Dapr.Client;
-using CustomerMS.Infra;
+﻿using CustomerMS.Infra;
 using CustomerMS.Models;
 
 namespace CustomerMS.Repositories
 {
 	public class CustomerRepository : ICustomerRepository
     {
-
         private readonly CustomerDbContext dbContext;
 
         public CustomerRepository(CustomerDbContext customerDbContext)

@@ -89,4 +89,13 @@ public class StockController : ControllerBase
         return Ok();
     }
 
+    [Route("/reset")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Reset()
+    {
+        this.stockService.Reset();
+        return Ok();
+    }
+
 }

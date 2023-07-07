@@ -116,5 +116,11 @@ namespace ProductMS.Services
             this.dbContext.SaveChanges();
         }
 
+        public void Reset()
+        {
+            this.dbContext.Database.ExecuteSqlRaw("UPDATE products SET active=true");
+            this.dbContext.SaveChanges();
+        }
+
     }
 }

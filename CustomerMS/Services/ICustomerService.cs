@@ -1,6 +1,4 @@
-﻿using System;
-using Common.Entities;
-using Common.Events;
+﻿using Common.Events;
 
 namespace CustomerMS.Services
 {
@@ -9,6 +7,7 @@ namespace CustomerMS.Services
         void ProcessDeliveryNotification(DeliveryNotification paymentConfirmed);
         void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
         void ProcessPaymentFailed(PaymentFailed paymentFailed);
+        void Reset();
     }
 }
 

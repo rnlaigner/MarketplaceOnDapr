@@ -13,6 +13,7 @@ namespace OrderMS.Services
         public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
 
         public void ProcessPaymentFailed(PaymentFailed paymentFailed);
+        void Cleanup();
     }
 }
 

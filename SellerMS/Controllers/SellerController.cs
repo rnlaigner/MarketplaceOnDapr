@@ -84,4 +84,14 @@ public class SellerController : ControllerBase
         return Ok(dash);
     }
 
+
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Reset()
+    {
+        this.sellerService.Reset();
+        return Ok();
+    }
+
 }

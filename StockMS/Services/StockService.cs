@@ -273,6 +273,11 @@ namespace StockMS.Services
             this.dbContext.SaveChanges();
         }
 
+        public void Reset()
+        {
+            this.dbContext.Database.ExecuteSqlRaw("UPDATE stock_items SET active=true, qty_reserved=0, qty_available=10000");
+            this.dbContext.SaveChanges();
+        }
     }
 
 }

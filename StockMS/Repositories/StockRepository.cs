@@ -1,7 +1,4 @@
-﻿using System.Text;
-using Common.Entities;
-using Microsoft.EntityFrameworkCore;
-using StockMS.Infra;
+﻿using StockMS.Infra;
 using StockMS.Models;
 
 namespace StockMS.Repositories

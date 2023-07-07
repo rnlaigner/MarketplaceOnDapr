@@ -1,15 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using Common.Entities;
-using Common.Events;
 using Microsoft.AspNetCore.Mvc;
-using OrderMS.Handlers;
-using OrderMS.Infra;
-using OrderMS.Common.Models;
-using OrderMS.Repositories;
 using Microsoft.Extensions.Logging;
 using OrderMS.Common.Repositories;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using OrderMS.Services;
 
@@ -35,6 +29,15 @@ public class OrderController : ControllerBase
     {
         // TODO parse http to get filters
         return Ok(this.orderRepository.GetByCustomerId(customerId));
+    }
+
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        this.orderService.Cleanup();
+        return Ok();
     }
 
 }

@@ -75,4 +75,13 @@ public class ShipmentController : ControllerBase
         return Accepted();
     }
 
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        this.shipmentService.Cleanup();
+        return Ok();
+    }
+
 }

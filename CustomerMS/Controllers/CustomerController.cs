@@ -1,10 +1,8 @@
 ﻿using System.Net;
 using Common.Entities;
-using Common.Events;
 using CustomerMS.Models;
 using CustomerMS.Repositories;
 using CustomerMS.Services;
-using Dapr;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerMS.Controllers;
@@ -15,11 +13,14 @@ public class CustomerController : ControllerBase
 
     private const string PUBSUB_NAME = "pubsub";
 
+    private readonly ICustomerService customerService;
     private readonly ICustomerRepository customerRepository;
     private readonly ILogger<CustomerController> logger;
 
-    public CustomerController(ICustomerRepository customerRepository, ILogger<CustomerController> logger)
+
+    public CustomerController(ICustomerService customerService, ICustomerRepository customerRepository, ILogger<CustomerController> logger)
     {
+        this.customerService = customerService;
         this.customerRepository = customerRepository;
         this.logger = logger;
     }
@@ -87,6 +88,15 @@ public class CustomerController : ControllerBase
         });
 
         return NotFound();
+    }
+
+    [Route("/reset")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Reset()
+    {
+        this.customerService.Reset();
+        return Ok();
     }
 
 }

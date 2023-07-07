@@ -130,6 +130,15 @@ public class CartController : ControllerBase
         return Ok();
     }
 
+    [Route("/reset")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Reset()
+    {
+        this.cartService.Reset();
+        return Ok();
+    }
+
     [Route("{customerId}/seal")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]

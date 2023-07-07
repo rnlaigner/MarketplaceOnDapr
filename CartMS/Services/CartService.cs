@@ -9,8 +9,6 @@ using Common.Requests;
 using Dapr.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CartMS.Services
 {
@@ -147,6 +145,14 @@ namespace CartMS.Services
             this.dbContext.Carts.ExecuteDelete();
             this.dbContext.CartItems.ExecuteDelete();
             this.dbContext.Products.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
+        public void Reset()
+        {
+            this.dbContext.Carts.ExecuteDelete();
+            this.dbContext.CartItems.ExecuteDelete();
+            this.dbContext.Database.ExecuteSqlRaw( "UPDATE replica_products SET active=true" );
             this.dbContext.SaveChanges();
         }
 

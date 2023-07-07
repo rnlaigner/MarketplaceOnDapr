@@ -6,6 +6,7 @@ using PaymentMS.Infra;
 using Common.Integration;
 using PaymentMS.Models;
 using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 
 namespace PaymentMS.Services
 {
@@ -177,6 +178,14 @@ namespace PaymentMS.Services
             }
 
         }
+
+        public void Cleanup()
+        {
+            this.dbContext.OrderPaymentCards.ExecuteDelete();
+            this.dbContext.OrderPayments.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
     }
 }
 

@@ -1,19 +1,20 @@
-﻿using System;
-using Common.Entities;
-using Common.Events;
+﻿using Common.Events;
+using CustomerMS.Infra;
 using CustomerMS.Repositories;
-using Dapr.Client;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerMS.Services
 {
 	public class CustomerService : ICustomerService
 	{
         private readonly ICustomerRepository customerRepository;
+        private readonly CustomerDbContext dbContext;
         private readonly ILogger<CustomerService> logger;
 
-        public CustomerService(ICustomerRepository customerRepository, ILogger<CustomerService> logger)
+        public CustomerService(ICustomerRepository customerRepository, CustomerDbContext dbContext, ILogger<CustomerService> logger)
 		{
             this.customerRepository = customerRepository;
+            this.dbContext = dbContext;
             this.logger = logger;
 		}
 
@@ -45,6 +46,12 @@ namespace CustomerMS.Services
                 customer.failed_payment_count++;
                 this.customerRepository.Update(customer);
             }
+        }
+
+        public void Reset()
+        {
+            this.dbContext.Database.ExecuteSqlRaw("UPDATE customers SET delivery_count=0, failed_payment_count=0, success_payment_count=0");
+            this.dbContext.SaveChanges();
         }
 
     }
