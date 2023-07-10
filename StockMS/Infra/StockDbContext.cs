@@ -19,11 +19,6 @@ namespace StockMS.Infra
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .AddInterceptors(new TransactionInterceptor())
-                .UseLoggerFactory(
-                    LoggerFactory.Create(
-                        b => b
-                            .AddConsole()
-                            .AddFilter(level => level >= LogLevel.Information)))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
 

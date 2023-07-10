@@ -17,7 +17,8 @@ namespace CartMS.Repositories
 
         public ProductModel Delete(ProductModel product)
         {
-            var track = dbContext.Products.Remove(product);
+            product.active = false;
+            var track = dbContext.Products.Update(product);
             dbContext.SaveChanges();
             return track.Entity;
         }

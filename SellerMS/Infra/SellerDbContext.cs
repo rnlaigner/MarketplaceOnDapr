@@ -39,11 +39,6 @@ namespace SellerMS.Infra
             options = options
                 .UseNpgsql(configuration.GetConnectionString("Database"))
                 .UsePostgreSqlTriggers()
-                .UseLoggerFactory(
-                    LoggerFactory.Create(
-                        b => b
-                            .AddConsole()
-                            .AddFilter(level => level >= LogLevel.Information)))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
 

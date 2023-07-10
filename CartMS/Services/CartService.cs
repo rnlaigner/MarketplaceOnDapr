@@ -163,34 +163,36 @@ namespace CartMS.Services
                 ProductModel? product = this.productRepository.GetProduct(productUpdate.seller_id, productUpdate.product_id);
                 if (product is null)
                 {
-                    this.logger.LogWarning("[ProcessProductUpdateStream] Cannot find seller {0} product ID {0}", productUpdate.seller_id, productUpdate.product_id);
-                    return;
-                }
-
-                var now = DateTime.Now;
-                if (productUpdate.active)
-                {
-                    product.price = productUpdate.price;
-                    product.updated_at = now;
-                    this.productRepository.Update(product);
+                    this.logger.LogWarning("[ProcessProductUpdate] seller {0} product {1} has been deleted prior to processing this product update...", productUpdate.seller_id, productUpdate.product_id);
                 }
                 else
                 {
-                    this.productRepository.Delete(product);
+                    var now = DateTime.Now;
+                    if (productUpdate.active)
+                    {
+                        product.price = productUpdate.price;
+                        product.updated_at = now;
+                        this.productRepository.Update(product);
+                    }
+                    else
+                    {
+                        this.productRepository.Delete(product);
+                    }
+
+                    txCtx.Commit();
                 }
-
-                txCtx.Commit();
-
-                if (config.CartStreaming && productUpdate.active)
-                {
-                    this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, product.product_id);
-                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.PRICE_UPDATE, productUpdate.seller_id));
-                }
-
-                this.logger.LogInformation("[ProcessProductStream] completed for seller {0} product {1}", productUpdate.seller_id, productUpdate.product_id);
-
             }
+
+            // has to send either way
+            if (config.CartStreaming)
+            {
+                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, productUpdate.seller_id);
+                string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.PRICE_UPDATE, productUpdate.seller_id));
+            }
+
+            this.logger.LogInformation("[ProcessProductUpdate] completed for seller {0} product {1}", productUpdate.seller_id, productUpdate.product_id);
+
         }
     }
 }

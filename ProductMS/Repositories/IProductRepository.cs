@@ -1,5 +1,4 @@
-﻿using System;
-using ProductMS.Models;
+﻿using ProductMS.Models;
 
 namespace ProductMS.Repositories
 {

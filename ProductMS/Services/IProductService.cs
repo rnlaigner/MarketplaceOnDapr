@@ -1,9 +1,5 @@
-﻿using System;
-using Common.Entities;
-using Common.Events;
-using Common.Integration;
+﻿using Common.Entities;
 using Common.Requests;
-using ProductMS.Models;
 
 namespace ProductMS.Services
 {

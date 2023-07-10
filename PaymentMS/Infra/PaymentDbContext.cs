@@ -22,11 +22,6 @@ namespace PaymentMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"))
-                .UseLoggerFactory(
-                    LoggerFactory.Create(
-                        b => b
-                            .AddConsole()
-                            .AddFilter(level => level >= LogLevel.Information)))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
 

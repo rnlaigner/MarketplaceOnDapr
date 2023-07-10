@@ -1,4 +1,6 @@
-﻿using Common.Entities;
+﻿using Common.Driver;
+using System.Text;
+using Common.Entities;
 using Common.Events;
 using Common.Requests;
 using Dapr.Client;
@@ -38,6 +40,28 @@ namespace ProductMS.Services
                 if(product is null)
                 {
                     logger.LogWarning("[ProcessDelete] Cannot find seller {0} product {1}.", productToDelete.sellerId, productToDelete.productId);
+
+                    if (config.ProductStreaming)
+                    {
+                        this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productToDelete.instanceId, productToDelete.productId);
+                        string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productToDelete.instanceId, TransactionType.DELETE_PRODUCT, productToDelete.sellerId));
+                    }
+
+                    return;
+                }
+                if (!product.active)
+                {
+                    // this should never happen. error in the driver!
+                    logger.LogWarning("[ProcessDelete] Seller {0} product {1} has already been deleted!", productToDelete.sellerId, productToDelete.productId);
+
+                    if (config.ProductStreaming)
+                    {
+                        this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productToDelete.instanceId, productToDelete.productId);
+                        string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productToDelete.instanceId, TransactionType.DELETE_PRODUCT, productToDelete.sellerId));
+                    }
+
                     return;
                 }
 
@@ -45,48 +69,67 @@ namespace ProductMS.Services
                 txCtx.Commit();
                 if (config.ProductStreaming)
                 {
-                    ProductUpdate productUpdate = new()
-                    {
-                        seller_id = productToDelete.sellerId,
-                        product_id = productToDelete.productId,
-                        price = product.price,
-                        active = false,
-                        instanceId = productToDelete.instanceId
-                    };
+                    ProductUpdate productUpdate = new(
+                        productToDelete.sellerId,
+                        productToDelete.productId,
+                        product.price,
+                        false,
+                        productToDelete.instanceId
+                    );
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdate), productUpdate);
                 }
             }
             
         }
 
-        public async Task ProcessUpdate(UpdatePrice update)
+        public async Task ProcessUpdate(UpdatePrice priceUpdate)
         {
             using (var txCtx = this.dbContext.Database.BeginTransaction())
             {
-                var product = this.productRepository.GetProduct(update.sellerId, update.productId);
+                var product = this.productRepository.GetProduct(priceUpdate.sellerId, priceUpdate.productId);
 
                 if (product is null)
                 {
-                    logger.LogWarning("[ProcessProductUpdate] Cannot find seller {0} product {1}.", update.sellerId, update.productId);
+                    logger.LogWarning("[ProcessProductUpdate] Cannot find seller {0} product {1}.", priceUpdate.sellerId, priceUpdate.productId);
+
+                    if (config.ProductStreaming)
+                    {
+                        this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
+                        string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId));
+                    }
+
+                    return;
+                }
+                if (!product.active)
+                {
+                    logger.LogWarning("[ProcessUpdate] Seller {0} product {1} has been deleted. Cannot process update!", priceUpdate.sellerId, priceUpdate.productId);
+
+                    if (config.ProductStreaming)
+                    {
+                        this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
+                        string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId));
+                    }
+
                     return;
                 }
 
                 product.updated_at = DateTime.Now;
-                product.price = update.price;
+                product.price = priceUpdate.price;
                 this.productRepository.Update(product);
                 txCtx.Commit();
 
                 if (config.ProductStreaming)
                 {
-                    ProductUpdate productUpdate = new()
-                    {
-                        seller_id = product.seller_id,
-                        product_id = product.product_id,
-                        price = product.price,
-                        active = true,
-                        instanceId = update.instanceId
-                    };
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdate), productUpdate);
+                    ProductUpdate update = new(
+                         priceUpdate.sellerId,
+                         priceUpdate.productId,
+                         priceUpdate.price,
+                         true,
+                         priceUpdate.instanceId
+                    );
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdate), update);
                 }
             }
         }

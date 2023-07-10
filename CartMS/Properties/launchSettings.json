@@ -4,12 +4,12 @@
     "CartMS": {
       "commandName": "Project",
       "launchBrowser": true,
+      "dotnetRunMessages": false,
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5001",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": true
+      }
     }
   }
 }

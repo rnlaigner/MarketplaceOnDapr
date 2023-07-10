@@ -1,6 +1,4 @@
-﻿using System;
-using Common.Entities;
-using ProductMS.Infra;
+﻿using ProductMS.Infra;
 using ProductMS.Models;
 
 namespace ProductMS.Repositories
@@ -18,9 +16,7 @@ namespace ProductMS.Repositories
         public void Delete(ProductModel product)
         {
             product.active = false;
-            product.updated_at = DateTime.Now;
-            this.dbContext.Products.Update(product);
-            this.dbContext.SaveChanges();
+            Update(product);
         }
 
         public List<ProductModel> GetBySeller(long sellerId)
@@ -31,13 +27,7 @@ namespace ProductMS.Repositories
         public ProductModel? GetProduct(long sellerId, long productId)
         {
             var product = this.dbContext.Products.Find(sellerId, productId);
-            if (product is not null && product.active) return product;
-            return null;
-        }
-
-        public ProductModel? GetProduct(long productId)
-        {
-            return this.dbContext.Products.Where(p => p.product_id == productId).FirstOrDefault();
+            return product;
         }
 
         public void Insert(ProductModel product)

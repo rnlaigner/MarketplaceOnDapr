@@ -36,31 +36,35 @@ namespace StockMS.Services
          * What if the product has been reserved?
          * the order should proceed and if necessary, be cancelled afterwards by an external process
          */
-        public void ProcessProductUpdate(ProductUpdate product)
+        public async Task ProcessProductUpdate(ProductUpdate productUpdate)
         {
-            // discard price updates
-            if (product.active) return;
+            // discard price updates, cart will send transaction mark
+            if (productUpdate.active) return;
+
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var stockItem = stockRepository.GetItem(product.seller_id, product.product_id);
-                if(stockItem is null)
+                var stockItem = stockRepository.GetItem(productUpdate.seller_id, productUpdate.product_id);
+                if (stockItem is null)
                 {
-                    this.logger.LogWarning("Attempt to delete product that does not exists in Stock DB {0}", product.product_id);
-                    return;
+                    this.logger.LogWarning("Attempt to delete product that does not exists in Stock DB {0}|{1}", productUpdate.seller_id, productUpdate.product_id);
                 }
-
-                stockItem.active = false;
-                this.dbContext.Update(stockItem);
-                this.dbContext.SaveChanges();
-                txCtx.Commit();
-                if (config.StockStreaming)
+                else
                 {
-                    this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", product.instanceId, product.product_id);
-                    string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
-                    this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.instanceId, TransactionType.DELETE_PRODUCT, product.seller_id));
+                    stockItem.active = false;
+                    this.dbContext.Update(stockItem);
+                    this.dbContext.SaveChanges();
+                    txCtx.Commit();
                 }
             }
-           
+
+            // has to send either case otherwise it can (i) block the driver or (ii) decrease the concurrency level prescribed
+            if (config.StockStreaming)
+            {
+                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, productUpdate.product_id);
+                string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.DELETE_PRODUCT, productUpdate.seller_id));
+            }
+
         }
 
         public void CancelReservation(PaymentFailed payment)

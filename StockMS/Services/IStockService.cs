@@ -11,7 +11,7 @@ namespace StockMS.Services
 
         void CancelReservation(PaymentFailed paymentFailure);
 
-        void ProcessProductUpdate(ProductUpdate product);
+        Task ProcessProductUpdate(ProductUpdate product);
 
         Task CreateStockItem(StockItem stockItem);
 
