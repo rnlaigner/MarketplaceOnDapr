@@ -20,7 +20,7 @@ namespace CartMS.Models
         public ICollection<CartItemModel> items { get; } = new List<CartItemModel>();
 
         public CartModel() {
-            this.created_at = DateTime.Now;
+            this.created_at = DateTime.UtcNow;
             this.updated_at = this.created_at;
         }
     }

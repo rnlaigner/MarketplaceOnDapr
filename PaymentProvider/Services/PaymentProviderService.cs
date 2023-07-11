@@ -42,7 +42,7 @@ namespace PaymentProvider.Services
                 currency = options.Currency.ToString(),
                 customer = options.Customer,
                 status = status,
-                created = DateTime.Now.Millisecond
+                created = DateTime.UtcNow.Millisecond
             };
             if (db.TryAdd(options.IdempotencyKey, intent))
             {

@@ -61,7 +61,7 @@ namespace OrderMS.Handlers
                     throw new Exception("Cannot find order ID " + shipmentNotification.orderId);
                 }
 
-                DateTime now = DateTime.Now;
+                DateTime now = DateTime.UtcNow;
 
                 OrderStatus orderStatus = OrderStatus.READY_FOR_SHIPMENT;
                 if (shipmentNotification.status == ShipmentStatus.delivery_in_progress) orderStatus = OrderStatus.IN_TRANSIT;
@@ -101,7 +101,7 @@ namespace OrderMS.Handlers
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
 
                 // calculate total freight_value
                 decimal total_freight = 0;
@@ -284,7 +284,7 @@ namespace OrderMS.Handlers
 
         public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
                 OrderModel? order = orderRepository.GetOrder(paymentConfirmed.orderId);
@@ -312,7 +312,7 @@ namespace OrderMS.Handlers
 
         public void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
                 OrderModel? order = orderRepository.GetOrder(paymentFailed.orderId);

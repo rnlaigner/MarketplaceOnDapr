@@ -1,12 +1,8 @@
-﻿using System;
-using Common.Entities;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using PaymentMS.Infra;
 using Common.Integration;
 using Newtonsoft.Json;
 using System.Text;
-using static Google.Rpc.Context.AttributeContext.Types;
-using Dapr.Client;
 
 namespace PaymentMS.Services
 {
@@ -33,7 +29,7 @@ namespace PaymentMS.Services
                     client_secret = "",
                     currency = options.Currency.ToString(),
                     customer = options.Customer,
-                    created = DateTime.Now.Millisecond
+                    created = DateTime.UtcNow.Millisecond
                 };
             }
 

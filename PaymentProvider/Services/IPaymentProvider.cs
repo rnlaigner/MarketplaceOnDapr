@@ -1,5 +1,4 @@
-﻿using System;
-using Common.Integration;
+﻿using Common.Integration;
 
 namespace PaymentProvider.Services
 {

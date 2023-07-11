@@ -31,7 +31,7 @@ namespace StockMS.Models
         public bool active { get; set; } = true;
 
         public StockItemModel() {
-            this.created_at = DateTime.Now;
+            this.created_at = DateTime.UtcNow;
             this.updated_at = this.created_at;
         }
 

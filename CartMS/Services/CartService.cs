@@ -44,7 +44,7 @@ namespace CartMS.Services
             {
                 cartRepository.DeleteItems(cart.customer_id);
             }
-            cart.updated_at = DateTime.Now;
+            cart.updated_at = DateTime.UtcNow;
             this.cartRepository.Update(cart);   
         }
 
@@ -75,7 +75,7 @@ namespace CartMS.Services
 
                 if (config.CartStreaming)
                 {
-                    ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cartItems, customerCheckout.instanceId);
+                    ReserveStock checkout = new ReserveStock(DateTime.UtcNow, customerCheckout, cartItems, customerCheckout.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
                     this.logger.LogInformation("Customer {0} cart has been submitted to checkout.", customerCheckout.CustomerId);
                 }
@@ -167,7 +167,7 @@ namespace CartMS.Services
                 }
                 else
                 {
-                    var now = DateTime.Now;
+                    var now = DateTime.UtcNow;
                     if (productUpdate.active)
                     {
                         product.price = productUpdate.price;

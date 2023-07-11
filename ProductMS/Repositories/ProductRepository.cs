@@ -32,14 +32,14 @@ namespace ProductMS.Repositories
 
         public void Insert(ProductModel product)
         {
-            product.created_at = DateTime.Now;
+            product.created_at = DateTime.UtcNow;
             this.dbContext.Products.Add(product);
             this.dbContext.SaveChanges();
         }
 
         public void Update(ProductModel product)
         {
-            product.updated_at = DateTime.Now;
+            product.updated_at = DateTime.UtcNow;
             this.dbContext.Products.Update(product);
             this.dbContext.SaveChanges();
         }

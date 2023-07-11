@@ -14,7 +14,7 @@ namespace CustomerMS.Repositories
 
         public CustomerModel Insert(CustomerModel customer)
         {
-            customer.created_at = DateTime.Now;
+            customer.created_at = DateTime.UtcNow;
             customer.updated_at = customer.created_at;
             var res = this.dbContext.Customers.Add(customer);
             this.dbContext.SaveChanges();
@@ -23,7 +23,7 @@ namespace CustomerMS.Repositories
 
         public CustomerModel Update(CustomerModel customer)
         {
-            customer.updated_at = DateTime.Now;
+            customer.updated_at = DateTime.UtcNow;
             var res = this.dbContext.Customers.Update(customer);
             this.dbContext.SaveChanges();
             return res.Entity;

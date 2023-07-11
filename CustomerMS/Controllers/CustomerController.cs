@@ -17,7 +17,6 @@ public class CustomerController : ControllerBase
     private readonly ICustomerRepository customerRepository;
     private readonly ILogger<CustomerController> logger;
 
-
     public CustomerController(ICustomerService customerService, ICustomerRepository customerRepository, ILogger<CustomerController> logger)
     {
         this.customerService = customerService;
@@ -95,6 +94,7 @@ public class CustomerController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Reset()
     {
+        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
         this.customerService.Reset();
         return Ok();
     }

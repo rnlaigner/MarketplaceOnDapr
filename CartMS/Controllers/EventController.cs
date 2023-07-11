@@ -38,7 +38,7 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(Product))]
     public ActionResult ProcessProductStream([FromBody] Product product)
     {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             ProductModel product_ = new()
             {
                 seller_id = product.seller_id,

@@ -45,7 +45,7 @@ namespace PaymentMS.Services
              * that guarantees exactly once payment processing even when 
              * a payment request is submitted more than once to them
              */
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             // https://stackoverflow.com/questions/49727809
             var cardExpParsed = DateTime.ParseExact(paymentRequest.customer.CardExpiration, "MMyy", CultureInfo.InvariantCulture);

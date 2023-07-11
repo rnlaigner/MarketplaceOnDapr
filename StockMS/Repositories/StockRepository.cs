@@ -15,6 +15,19 @@ namespace StockMS.Repositories
             this.logger = logger;
 		}
 
+        public void Delete(StockItemModel product)
+        {
+            product.active = false;
+            Update(product);
+        }
+
+        public void Update(StockItemModel item)
+        {
+            item.updated_at = DateTime.UtcNow;
+            this.dbContext.StockItems.Update(item);
+            this.dbContext.SaveChanges();
+        }
+
         public IEnumerable<StockItemModel> GetAll()
         {
             return this.dbContext.StockItems;

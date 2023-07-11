@@ -50,9 +50,7 @@ namespace StockMS.Services
                 }
                 else
                 {
-                    stockItem.active = false;
-                    this.dbContext.Update(stockItem);
-                    this.dbContext.SaveChanges();
+                    stockRepository.Delete(stockItem);
                     txCtx.Commit();
                 }
             }
@@ -80,7 +78,7 @@ namespace StockMS.Services
                 {
                     var stockItem = stockItems[(item.seller_id,item.product_id)];
                     stockItem.qty_reserved -= item.quantity;
-                    stockItem.updated_at = DateTime.Now;
+                    stockItem.updated_at = DateTime.UtcNow;
                 }
 
                 this.dbContext.UpdateRange(items);
@@ -102,7 +100,7 @@ namespace StockMS.Services
                     var stockItem = stockItems[(item.seller_id, item.product_id)];
                     stockItem.qty_available -= item.quantity;
                     stockItem.qty_reserved -= item.quantity;
-                    stockItem.updated_at = DateTime.Now;
+                    stockItem.updated_at = DateTime.UtcNow;
                 }
 
                 this.dbContext.UpdateRange(items);
@@ -172,7 +170,7 @@ namespace StockMS.Services
                             
                     // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
                     stockItem.qty_reserved += item.Quantity;
-                    stockItem.updated_at = DateTime.Now;
+                    stockItem.updated_at = DateTime.UtcNow;
                     itemsReserved.Add(item);
                 }
 
@@ -230,11 +228,6 @@ namespace StockMS.Services
             }
 
             return Task.CompletedTask;
-            // publish stock info
-            //if (config.StockStreaming)
-            //{
-            //    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), stockItem);
-            //}
         }
 
         public async Task IncreaseStock(IncreaseStock increaseStock)

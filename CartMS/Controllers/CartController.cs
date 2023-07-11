@@ -126,6 +126,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.cartService.Cleanup();
         return Ok();
     }
@@ -135,6 +136,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Reset()
     {
+        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
         this.cartService.Reset();
         return Ok();
     }

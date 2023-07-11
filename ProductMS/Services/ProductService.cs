@@ -39,7 +39,7 @@ namespace ProductMS.Services
                 var product = this.productRepository.GetProduct(productToDelete.sellerId, productToDelete.productId);
                 if(product is null)
                 {
-                    logger.LogWarning("[ProcessDelete] Cannot find seller {0} product {1}.", productToDelete.sellerId, productToDelete.productId);
+                    logger.LogError("[ProcessDelete] Cannot find seller {0} product {1}.", productToDelete.sellerId, productToDelete.productId);
 
                     if (config.ProductStreaming)
                     {
@@ -53,7 +53,7 @@ namespace ProductMS.Services
                 if (!product.active)
                 {
                     // this should never happen. error in the driver!
-                    logger.LogWarning("[ProcessDelete] Seller {0} product {1} has already been deleted!", productToDelete.sellerId, productToDelete.productId);
+                    logger.LogError("[ProcessDelete] Seller {0} product {1} has already been deleted!", productToDelete.sellerId, productToDelete.productId);
 
                     if (config.ProductStreaming)
                     {
@@ -90,7 +90,8 @@ namespace ProductMS.Services
 
                 if (product is null)
                 {
-                    logger.LogWarning("[ProcessProductUpdate] Cannot find seller {0} product {1}.", priceUpdate.sellerId, priceUpdate.productId);
+                    // this should not happen
+                    logger.LogError("[ProcessProductUpdate] Cannot find seller {0} product {1}.", priceUpdate.sellerId, priceUpdate.productId);
 
                     if (config.ProductStreaming)
                     {
@@ -98,24 +99,23 @@ namespace ProductMS.Services
                         string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId));
                     }
-
                     return;
                 }
+
+                // case of request interleaving....
                 if (!product.active)
                 {
-                    logger.LogWarning("[ProcessUpdate] Seller {0} product {1} has been deleted. Cannot process update!", priceUpdate.sellerId, priceUpdate.productId);
-
+                    logger.LogWarning("[ProcessUpdate] Seller {0} product {1} has been deleted. Cannot process update at {2}", priceUpdate.sellerId, priceUpdate.productId, DateTime.UtcNow);
                     if (config.ProductStreaming)
                     {
                         this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
                         string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId));
                     }
-
                     return;
                 }
 
-                product.updated_at = DateTime.Now;
+                product.updated_at = DateTime.UtcNow;
                 product.price = priceUpdate.price;
                 this.productRepository.Update(product);
                 txCtx.Commit();
@@ -141,7 +141,7 @@ namespace ProductMS.Services
         {
             using (var txCtx = this.dbContext.Database.BeginTransaction()) {
                 ProductModel input = Utils.AsProductModel(productToUpdate);
-                input.created_at = DateTime.Now;
+                input.created_at = DateTime.UtcNow;
                 input.updated_at = input.created_at;
                 this.productRepository.Insert(input);
 

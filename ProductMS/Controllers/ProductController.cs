@@ -126,6 +126,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.productService.Cleanup();
         return Ok();
     }
@@ -135,6 +136,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Reset()
     {
+        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
         this.productService.Reset();
         return Ok();
     }

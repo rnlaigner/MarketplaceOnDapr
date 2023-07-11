@@ -50,6 +50,7 @@ public class PaymentController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.paymentService.Cleanup();
         return Ok();
     }

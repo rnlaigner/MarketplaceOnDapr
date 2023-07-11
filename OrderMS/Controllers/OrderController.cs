@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OrderMS.Common.Repositories;
 using System.Collections.Generic;
 using OrderMS.Services;
+using System;
 
 namespace OrderMS.Controllers;
 
@@ -36,6 +37,7 @@ public class OrderController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.orderService.Cleanup();
         return Ok();
     }

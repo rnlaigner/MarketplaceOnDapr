@@ -75,7 +75,7 @@ namespace CartMS.Repositories
 
         public CartModel Update(CartModel cart)
         {
-            cart.updated_at = DateTime.Now;
+            cart.updated_at = DateTime.UtcNow;
             var f = dbContext.Update(cart);
             dbContext.SaveChanges();
             return f.Entity;

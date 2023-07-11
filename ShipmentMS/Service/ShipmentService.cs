@@ -48,7 +48,7 @@ namespace ShipmentMS.Service
                             .OrderByDescending(g => g.Count())
                             .SelectMany(x => x).ToList();
 
-                DateTime now = DateTime.Now;
+                DateTime now = DateTime.UtcNow;
 
                 ShipmentModel shipment = new()
                 {
@@ -139,7 +139,7 @@ namespace ShipmentMS.Service
             ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
             if (shipment is null) throw new Exception("Shipment ID " + orderId + " cannot be found in the database!");
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             if (shipment.status == ShipmentStatus.approved)
             {
                 shipment.status = ShipmentStatus.delivery_in_progress;

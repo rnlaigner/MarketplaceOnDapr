@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Common.Requests
+﻿namespace Common.Requests
 {
     /**
      * A sub-type of customer.

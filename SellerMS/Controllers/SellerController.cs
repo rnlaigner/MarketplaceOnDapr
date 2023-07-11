@@ -90,6 +90,7 @@ public class SellerController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Reset()
     {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.sellerService.Reset();
         return Ok();
     }

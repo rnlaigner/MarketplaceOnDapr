@@ -85,6 +85,7 @@ public class StockController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.stockService.Cleanup();
         return Ok();
     }
@@ -94,6 +95,7 @@ public class StockController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Reset()
     {
+        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
         this.stockService.Reset();
         return Ok();
     }
