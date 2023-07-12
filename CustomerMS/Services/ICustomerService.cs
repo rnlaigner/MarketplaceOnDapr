@@ -7,6 +7,8 @@ namespace CustomerMS.Services
         void ProcessDeliveryNotification(DeliveryNotification paymentConfirmed);
         void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
         void ProcessPaymentFailed(PaymentFailed paymentFailed);
+
+        void Cleanup();
         void Reset();
     }
 }

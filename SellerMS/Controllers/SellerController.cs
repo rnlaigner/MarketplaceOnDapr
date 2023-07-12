@@ -84,14 +84,23 @@ public class SellerController : ControllerBase
         return Ok(dash);
     }
 
-
-    [Route("/cleanup")]
+    [Route("/reset")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Reset()
     {
-        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
+        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
         this.sellerService.Reset();
+        return Ok();
+    }
+
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
+        this.sellerService.Cleanup();
         return Ok();
     }
 

@@ -48,6 +48,12 @@ namespace CustomerMS.Services
             }
         }
 
+        public void Cleanup()
+        {
+            this.dbContext.Customers.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
         public void Reset()
         {
             this.dbContext.Database.ExecuteSqlRaw("UPDATE customers SET delivery_count=0, failed_payment_count=0, success_payment_count=0");

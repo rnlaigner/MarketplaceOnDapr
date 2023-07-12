@@ -89,6 +89,16 @@ public class CustomerController : ControllerBase
         return NotFound();
     }
 
+    [Route("/cleanup")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Cleanup()
+    {
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
+        this.customerService.Cleanup();
+        return Ok();
+    }
+
     [Route("/reset")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
@@ -100,4 +110,3 @@ public class CustomerController : ControllerBase
     }
 
 }
-

@@ -224,8 +224,17 @@ namespace SellerMS.Services
             }
         }
 
+        public void Cleanup()
+        {
+            this.dbContext.Sellers.ExecuteDelete();
+            this.dbContext.OrderEntries.ExecuteDelete();
+            this.dbContext.OrderEntryDetails.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
         public void Reset()
         {
+            this.dbContext.OrderEntries.ExecuteDelete();
             this.dbContext.OrderEntries.ExecuteDelete();
             this.dbContext.OrderEntryDetails.ExecuteDelete();
             this.dbContext.SaveChanges();

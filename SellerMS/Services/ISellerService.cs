@@ -16,6 +16,7 @@ namespace SellerMS.Services
 
         SellerDashboard QueryDashboard(long sellerId);
 
+        void Cleanup();
         void Reset();
     }
 }
