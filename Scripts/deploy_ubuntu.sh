@@ -15,7 +15,7 @@ if [ "$param1" = "$help_" ]; then
     exit 1
 fi
 
-var1=1
+cd ..
 current_dir=$(pwd)
 echo "Starting deployment in Ubuntu..."
 

@@ -16,8 +16,9 @@ if [ "$param1" = "$help_" ]; then
 fi
 
 var1=1
+cd ..
 current_dir=$(pwd)
-#echo $x
+echo "Current dir is" $current_dir
 
 if `echo "$*" | grep -q cart`; then
     c=`dapr list | grep -c cart`

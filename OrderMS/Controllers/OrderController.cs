@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using Common.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -28,7 +27,6 @@ public class OrderController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Order>), (int)HttpStatusCode.OK)]
     public ActionResult<IEnumerable<Order>> GetByCustomerId(long customerId)
     {
-        // TODO parse http to get filters
         return Ok(this.orderRepository.GetByCustomerId(customerId));
     }
 

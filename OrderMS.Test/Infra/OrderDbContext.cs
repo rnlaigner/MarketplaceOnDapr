@@ -1,8 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Sqlite;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Common.Entities;
+﻿using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +16,7 @@ namespace OrderMS.Test.Infra
         {
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Environment.GetFolderPath(folder);
-            this.DbPath = System.IO.Path.Join(path, "order.db");
+            this.DbPath = Path.Join(path, "order.db");
         }
 
         // The following configures EF to create a Sqlite database file in the

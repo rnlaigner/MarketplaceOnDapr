@@ -10,16 +10,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{68D4A25C-8C8A-4C1A-90B2-A5835401ECC0}"
 	ProjectSection(SolutionItems) = preProject
 		dapr.yaml = dapr.yaml
-		deploy_macos.sh = deploy_macos.sh
 		README.md = README.md
-		generate_migrations_macos.sh = generate_migrations_macos.sh
 		.editorconfig = .editorconfig
 		prometheus.yml = prometheus.yml
 		.gitignore = .gitignore
-		deploy_ubuntu.sh = deploy_ubuntu.sh
-		dotnet_setup.sh = dotnet_setup.sh
-		environment_setup.sh = environment_setup.sh
-		redis_setup.sh = redis_setup.sh
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderMS", "OrderMS\OrderMS.csproj", "{93A4AF97-A92C-415B-8A60-1382D2139638}"
