@@ -10,7 +10,7 @@ wget https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
 
 # dotnet
-./dotnet-install.sh -c 6.0
+./dotnet-install.sh -c 7.0
 
 export PATH="/home/ucloud/.dotnet:$PATH"
 
@@ -19,11 +19,11 @@ rm -f dotnet-install.sh
 # dapr
 mkdir $HOME/dapr
 
-wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | DAPR_INSTALL_DIR="$HOME/dapr" /bin/bash -s 1.10.0
+wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | DAPR_INSTALL_DIR="$HOME/dapr" /bin/bash -s 1.11.0
 
 cd $HOME/dapr
 
-./dapr init --slim --runtime-version=1.10.5
+./dapr init --slim --runtime-version=1.11.1
 
 export PATH="/home/ucloud/.dapr/bin:$PATH"
 

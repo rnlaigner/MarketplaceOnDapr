@@ -26,8 +26,7 @@ namespace CartMS.Services
         private readonly CartConfig config;
         private readonly ILogger<CartService> logger;
 
-        public CartService(DaprClient daprClient, CartDbContext cartDbContext, ICartRepository cartRepository, IProductRepository productRepository,
-                            IOptions<CartConfig> config, ILogger<CartService> logger)
+        public CartService(DaprClient daprClient, CartDbContext cartDbContext, ICartRepository cartRepository, IProductRepository productRepository, IOptions<CartConfig> config, ILogger<CartService> logger)
 		{
             this.daprClient = daprClient;
             this.dbContext = cartDbContext;

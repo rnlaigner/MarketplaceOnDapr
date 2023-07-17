@@ -8,7 +8,7 @@ wget https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
 
 # dotnet
-./dotnet-install.sh -c 6.0
+./dotnet-install.sh -c 7.0
 
 export PATH="/home/ucloud/.dotnet:$PATH"
 

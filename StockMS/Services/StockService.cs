@@ -8,6 +8,7 @@ using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace StockMS.Services
 {
@@ -200,6 +201,15 @@ namespace StockMS.Services
                         ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
                             unavailableItems, checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
+
+                        // corner case: no items reserved
+                        if(itemsReserved.Count() == 0)
+                        {
+                            string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
+
+                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId));
+                        }
+
                     }
 
                 }
