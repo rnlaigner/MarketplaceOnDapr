@@ -197,7 +197,7 @@ namespace StockMS.Services
 
                     if (unavailableItems.Count() > 0)
                     {
-                        // notify cart and customer
+                        // notify customer
                         ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
                             unavailableItems, checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
@@ -206,7 +206,6 @@ namespace StockMS.Services
                         if(itemsReserved.Count() == 0)
                         {
                             string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
-
                             await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId));
                         }
 

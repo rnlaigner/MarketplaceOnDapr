@@ -11,7 +11,6 @@
     <OutputPath></OutputPath>
     <DefineConstants></DefineConstants>
     <DocumentationFile></DocumentationFile>
-    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <NoStdLib></NoStdLib>
     <OutputPath>bin\Release\net7.0</OutputPath>
     <DefineConstants>TRACE;RELEASE;NET;NET6_0;NETCOREAPP</DefineConstants>

@@ -1,5 +1,4 @@
-﻿using System;
-using Common.Events;
+﻿using Common.Events;
 using CustomerMS.Services;
 using Dapr;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +17,15 @@ namespace CustomerMS.Controllers
         {
             this.customerService = customerService;
             this.logger = logger;
+        }
+
+        [HttpPost("ProcessFailedReservation")]
+        [Topic(PUBSUB_NAME, nameof(ReserveStockFailed))]
+        public ActionResult ProcessFailedReservation([FromBody] ReserveStockFailed reserveStockFailed)
+        {
+            this.logger.LogInformation("[ProcessFailedReservation] received for customer {0}", reserveStockFailed.customerCheckout.CustomerId);
+            this.logger.LogInformation("[ProcessFailedReservation] completed for customer {0}.", reserveStockFailed.customerCheckout.CustomerId);
+            return Ok();
         }
 
         [HttpPost("ProcessPaymentConfirmed")]
