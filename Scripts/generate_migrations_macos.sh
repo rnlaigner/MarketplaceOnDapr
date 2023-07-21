@@ -32,3 +32,15 @@ end tell'
 osascript -e 'tell app "Terminal"
     do script "cd '$current_dir'/StockMS && dotnet ef migrations add InitialMigration -c StockDbContext"
 end tell'
+
+osascript -e 'tell app "Terminal"
+    do script "cd '$current_dir'/CustomerMS && dotnet ef migrations add InitialMigration -c CustomerDbContext"
+end tell'
+
+osascript -e 'tell app "Terminal"
+    do script "cd '$current_dir'/CartMS && dotnet ef migrations add InitialMigration -c CartDbContext"
+end tell'
+
+osascript -e 'tell app "Terminal"
+    do script "cd '$current_dir'/ProductMS && dotnet ef migrations add InitialMigration -c ProductDbContext"
+end tell'

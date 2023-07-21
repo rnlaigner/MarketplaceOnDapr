@@ -107,9 +107,10 @@ namespace ShipmentMS.Service
             }
         }
 
+        // update delivery status of many packages
         public async Task UpdateShipment(int instanceId)
         {
-            using (var txCtx = dbContext.Database.BeginTransaction())
+            using (var txCtx = dbContext.Database.BeginTransaction(IsolationLevel.Serializable))
             {
                 // perform a sql query to query the objects. write lock...
                 var q = packageRepository.GetOldestOpenShipmentPerSeller();

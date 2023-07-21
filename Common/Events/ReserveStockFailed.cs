@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Common.Entities;
-using Common.Integration;
+﻿using Common.Entities;
 using Common.Requests;
 
 namespace Common.Events
@@ -10,7 +7,7 @@ namespace Common.Events
     (
         DateTime timestamp,
         CustomerCheckout customerCheckout,
-        IList<ProductStatus> products,
+        List<ProductStatus> products,
         int instanceId
     );
 }

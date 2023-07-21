@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ShipmentMS.Models;
 
 namespace ShipmentMS.Infra
@@ -20,7 +19,7 @@ namespace ShipmentMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"))
-                .AddInterceptors(new TransactionInterceptor())
+                // .AddInterceptors(new TransactionInterceptor())
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
 

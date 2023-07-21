@@ -51,45 +51,6 @@ namespace OrderMS.Handlers
             this.logger = logger;
         }
 
-        public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
-        {
-            using (var txCtx = dbContext.Database.BeginTransaction())
-            {
-                OrderModel? order = orderRepository.GetOrder(shipmentNotification.orderId);
-                if (order is null)
-                {
-                    throw new Exception("Cannot find order ID " + shipmentNotification.orderId);
-                }
-
-                DateTime now = DateTime.UtcNow;
-
-                OrderStatus orderStatus = OrderStatus.READY_FOR_SHIPMENT;
-                if (shipmentNotification.status == ShipmentStatus.delivery_in_progress) orderStatus = OrderStatus.IN_TRANSIT;
-                if (shipmentNotification.status == ShipmentStatus.concluded) orderStatus = OrderStatus.DELIVERED;
-
-                OrderHistoryModel orderHistory = new()
-                {
-                    order_id = shipmentNotification.orderId,
-                    created_at = now,
-                    status = orderStatus
-                };
-
-                order.status = orderStatus;
-                order.updated_at = now;
-
-                if(order.status == OrderStatus.DELIVERED)
-                {
-                    order.delivered_customer_date = shipmentNotification.eventDate;
-                }
-
-                dbContext.Orders.Update(order);
-                dbContext.OrderHistory.Add(orderHistory);
-
-                this.dbContext.SaveChanges();
-                txCtx.Commit();
-            }
-        }
-
         /*
          * Require idempotent computation, otherwise orders will get duplicated
          * (although with different IDs due to PostgreSQL ID generation)
@@ -334,6 +295,45 @@ namespace OrderMS.Handlers
                 });
 
                 dbContext.SaveChanges();
+                txCtx.Commit();
+            }
+        }
+
+        public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
+        {
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                OrderModel? order = orderRepository.GetOrder(shipmentNotification.orderId);
+                if (order is null)
+                {
+                    throw new Exception("Cannot find order ID " + shipmentNotification.orderId);
+                }
+
+                DateTime now = DateTime.UtcNow;
+
+                OrderStatus orderStatus = OrderStatus.READY_FOR_SHIPMENT;
+                if (shipmentNotification.status == ShipmentStatus.delivery_in_progress) orderStatus = OrderStatus.IN_TRANSIT;
+                if (shipmentNotification.status == ShipmentStatus.concluded) orderStatus = OrderStatus.DELIVERED;
+
+                OrderHistoryModel orderHistory = new()
+                {
+                    order_id = shipmentNotification.orderId,
+                    created_at = now,
+                    status = orderStatus
+                };
+
+                order.status = orderStatus;
+                order.updated_at = now;
+
+                if (order.status == OrderStatus.DELIVERED)
+                {
+                    order.delivered_customer_date = shipmentNotification.eventDate;
+                }
+
+                dbContext.Orders.Update(order);
+                dbContext.OrderHistory.Add(orderHistory);
+
+                this.dbContext.SaveChanges();
                 txCtx.Commit();
             }
         }

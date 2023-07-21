@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using Common.Entities;
-using Common.Integration;
 using Common.Requests;
 
 namespace Common.Events
@@ -18,7 +18,7 @@ namespace Common.Events
         string invoiceNumber,
         DateTime issueDate,
         decimal totalInvoice,
-        IList<OrderItem> items,
+        List<OrderItem> items,
         int instanceId
     );
 }
