@@ -8,7 +8,6 @@ using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
 
 namespace StockMS.Services
 {
@@ -31,6 +30,111 @@ namespace StockMS.Services
             this.daprClient = daprClient;
             this.config = config.Value;
             this.logger = logger;
+        }
+
+        public async Task ReserveStockAsync(ReserveStock checkout)
+        {
+            // https://stackoverflow.com/questions/31273933/setting-transaction-isolation-level-in-net-entity-framework-for-sql-server
+
+            if (checkout.items is null)
+            {
+                logger.LogWarning("[ReserveStockAsync] ReserveStock event items is NULL!");
+                return;
+            }
+
+            var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
+
+            if (checkout.items.Count() == 0)
+            {
+                logger.LogWarning("[ReserveStockAsync] ReserveStock event has no items to reserve!");
+                return;
+            }
+
+            // could also do this:
+            /*
+            var conn = stockDbContext.Database.GetDbConnection();
+            var dbTransaction = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+            */
+
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                IEnumerable<StockItemModel> items = stockRepository.GetItems(ids);
+
+                var stockItems = items.ToDictionary(i => (i.seller_id, i.product_id), v => v);
+
+                if (stockItems.Count() == 0)
+                {
+                    logger.LogWarning("[ReserveStockAsync] ReserveStock has locked no items!");
+                    return;
+                }
+
+                List<ProductStatus> unavailableItems = new();
+                List<CartItem> itemsReserved = new();
+
+                foreach (var item in checkout.items)
+                {
+
+                    if (!stockItems.ContainsKey((item.SellerId, item.ProductId)) || !stockItems[(item.SellerId, item.ProductId)].active)
+                    {
+                        unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
+                        continue;
+                    }
+
+                    var stockItem = stockItems[(item.SellerId, item.ProductId)];
+
+                    // blindly increase or check here too?
+                    // dbms will also check due to the constraint
+                    if (stockItem.qty_available < (stockItem.qty_reserved + item.Quantity))
+                    {
+                        unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
+                        continue;
+                    }
+
+                    // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
+                    stockItem.qty_reserved += item.Quantity;
+                    stockItem.updated_at = DateTime.UtcNow;
+                    itemsReserved.Add(item);
+                }
+
+                if (itemsReserved.Count() > 0)
+                {
+                    this.dbContext.UpdateRange(items);
+                    int entriesWritten = this.dbContext.SaveChanges();
+                    logger.LogInformation("[ReserveStockAsync] Entries written: {0}", entriesWritten);
+                }
+
+                txCtx.Commit();
+
+                if (config.StockStreaming)
+                {
+                    if (itemsReserved.Count() > 0)
+                    {
+                        // send to order
+                        StockConfirmed checkoutRequest = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
+                            itemsReserved,
+                            checkout.instanceId);
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
+                    }
+
+                    if (unavailableItems.Count() > 0)
+                    {
+                        // notify customer
+                        ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
+                            unavailableItems, checkout.instanceId);
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
+
+                        // corner case: no items reserved
+                        if (itemsReserved.Count() == 0)
+                        {
+                            string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
+                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId));
+                        }
+
+                    }
+
+                }
+
+            }
         }
 
         /**
@@ -59,7 +163,7 @@ namespace StockMS.Services
             // has to send either case otherwise it can (i) block the driver or (ii) decrease the concurrency level prescribed
             if (config.StockStreaming)
             {
-                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, productUpdate.product_id);
+                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, productUpdate.seller_id);
                 string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.DELETE_PRODUCT, productUpdate.seller_id));
             }
@@ -109,111 +213,6 @@ namespace StockMS.Services
                 txCtx.Commit();
             }
 
-        }
-
-        public async Task ReserveStockAsync(ReserveStock checkout)
-        {
-            // https://stackoverflow.com/questions/31273933/setting-transaction-isolation-level-in-net-entity-framework-for-sql-server
-          
-            if(checkout.items is null)
-            {
-                logger.LogWarning("[ReserveStockAsync] ReserveStock event items is NULL!");
-                return;
-            }
-
-            var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
-
-            if(checkout.items.Count() == 0)
-            {
-                logger.LogWarning("[ReserveStockAsync] ReserveStock event has no items to reserve!");
-                return;
-            }
-
-            // could also do this:
-            /*
-            var conn = stockDbContext.Database.GetDbConnection();
-            var dbTransaction = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
-            */
-
-            using (var txCtx = dbContext.Database.BeginTransaction())
-            {
-                IEnumerable<StockItemModel> items = stockRepository.GetItems(ids);
-
-                var stockItems = items.ToDictionary(i => (i.seller_id, i.product_id), v=>v);
-
-                if (stockItems.Count() == 0)
-                {
-                    logger.LogWarning("[ReserveStockAsync] ReserveStock has locked no items!");
-                    return;
-                }
-
-                List<ProductStatus> unavailableItems = new();
-                List<CartItem> itemsReserved = new();
-
-                foreach (var item in checkout.items)
-                {
-
-                    if (!stockItems.ContainsKey((item.SellerId,item.ProductId)) || !stockItems[(item.SellerId, item.ProductId)].active)
-                    {
-                        unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
-                        continue;
-                    }
-
-                    var stockItem = stockItems[(item.SellerId, item.ProductId)];
-
-                    // blindly increase or check here too?
-                    // dbms will also check due to the constraint
-                    if (stockItem.qty_available < (stockItem.qty_reserved + item.Quantity))
-                    {
-                        unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
-                        continue;
-                    }
-                            
-                    // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
-                    stockItem.qty_reserved += item.Quantity;
-                    stockItem.updated_at = DateTime.UtcNow;
-                    itemsReserved.Add(item);
-                }
-
-                if (itemsReserved.Count() > 0)
-                {
-                    this.dbContext.UpdateRange(items);
-                    int entriesWritten = this.dbContext.SaveChanges();
-                    logger.LogInformation("[ReserveStockAsync] Entries written: {0}", entriesWritten);
-                }
-
-                txCtx.Commit();
-
-                if (config.StockStreaming)
-                {
-                    if (itemsReserved.Count() > 0)
-                    {
-                        // send to order
-                        StockConfirmed checkoutRequest = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
-                            itemsReserved,
-                            checkout.instanceId);
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
-                    }
-
-                    if (unavailableItems.Count() > 0)
-                    {
-                        // notify customer
-                        ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
-                            unavailableItems, checkout.instanceId);
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
-
-                        // corner case: no items reserved
-                        if(itemsReserved.Count() == 0)
-                        {
-                            string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
-                            await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId));
-                        }
-
-                    }
-
-                }
-                    
-            }
         }
 
         public Task CreateStockItem(StockItem stockItem)

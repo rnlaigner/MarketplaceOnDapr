@@ -101,3 +101,7 @@ https://stackoverflow.com/questions/40513545/how-to-prevent-docker-from-starting
 
 ## Virtualized deployments
 https://mikehadlow.com/posts/2022-06-24-writing-dotnet-services-for-kubernetes/
+
+### PostgreSQL
+https://dba.stackexchange.com/questions/274788/postgres-show-max-connections-output-a-different-value-from-postgresql-conf
+https://stackoverflow.com/questions/8288823/query-a-parameter-postgresql-conf-setting-like-max-connections

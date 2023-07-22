@@ -107,8 +107,8 @@ namespace SellerMS.Services
                             quantity = item.quantity,
                             total_amount = item.total_amount,
                             total_items = item.total_items,
-                            // total_invoice = ?
-                            // total_incentive = ?
+                            // total_invoice = ? total_amount + total_freight (but seller dont know [yet] the freight value...)
+                            total_incentive = item.total_items - item.total_amount,
                             freight_value = item.freight_value,
                             // shipment_date
                             // delivery_date
@@ -150,7 +150,7 @@ namespace SellerMS.Services
 
         public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
         {
-
+            Thread.Sleep(1000); // wait for order entry processing
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
 
@@ -177,7 +177,7 @@ namespace SellerMS.Services
 
         public void ProcessPaymentFailed(PaymentFailed paymentFailed)
         {
-
+            Thread.Sleep(1000);
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
 

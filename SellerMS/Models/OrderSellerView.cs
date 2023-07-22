@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SellerMS.Models
+﻿namespace SellerMS.Models
 {
 
     /**
@@ -11,8 +8,6 @@ namespace SellerMS.Models
      */
     public class OrderSellerView
     {
-        public long order_id { get; set; }
-
         public long seller_id { get; set; }
 
         // information below from a seller's perspective

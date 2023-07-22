@@ -182,8 +182,8 @@ namespace CartMS.Services
                 }
             }
 
-            // has to send either way
-            if (config.CartStreaming)
+            // has to send only if not a delete otherwise it will cause duplicate tx mark in the driver (given the stock is responsible for issuing the delete mark)
+            if (productUpdate.active && config.CartStreaming)
             {
                 this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, productUpdate.seller_id);
                 string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();

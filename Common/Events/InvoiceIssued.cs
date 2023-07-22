@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Common.Entities;
+﻿using Common.Entities;
 using Common.Requests;
 
 namespace Common.Events

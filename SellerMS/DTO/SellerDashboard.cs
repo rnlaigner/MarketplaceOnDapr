@@ -1,5 +1,4 @@
-﻿using System;
-using SellerMS.Models;
+﻿using SellerMS.Models;
 
 namespace SellerMS.DTO
 {
@@ -13,4 +12,3 @@ namespace SellerMS.DTO
 		IList<OrderEntry> orderEntries
 	);
 }
-

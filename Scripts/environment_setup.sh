@@ -36,3 +36,4 @@ cp DaprConfig/components/pubsub.yaml /home/ucloud/".dapr"/components
 cp DaprConfig/components/statestore.yaml /home/ucloud/".dapr"/components
 
 cp DaprConfig/config.yaml /home/ucloud/".dapr"
+cp DaprConfig/resiliency.yaml /home/ucloud/".dapr"
