@@ -1,9 +1,4 @@
-﻿using System;
-using Google.Api;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using ShipmentMS.Infra;
+﻿using ShipmentMS.Infra;
 using ShipmentMS.Models;
 
 namespace ShipmentMS.Repositories

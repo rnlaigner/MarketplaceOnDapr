@@ -1,4 +1,6 @@
-﻿using StockMS.Infra;
+﻿using System.Text;
+using Microsoft.EntityFrameworkCore;
+using StockMS.Infra;
 using StockMS.Models;
 
 namespace StockMS.Repositories
@@ -33,16 +35,20 @@ namespace StockMS.Repositories
             return this.dbContext.StockItems;
         }
 
+        private const string sqlGetItemsForUpdate = "SELECT * FROM stock_items s WHERE (s.seller_id, s.product_id) IN ({0})";
+
         public IEnumerable<StockItemModel> GetItems(List<(long SellerId, long ProductId)> ids)
         {
-            IList<StockItemModel> items = new List<StockItemModel>();
-            foreach (var id in ids)
+            var sb = new StringBuilder();
+            foreach (var key in ids)
             {
-                var elem = dbContext.StockItems.Find(id.SellerId, id.ProductId);
-                if (elem is not null)
-                    items.Add(elem);
+                sb.Append('(').Append(key.SellerId).Append(',').Append(key.ProductId).Append("),");
             }
-            return items;
+            var input = sb.Remove(sb.Length - 1,1).ToString();
+            logger.LogDebug("SQL input is {0}", input);
+            var sql = string.Format(sqlGetItemsForUpdate, input);
+            logger.LogDebug("SQL is {0}", sql);
+            return dbContext.StockItems.FromSqlRaw(sql);
         }
 
         public StockItemModel? GetItem(long sellerId, long productId)
@@ -50,11 +56,10 @@ namespace StockMS.Repositories
             return this.dbContext.StockItems.Find(sellerId, productId);
         }
 
-        public StockItemModel? GetItem(long productId)
+        public IEnumerable<StockItemModel> GetBySellerId(long sellerId)
         {
-            return this.dbContext.StockItems.Where(i=>i.product_id == productId).FirstOrDefault();
+            return this.dbContext.StockItems.Where(p => p.seller_id == sellerId);
         }
 
     }
 }
-

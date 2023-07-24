@@ -10,11 +10,10 @@ namespace StockMS.Repositories
 
         StockItemModel? GetItem(long sellerId, long productId);
 
-        StockItemModel? GetItem(long productId);
-
         IEnumerable<StockItemModel> GetAll();
 
         IEnumerable<StockItemModel> GetItems(List<(long SellerId, long ProductId)> ids);
+        IEnumerable<StockItemModel> GetBySellerId(long sellerId);
     }
 }
 

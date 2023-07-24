@@ -57,14 +57,14 @@ public class StockController : ControllerBase
         return StatusCode((int)HttpStatusCode.InternalServerError);
     }
 
-    [HttpGet("{itemId}")]
-    [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
+    [HttpGet("{sellerId:long}/{productId:long}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<StockItem> GetStockItem(long itemId)
+    [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
+    public ActionResult<Product> GetBySellerIdAndProductId(long sellerId, long productId)
     {
-        this.logger.LogInformation("[GetStockItem] received for item id {0}", itemId);
-        StockItemModel? item = this.stockRepository.GetItem(itemId);
-        this.logger.LogInformation("[GetStockItem] completed for item id {0}.", itemId);
+        this.logger.LogInformation("[GetBySellerIdAndProductId] received for item id {0}", productId);
+        StockItemModel? item = this.stockRepository.GetItem(sellerId, productId);
+        this.logger.LogInformation("[GetBySellerIdAndProductId] completed for item id {0}.", productId);
         if (item is not null)
             return Ok(new StockItem()
             {
@@ -77,6 +77,41 @@ public class StockController : ControllerBase
                 data = item.data
             });
         
+        return NotFound();
+    }
+
+    [HttpGet("{sellerId}")]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(List<StockItemModel>), (int)HttpStatusCode.OK)]
+    public ActionResult<List<StockItemModel>> GetBySellerId(long sellerId)
+    {
+        this.logger.LogInformation("[GetBySeller] received for seller {0}", sellerId);
+        if (sellerId <= 0)
+        {
+            return BadRequest();
+        }
+        var items = this.stockRepository.GetBySellerId(sellerId);
+
+        if (items is not null && items.Count() > 0)
+        {
+            List<StockItem> itemsResponse = new List<StockItem>(items.Count());
+            foreach (var item in items)
+            {
+                itemsResponse.Add(
+                new StockItem()
+                {
+                    seller_id = item.seller_id,
+                    product_id = item.product_id,
+                    qty_available = item.qty_available,
+                    qty_reserved = item.qty_reserved,
+                    order_count = item.order_count,
+                    ytd = item.ytd,
+                    data = item.data
+                });
+            }
+            this.logger.LogInformation("[GetBySellerId] returning seller {0} items...", sellerId);
+            return Ok(itemsResponse);
+        }
         return NotFound();
     }
 

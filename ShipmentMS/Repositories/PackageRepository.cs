@@ -1,8 +1,4 @@
-﻿using System;
-using Common.Entities;
-using Google.Api;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.EntityFrameworkCore;
+﻿using Common.Entities;
 using ShipmentMS.Infra;
 using ShipmentMS.Models;
 
