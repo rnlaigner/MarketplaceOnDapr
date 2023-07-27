@@ -35,14 +35,15 @@ namespace StockMS.Repositories
             return this.dbContext.StockItems;
         }
 
-        private const string sqlGetItemsForUpdate = "SELECT * FROM stock_items s WHERE (s.seller_id, s.product_id) IN ({0})";
+        // https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS
+        private const string sqlGetItemsForUpdate = "SELECT * FROM stock_items s WHERE (s.seller_id, s.product_id) IN ({0}) FOR UPDATE";
 
         public IEnumerable<StockItemModel> GetItems(List<(long SellerId, long ProductId)> ids)
         {
             var sb = new StringBuilder();
-            foreach (var key in ids)
+            foreach (var (SellerId, ProductId) in ids)
             {
-                sb.Append('(').Append(key.SellerId).Append(',').Append(key.ProductId).Append("),");
+                sb.Append('(').Append(SellerId).Append(',').Append(ProductId).Append("),");
             }
             var input = sb.Remove(sb.Length - 1,1).ToString();
             logger.LogDebug("SQL input is {0}", input);

@@ -62,6 +62,7 @@ namespace StockMS.Services
                 List<ProductStatus> unavailableItems = new();
                 List<CartItem> cartItemsReserved = new();
                 List<StockItemModel> stockItemsReserved = new();
+                var now = DateTime.UtcNow;
                 foreach (var item in checkout.items)
                 {
 
@@ -83,7 +84,7 @@ namespace StockMS.Services
 
                     // take a look: https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7
                     stockItem.qty_reserved += item.Quantity;
-                    stockItem.updated_at = DateTime.UtcNow;
+                    stockItem.updated_at = now;
                     cartItemsReserved.Add(item);
                     stockItemsReserved.Add(stockItem);
                 }
@@ -163,6 +164,7 @@ namespace StockMS.Services
 
         public void CancelReservation(PaymentFailed payment)
         {
+            var now = DateTime.UtcNow;
             var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
@@ -174,7 +176,7 @@ namespace StockMS.Services
                 {
                     var stockItem = stockItems[(item.seller_id,item.product_id)];
                     stockItem.qty_reserved -= item.quantity;
-                    stockItem.updated_at = DateTime.UtcNow;
+                    stockItem.updated_at = now;
                 }
 
                 this.dbContext.UpdateRange(items);
@@ -185,6 +187,7 @@ namespace StockMS.Services
 
         public void ConfirmReservation(PaymentConfirmed payment)
         {
+            var now = DateTime.UtcNow;
             var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
@@ -196,7 +199,7 @@ namespace StockMS.Services
                     var stockItem = stockItems[(item.seller_id, item.product_id)];
                     stockItem.qty_available -= item.quantity;
                     stockItem.qty_reserved -= item.quantity;
-                    stockItem.updated_at = DateTime.UtcNow;
+                    stockItem.updated_at = now;
                 }
 
                 this.dbContext.UpdateRange(items);
@@ -242,9 +245,8 @@ namespace StockMS.Services
                 }
 
                 item.qty_available += increaseStock.quantity;
-
-                dbContext.StockItems.Update(item);
-                dbContext.SaveChanges();
+                stockRepository.Update(item);
+                txCtx.Commit();
 
                 if (config.StockStreaming)
                 {
@@ -259,7 +261,6 @@ namespace StockMS.Services
                         data = item.data
                     });
                 }
-                txCtx.Commit();
             }
         }
 

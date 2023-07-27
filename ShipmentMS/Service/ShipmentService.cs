@@ -23,8 +23,7 @@ namespace ShipmentMS.Service
         private readonly DaprClient daprClient;
         private readonly ILogger<ShipmentService> logger;
 
-        public ShipmentService(ShipmentDbContext dbContext, IShipmentRepository shipmentRepository, IPackageRepository packageRepository, IOptions<ShipmentConfig> config,
-                                DaprClient daprClient, ILogger<ShipmentService> logger)
+        public ShipmentService(ShipmentDbContext dbContext, IShipmentRepository shipmentRepository, IPackageRepository packageRepository, IOptions<ShipmentConfig> config, DaprClient daprClient, ILogger<ShipmentService> logger)
         {
             this.dbContext = dbContext;
             this.shipmentRepository = shipmentRepository;

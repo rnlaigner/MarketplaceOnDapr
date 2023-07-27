@@ -1,5 +1,4 @@
-﻿using System;
-namespace OrderMS.Common.Infra
+﻿namespace OrderMS.Common.Infra
 {
 	public class OrderConfig
 	{

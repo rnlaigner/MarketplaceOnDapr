@@ -1,12 +1,8 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Common.Entities;
+﻿using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
-namespace OrderMS.Infra
+namespace OrderMS.Common.Infra
 {
 
     public class OrderDbContext : DbContext
@@ -16,23 +12,25 @@ namespace OrderMS.Infra
         public DbSet<OrderHistoryModel> OrderHistory => Set<OrderHistoryModel>();
         public DbSet<CustomerOrderModel> CustomerOrders => Set<CustomerOrderModel>();
 
-        private readonly IConfiguration configuration;
+        private readonly string ConnectionString;
 
         public OrderDbContext(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            this.ConnectionString = configuration.GetConnectionString("Database") ?? throw new Exception("Unknown connection string");
         }
-        
+
+        public OrderDbContext(string ConnectionString)
+        {
+            this.ConnectionString = ConnectionString;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // connection string can be taken from appsettings:
             // https://jasonwatmore.com/post/2022/06/23/net-6-connect-to-postgresql-database-with-entity-framework-core
-            options.UseNpgsql(configuration.GetConnectionString("Database"))
-                // .AddInterceptors(new TransactionInterceptor())
+            options.UseNpgsql(this.ConnectionString)
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         /**

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
 using OrderMS.Common.Repositories;
-using OrderMS.Infra;
+using OrderMS.Common.Infra;
 
 namespace OrderMS.Repositories
 {

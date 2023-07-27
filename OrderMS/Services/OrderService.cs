@@ -5,7 +5,7 @@ using Common.Entities;
 using Common.Events;
 using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
-using OrderMS.Infra;
+using OrderMS.Common.Infra;
 using Dapr.Client;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -14,7 +14,6 @@ using System.Text;
 using System.Globalization;
 using OrderMS.Services;
 using Microsoft.Extensions.Options;
-using OrderMS.Common.Infra;
 
 namespace OrderMS.Handlers
 {
@@ -31,7 +30,6 @@ namespace OrderMS.Handlers
 
         private const string PUBSUB_NAME = "pubsub";
 
-        // TODO change to repository so we can test this component with sqlite
         private readonly OrderDbContext dbContext;
         private readonly IOrderRepository orderRepository;
         private readonly DaprClient daprClient;
@@ -43,7 +41,6 @@ namespace OrderMS.Handlers
         public OrderService(OrderDbContext dbContext, IOrderRepository orderRepository, DaprClient daprClient,
              IOptions<OrderConfig> config, ILogger<OrderService> logger)
         {
-            
             this.dbContext = dbContext;
             this.orderRepository = orderRepository;
             this.daprClient = daprClient;
@@ -57,8 +54,6 @@ namespace OrderMS.Handlers
          */
         public async Task ProcessCheckout(StockConfirmed checkout)
 		{
-            // multi-key transaction. to ensure atomicity
-
             // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
@@ -160,7 +155,6 @@ namespace OrderMS.Handlers
                 int id = 0;
                 foreach (var item in checkout.items)
                 {
-
                     OrderItemModel oim = new()
                     {
                         order_id = orderPersisted.id,

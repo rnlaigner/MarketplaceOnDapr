@@ -18,19 +18,12 @@ namespace StockMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"))
-                .AddInterceptors(new TransactionInterceptor())
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // deprecated
-            // https://stackoverflow.com/questions/13232777
-            // modelBuilder.Entity<StockItemModel>(entity => entity.HasCheckConstraint("CK_StockItem_QtyAvailable", "[qty_available] >= 0");
-
             modelBuilder.Entity<StockItemModel>().ToTable(t => t.HasCheckConstraint(
                 "CK_StockItem_QtyAvailable", "qty_available >= 0"
                 ));
@@ -42,7 +35,6 @@ namespace StockMS.Infra
             modelBuilder.Entity<StockItemModel>().ToTable(t => t.HasCheckConstraint(
                 "CK_StockItem_QtyReserved", "qty_reserved >= 0"
                 ));
-
         }
 
     }

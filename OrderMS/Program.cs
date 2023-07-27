@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Security.Authentication;
-using Google.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using OrderMS.Common.Infra;
-using OrderMS.Common.Models;
 using OrderMS.Common.Repositories;
 using OrderMS.Handlers;
-using OrderMS.Infra;
 using OrderMS.Repositories;
 using OrderMS.Services;
 
@@ -22,12 +17,11 @@ builder.Services.Configure<OrderConfig>(configSection);
 
 // scoped here because db context is scoped
 builder.Services.AddDbContext<OrderDbContext>();
+// https://learn.microsoft.com/en-us/ef/core/performance/advanced-performance-topics?tabs=with-di%2Cexpression-api-with-constant#dbcontext-pooling
+// builder.Services.AddDbContextPool<OrderDbContext>(o=>o.UseNpgsql);
+
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-
-// https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-7.0
-//OrderDbContext dbCtx = (OrderDbContext) builder.Services.BuildServiceProvider().GetRequiredService(typeof(OrderDbContext));
-//builder.Services.AddSingleton<OrderEventHandler>(sp => new OrderEventHandler(dbCtx));
 
 builder.Services.AddDaprClient();
 builder.Services.AddControllers();
