@@ -4,18 +4,22 @@ using Common.Requests;
 using Microsoft.Extensions.Logging;
 using Orleans.Interfaces;
 using Orleans.Runtime;
+using Orleans.Streams;
 
 namespace Orleans.Grains
 {
 
     public class CartActor : Grain, ICartActor
     {
+
+        private List<StreamSubscriptionHandle<ProductUpdate>> consumerHandles;
+
         private readonly IPersistentState<Cart> cart;
 
         private long customerId;
         private readonly ILogger<CartActor> _logger;
 
-        private Customer customer;
+        private readonly Dictionary<(long, long), ProductUpdate> cachedProducts;
 
         public CartActor([PersistentState(
             stateName: "cart",
@@ -24,14 +28,38 @@ namespace Orleans.Grains
         {
             this.cart = state;
             this._logger = _logger;
+            this.consumerHandles = new();
+            this.cachedProducts = new();
         }
 
         public override async Task OnActivateAsync()
         {
             this.customerId = this.GetPrimaryKeyLong();
-            var custActor = this.GrainFactory.GetGrain<ICustomerActor>(customerId);
-            this.customer = await custActor.GetCustomer();
-            this._logger.LogWarning("Customer loaded for cart {0}", customerId);
+            await base.OnActivateAsync();
+        }
+
+        public async Task BecomeConsumer(string streamNamespace)
+        {
+            this._logger.LogInformation("BecomeConsumer");
+            IStreamProvider streamProvider = this.GetStreamProvider(Infra.Constants.DefaultStreamProvider);
+            IAsyncStream<ProductUpdate> _consumer = streamProvider.GetStream<ProductUpdate>( Infra.Constants.ProductStreamId, streamNamespace);
+            this.consumerHandles.Add( await _consumer.SubscribeAsync(UpdateProductAsync) );
+        }
+
+        public async Task StopConsuming()
+        {
+            this._logger.LogInformation("StopConsuming");
+            if (this.consumerHandles.Count() > 0)
+            {
+                foreach(var handle in consumerHandles) { await handle.UnsubscribeAsync(); }
+            }
+            this.consumerHandles.Clear();
+        }
+
+        private Task UpdateProductAsync(ProductUpdate product, StreamSequenceToken token)
+        {
+            this.cachedProducts.Add((product.seller_id, product.product_id), product);
+            return Task.CompletedTask;
         }
 
         public async Task AddItem(CartItem item)
@@ -46,8 +74,9 @@ namespace Orleans.Grains
                 throw new Exception("Cart for customer " + this.customerId + " already sent for checkout.");
             }
 
-            cart.State.items.Add(item);
-            await cart.WriteStateAsync();
+            this.cart.State.items.Add(item);
+            await this.cart.WriteStateAsync();
+            await BecomeConsumer(string.Format("{0}|{1}", item.SellerId, item.ProductId));
         }
 
         public Task<Cart> GetCart()
@@ -70,7 +99,9 @@ namespace Orleans.Grains
             if (this.cart.State.items.Count == 0)
                 throw new Exception("Cart " + this.customerId + " is empty.");
 
-            this.cart.State.status = CartStatus.CHECKOUT_SENT;
+            // TODO check if price divergence
+            // var cartItem = cart.State.items.First(i => i.SellerId == product.seller_id && i.ProductId == product.product_id);
+
             ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cart.State.items, customerCheckout.instanceId);
 
             IOrderActor orderActor = this.GrainFactory.GetGrain<IOrderActor>(this.customerId);
@@ -82,16 +113,9 @@ namespace Orleans.Grains
 
         public async Task Seal()
         {
-            if (this.cart.State.status == CartStatus.CHECKOUT_SENT)
-            {
-                this.cart.State.status = CartStatus.OPEN;
-                this.cart.State.items.Clear();
-                await cart.WriteStateAsync();
-            }
-            else
-            {
-                throw new Exception("Cannot seal a cart that has not been checked out");
-            }
+            this.cart.State.items.Clear();
+            await this.cart.WriteStateAsync();
+            await this.StopConsuming();
         }
 
     }

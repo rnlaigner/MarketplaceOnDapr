@@ -14,11 +14,14 @@ builder.Services.AddSwaggerGen();
 builder.Host.UseOrleans(siloBuilder =>
 {
     siloBuilder
+         .AddSimpleMessageStreamProvider("SMSProvider")
+         .AddMemoryGrainStorage("PubSubStore")
          .AddAdoNetGrainStorage("OrleansStorage", options =>
          {
              options.Invariant = "Npgsql";
              options.ConnectionString = "Host=ep-ancient-wildflower-518871.eu-central-1.aws.neon.tech;Port=5432;Database=neondb;Username=rodrigolaigner;Password=uYsWSG1dm2QB";
          })
+        
          .ConfigureLogging(logging =>
          {
              logging.ClearProviders();
@@ -42,6 +45,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
+/*
 app.Lifetime.ApplicationStarted.Register(async () => {
 
     var serv = app.Services.GetService<IGrainFactory>();  
@@ -49,6 +53,7 @@ app.Lifetime.ApplicationStarted.Register(async () => {
         await serv.GetGrain<IPersistentGrain>(0).SetUrl("teste");
      
 });
+*/
 
 await app.StartAsync();
 

@@ -10,7 +10,7 @@ namespace Orleans.Interfaces
 
         public Task DeleteItem();
 
-        public Task AddItem(StockItem item);
+        public Task SetItem(StockItem item);
 
     }
 }

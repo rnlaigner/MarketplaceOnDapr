@@ -3,6 +3,8 @@ using Common.Events;
 using Orleans.Concurrency;
 using Orleans.Interfaces;
 using Orleans.Runtime;
+using System.Globalization;
+using System.Text;
 
 namespace Orleans.Grains
 {
@@ -10,9 +12,13 @@ namespace Orleans.Grains
     public class OrderActor : Grain, IOrderActor
     {
 
+        private static readonly CultureInfo enUS = CultureInfo.CreateSpecificCulture("en-US");
+        private static readonly DateTimeFormatInfo dtfi = enUS.DateTimeFormat;
+
         private readonly IPersistentState<Dictionary<long, Order>> orderState;
-        private readonly IPersistentState<Dictionary<long, OrderItem>> orderItemState;
-        private long customerId;
+        private readonly IPersistentState<Dictionary<long, List<OrderItem>>> orderItemState;
+        private readonly IPersistentState<Dictionary<long, CustomerOrder>> customerOrderState;
+        //private long customerId;
 
         private long nextOrderId;
 
@@ -20,7 +26,7 @@ namespace Orleans.Grains
             [PersistentState(stateName: "order", storageName: "OrleansStorage")]
             IPersistentState<Dictionary<long, Order>> orderState,
             [PersistentState(stateName: "orderItem", storageName: "OrleansStorage")]
-            IPersistentState<Dictionary<long, OrderItem>> orderItemState) 
+            IPersistentState<Dictionary<long, List<OrderItem>>> orderItemState) 
         { 
             this.orderState = orderState;
             this.orderItemState = orderItemState;
@@ -29,7 +35,7 @@ namespace Orleans.Grains
 
         public override async Task OnActivateAsync()
         {
-            this.customerId = this.GetPrimaryKeyLong();
+            //this.customerId = this.GetPrimaryKeyLong();
             await base.OnActivateAsync();
         }
 
@@ -62,8 +68,6 @@ namespace Orleans.Grains
             }
 
             await Task.WhenAll(stockTasks);
-
-
 
             // calculate total freight_value
             decimal total_freight = 0;
@@ -104,10 +108,32 @@ namespace Orleans.Grains
                 totalPerItem.Add(item.ProductId, total_item);
             }
 
+            CustomerOrder customerOrder = this.customerOrderState.State[reserveStock.customerCheckout.CustomerId];
+
+            if (customerOrder is null)
+            {
+                customerOrder = new()
+                {
+                    customer_id = reserveStock.customerCheckout.CustomerId,
+                    next_order_id = 1
+                };
+                this.customerOrderState.State.Add(reserveStock.customerCheckout.CustomerId, customerOrder);
+            }
+            else
+            {
+                customerOrder.next_order_id += 1;
+            }
+            await this.customerOrderState.WriteStateAsync();
+
+            StringBuilder stringBuilder = new StringBuilder().Append(reserveStock.customerCheckout.CustomerId)
+                                                             .Append("-").Append(now.ToString("d", enUS))
+                                                             .Append("-").Append(customerOrder.next_order_id);
+
+
             Order newOrder = new()
             {
                 id = nextOrderId,
-                customer_id = this.customerId,
+                customer_id = reserveStock.customerCheckout.CustomerId,
                 status = OrderStatus.INVOICED,
                 created_at = System.DateTime.Now,
                 purchase_date = reserveStock.timestamp,
@@ -124,5 +150,17 @@ namespace Orleans.Grains
 
             return;
         }
+
+        public class CustomerOrder
+        {
+
+            public long customer_id { get; set; }
+
+            public long next_order_id { get; set; }
+
+            public CustomerOrder() { }
+
+        }
+
     }
 }

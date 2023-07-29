@@ -32,9 +32,10 @@ namespace Orleans.Grains
             // get redis connection string from metadata grain. publish TransactionMark after delete. can dispose itself after
         }
 
-        public Task AddItem(StockItem item)
+        public async Task SetItem(StockItem item)
         {
-            throw new NotImplementedException();
+            this.item.State = item;
+            await this.item.WriteStateAsync();
         }
 
         public Task<ItemStatus> AttemptReservation(int quantity)
@@ -52,9 +53,11 @@ namespace Orleans.Grains
             throw new NotImplementedException();
         }
 
-        public Task DeleteItem()
+        public async Task DeleteItem()
         {
-            throw new NotImplementedException();
+            this.item.State.data = "false";
+            await this.item.WriteStateAsync();
+            // TODO publish transaction mark
         }
     }
 }
