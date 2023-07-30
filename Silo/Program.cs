@@ -1,5 +1,5 @@
-﻿using Orleans;
-using Orleans.Hosting;
+﻿using Orleans.Infra;
+using Orleans.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,21 +14,24 @@ builder.Services.AddSwaggerGen();
 builder.Host.UseOrleans(siloBuilder =>
 {
     siloBuilder
-         .AddSimpleMessageStreamProvider("SMSProvider")
-         .AddMemoryGrainStorage("PubSubStore")
-         .AddAdoNetGrainStorage("OrleansStorage", options =>
+         .UseLocalhostClustering()
+         .AddMemoryStreams(Constants.DefaultStreamProvider)
+         .AddMemoryGrainStorage(Constants.DefaultStreamStorage)
+         .AddAdoNetGrainStorage(Constants.OrleansStorage, options =>
          {
              options.Invariant = "Npgsql";
              options.ConnectionString = "Host=ep-ancient-wildflower-518871.eu-central-1.aws.neon.tech;Port=5432;Database=neondb;Username=rodrigolaigner;Password=uYsWSG1dm2QB";
          })
-        
          .ConfigureLogging(logging =>
          {
              logging.ClearProviders();
              logging.AddConsole();
              logging.SetMinimumLevel(LogLevel.Warning);
          })
-         .UseLocalhostClustering();
+         .Services.AddSerializer(ser =>
+         {
+             ser.AddNewtonsoftJsonSerializer(isSupported: type => type.Namespace.StartsWith("Common"));
+         });
 });
 
 // prometheus

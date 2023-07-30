@@ -1,6 +1,5 @@
 ﻿using Common.Entities;
 using Microsoft.Extensions.Logging;
-using Orleans.Core;
 using Orleans.Interfaces;
 using Orleans.Runtime;
 using StackExchange.Redis;
@@ -15,20 +14,18 @@ namespace Orleans.Grains
 
         private readonly ILogger<StockActor> _logger;
 
-        private IGrainIdentity _identity;
-
         public StockActor([PersistentState(
             stateName: "cart",
-            storageName: Infra.Constants.storage)] IPersistentState<StockItem> state,
+            storageName: Infra.Constants.OrleansStorage)] IPersistentState<StockItem> state,
            ILogger<StockActor> _logger)
         {
             this.item = state;
             this._logger = _logger;
         }
 
-        public override async Task OnActivateAsync()
+        public override async Task OnActivateAsync(CancellationToken token)
         {
-            this._identity = this.GetGrainIdentity();
+            
             // get redis connection string from metadata grain. publish TransactionMark after delete. can dispose itself after
         }
 

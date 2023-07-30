@@ -33,10 +33,10 @@ namespace Orleans.Grains
             this.nextOrderId = 1;
         }
 
-        public override async Task OnActivateAsync()
+        public override async Task OnActivateAsync(CancellationToken token)
         {
             //this.customerId = this.GetPrimaryKeyLong();
-            await base.OnActivateAsync();
+            await base.OnActivateAsync(token);
         }
 
 

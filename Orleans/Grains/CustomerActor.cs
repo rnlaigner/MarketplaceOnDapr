@@ -26,10 +26,10 @@ namespace Orleans.Grains
             this._logger = _logger;
         }
 
-        public override async Task OnActivateAsync()
+        public override async Task OnActivateAsync(CancellationToken token)
         {
             this.customerId = this.GetPrimaryKeyLong();
-            await base.OnActivateAsync();
+            await base.OnActivateAsync(token);
         }
 
         public async Task AddCustomer(Customer customer)

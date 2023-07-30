@@ -11,7 +11,8 @@ namespace Orleans.Grains
 
     public class CartActor : Grain, ICartActor
     {
-
+        private IStreamProvider streamProvider;
+        private IAsyncStream<ReserveStock> stream;
         private List<StreamSubscriptionHandle<ProductUpdate>> consumerHandles;
 
         private readonly IPersistentState<Cart> cart;
@@ -19,11 +20,11 @@ namespace Orleans.Grains
         private long customerId;
         private readonly ILogger<CartActor> _logger;
 
-        private readonly Dictionary<(long, long), ProductUpdate> cachedProducts;
+        private readonly Dictionary<(long SellerId, long ProductId), ProductUpdate> cachedProducts;
 
         public CartActor([PersistentState(
             stateName: "cart",
-            storageName: Infra.Constants.storage)] IPersistentState<Cart> state, 
+            storageName: Infra.Constants.OrleansStorage)] IPersistentState<Cart> state, 
             ILogger<CartActor> _logger)
         {
             this.cart = state;
@@ -32,17 +33,17 @@ namespace Orleans.Grains
             this.cachedProducts = new();
         }
 
-        public override async Task OnActivateAsync()
+        public override async Task OnActivateAsync(CancellationToken token)
         {
             this.customerId = this.GetPrimaryKeyLong();
-            await base.OnActivateAsync();
+            this.streamProvider = this.GetStreamProvider(Infra.Constants.DefaultStreamProvider);
+            this.stream = streamProvider.GetStream<ReserveStock>(Infra.Constants.OrderNameSpace, this.customerId.ToString());
+            await base.OnActivateAsync(token);
         }
 
-        public async Task BecomeConsumer(string streamNamespace)
-        {
-            this._logger.LogInformation("BecomeConsumer");
-            IStreamProvider streamProvider = this.GetStreamProvider(Infra.Constants.DefaultStreamProvider);
-            IAsyncStream<ProductUpdate> _consumer = streamProvider.GetStream<ProductUpdate>( Infra.Constants.ProductStreamId, streamNamespace);
+        public async Task BecomeConsumer(string id)
+        { 
+            IAsyncStream<ProductUpdate> _consumer = streamProvider.GetStream<ProductUpdate>( Infra.Constants.ProductNameSpace, id);
             this.consumerHandles.Add( await _consumer.SubscribeAsync(UpdateProductAsync) );
         }
 
@@ -75,8 +76,8 @@ namespace Orleans.Grains
             }
 
             this.cart.State.items.Add(item);
-            await this.cart.WriteStateAsync();
-            await BecomeConsumer(string.Format("{0}|{1}", item.SellerId, item.ProductId));
+            await Task.WhenAll( this.cart.WriteStateAsync(),
+             BecomeConsumer(string.Format("{0}|{1}", item.SellerId, item.ProductId) ) );
         }
 
         public Task<Cart> GetCart()
@@ -100,22 +101,37 @@ namespace Orleans.Grains
                 throw new Exception("Cart " + this.customerId + " is empty.");
 
             // TODO check if price divergence
-            // var cartItem = cart.State.items.First(i => i.SellerId == product.seller_id && i.ProductId == product.product_id);
+            List<ProductStatus> divergencies = new List<ProductStatus>();
+            foreach(var cartItem in cart.State.items)
+            {
+                if (cachedProducts.ContainsKey((cartItem.SellerId, cartItem.ProductId)) &&
+                    cachedProducts[(cartItem.SellerId, cartItem.ProductId)].price != cartItem.UnitPrice)
+                {
+                    divergencies.Add(new ProductStatus()
+                    {
+                        Id = cartItem.ProductId,
+                        Status = ItemStatus.PRICE_DIVERGENCE,
+                        UnitPrice = cachedProducts[(cartItem.SellerId, cartItem.ProductId)].price,
+                        OldUnitPrice = cartItem.UnitPrice
+                    });
+                }
+            }
 
-            ReserveStock checkout = new ReserveStock(DateTime.Now, customerCheckout, cart.State.items, customerCheckout.instanceId);
-
-            IOrderActor orderActor = this.GrainFactory.GetGrain<IOrderActor>(this.customerId);
-          
-            _ = orderActor.Checkout(checkout);
+            if(divergencies.Count == 0) {
+                ReserveStock checkout = new ReserveStock(DateTime.UtcNow, customerCheckout, cart.State.items, customerCheckout.instanceId);
+                await this.stream.OnNextAsync(checkout);
+                await Seal();
+                return;
+            }
             
-            await Seal();
         }
 
         public async Task Seal()
         {
             this.cart.State.items.Clear();
-            await this.cart.WriteStateAsync();
-            await this.StopConsuming();
+            await Task.WhenAll(
+             this.cart.WriteStateAsync(),
+             this.StopConsuming() );
         }
 
     }

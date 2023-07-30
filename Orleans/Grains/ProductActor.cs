@@ -11,45 +11,36 @@ namespace Orleans.Grains
     public class ProductActor : Grain, IProductActor
     {
 
-        private IAsyncStream<ProductUpdate> _producer;
+        private IStreamProvider streamProvider;
+        private IAsyncStream<ProductUpdate> stream;
 
         private readonly IPersistentState<Product> product;
         private readonly ILogger<CartActor> _logger;
 
         public ProductActor([PersistentState(
             stateName: "product",
-            storageName: Infra.Constants.storage)] IPersistentState<Product> state,
+            storageName: Infra.Constants.OrleansStorage)] IPersistentState<Product> state,
             ILogger<CartActor> _logger)
         {
             this.product = state;
             this._logger = _logger;
         }
 
-        public override async Task OnActivateAsync()
+        public override async Task OnActivateAsync(CancellationToken token)
         {
-            var grainId = this.GetGrainIdentity();
             long primaryKey = this.GetPrimaryKeyLong(out string keyExtension);
-            var streamNamespace = string.Format("{0}|{1}", primaryKey, keyExtension);
-            await BecomeProducer(streamNamespace);
-        }
-
-        public Task BecomeProducer(string streamNamespace)
-        {
-            _logger.LogInformation("Producer.BecomeProducer");
-            IStreamProvider streamProvider = this.GetStreamProvider(Infra.Constants.DefaultStreamProvider);
-            IAsyncStream<ProductUpdate> stream = streamProvider.GetStream<ProductUpdate>(
-                    Infra.Constants.ProductStreamId, 
-                    streamNamespace);
-            _producer = stream;
-            return Task.CompletedTask;
+            var id = string.Format("{0}|{1}", primaryKey, keyExtension);
+            _logger.LogInformation("Activating Product actor {0}", id);
+            this.streamProvider = this.GetStreamProvider(Infra.Constants.DefaultStreamProvider);
+            this.stream = streamProvider.GetStream<ProductUpdate>(Infra.Constants.ProductNameSpace, id);
+            await base.OnActivateAsync(token);
         }
 
         public async Task SetProduct(Product product)
         {
-            // notify seller
             this.product.State = product;
-
             ISellerActor sellerActor = this.GrainFactory.GetGrain<ISellerActor>(product.seller_id);
+            // notify seller
             await Task.WhenAll( sellerActor.IndexProduct(product.product_id),
                                 this.product.WriteStateAsync() );
         }
@@ -63,17 +54,17 @@ namespace Orleans.Grains
                 await this.product.WriteStateAsync();
                 // no need to send delete product to cart? sure we should send it too
                 // but must send to stock...
-                ProductUpdate productUpdate = new()
-                {
-                    seller_id = productToDelete.sellerId,
-                    product_id = productToDelete.productId,
-                    price = this.product.State.price,
-                    active = false,
-                    instanceId = productToDelete.instanceId
-                };
-                await _producer.OnNextAsync(productUpdate);
+                ProductUpdate productUpdate = new ProductUpdate(
+                     productToDelete.sellerId,
+                     productToDelete.productId,
+                     this.product.State.price,
+                     false,
+                     productToDelete.instanceId);
+                
+                await stream.OnNextAsync(productUpdate);
+                return;
             }
-            
+            _logger.LogError("State not set in seller {0} product {1}", productToDelete.sellerId, productToDelete.productId);
         }
 
         public Task<Product> GetProduct()
@@ -85,16 +76,14 @@ namespace Orleans.Grains
         {
             // no way to know which carts contain the product, so require streaming it
             this.product.State.price = updatePrice.price;
-            ProductUpdate productUpdate = new()
-            {
-                seller_id = updatePrice.sellerId,
-                product_id = updatePrice.productId,
-                price = this.product.State.price,
-                active = true,
-                instanceId = updatePrice.instanceId
-            };
-            await _producer.OnNextAsync(productUpdate);
-            await this.product.WriteStateAsync();
+            ProductUpdate productUpdate = new ProductUpdate(
+                     updatePrice.sellerId,
+                     updatePrice.productId,
+                     this.product.State.price,
+                     true,
+                     updatePrice.instanceId);
+
+            await Task.WhenAll(stream.OnNextAsync(productUpdate), this.product.WriteStateAsync() );
         }
     }
 }
