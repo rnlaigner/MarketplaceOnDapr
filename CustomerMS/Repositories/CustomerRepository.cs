@@ -29,7 +29,7 @@ namespace CustomerMS.Repositories
             return res.Entity;
         }
 
-        public CustomerModel? GetById(long id)
+        public CustomerModel? GetById(int id)
         {
             return this.dbContext.Customers.Find(id);
         }

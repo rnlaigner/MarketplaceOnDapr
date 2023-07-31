@@ -2,9 +2,9 @@
 {
     public record ProductUpdate
 	(
-         long seller_id,
-         long product_id,
-         decimal price,
+         int seller_id,
+         int product_id,
+         float price,
          bool active,
          int instanceId
     );

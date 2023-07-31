@@ -4,7 +4,7 @@ namespace Common.Entities
 	public class OrderPaymentCard
 	{
         // FKs
-        public long order_id { get; set; }
+        public int order_id { get; set; }
         public int payment_sequential { get; set; }
 
         // card info coming from customer checkout

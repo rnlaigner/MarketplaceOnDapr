@@ -10,9 +10,9 @@ namespace OrderMS.Common.Models
     [PrimaryKey(nameof(id))]
     public class OrderHistoryModel
     {
-        public long id { get; set; }
+        public int id { get; set; }
 
-        public long order_id { get; set; }
+        public int order_id { get; set; }
 
         public DateTime created_at { get; set; }
 

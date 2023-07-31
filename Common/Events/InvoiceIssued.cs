@@ -12,10 +12,10 @@ namespace Common.Events
     public record InvoiceIssued
     (
         CustomerCheckout customer,
-        long orderId,
+        int orderId,
         string invoiceNumber,
         DateTime issueDate,
-        decimal totalInvoice,
+        float totalInvoice,
         List<OrderItem> items,
         int instanceId
     );

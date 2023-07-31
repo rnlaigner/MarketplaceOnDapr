@@ -19,12 +19,12 @@ namespace ProductMS.Repositories
             Update(product);
         }
 
-        public List<ProductModel> GetBySeller(long sellerId)
+        public List<ProductModel> GetBySeller(int sellerId)
         {
             return this.dbContext.Products.Where(p => p.seller_id == sellerId).ToList();
         }
 
-        public ProductModel? GetProduct(long sellerId, long productId)
+        public ProductModel? GetProduct(int sellerId, int productId)
         {
             var product = this.dbContext.Products.Find(sellerId, productId);
             return product;

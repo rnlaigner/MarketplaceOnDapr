@@ -5,9 +5,9 @@ namespace Common.Events
 {
     public record IncreaseStock
     (
-        long seller_id,
+        int seller_id,
 
-        long product_id,
+        int product_id,
 
         int quantity
 

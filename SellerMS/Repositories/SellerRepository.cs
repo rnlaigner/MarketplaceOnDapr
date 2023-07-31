@@ -29,7 +29,7 @@ namespace SellerMS.Repositories
             return entity;
         }
 
-        public SellerModel? Get(long sellerId)
+        public SellerModel? Get(int sellerId)
         {
             return dbContext.Sellers.Find(sellerId);
             

@@ -15,22 +15,22 @@ namespace SellerMS.Models
     [Index(nameof(seller_id))]
     public class OrderEntry
     {
-		public long seller_id { get; set; }
-        public long order_id { get; set; }
-        public long? package_id { get; set; }
+		public int seller_id { get; set; }
+        public int order_id { get; set; }
+        public int? package_id { get; set; }
 
-        public long product_id { get; set; }
+        public int product_id { get; set; }
         public string product_name { get; set; } = "";
         public string product_category { get; set; } = "";
 
-        public decimal unit_price { get; set; }
+        public float unit_price { get; set; }
         public int quantity { get; set; }
 
-        public decimal total_items { get; set; }
-        public decimal total_amount { get; set; }
-        public decimal total_incentive { get; set; }
-        public decimal total_invoice { get; set; } = 0;
-        public decimal freight_value { get; set; }
+        public float total_items { get; set; }
+        public float total_amount { get; set; }
+        public float total_incentive { get; set; }
+        public float total_invoice { get; set; } = 0;
+        public float freight_value { get; set; }
 
         public DateTime? shipment_date { get; set; }
 

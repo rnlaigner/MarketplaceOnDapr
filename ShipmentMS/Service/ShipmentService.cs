@@ -133,8 +133,8 @@ namespace ShipmentMS.Service
 
         private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, int instanceId)
         {
-            long orderId = sellerPackages.ElementAt(0).order_id;
-            long sellerId = sellerPackages.ElementAt(0).seller_id;
+            int orderId = sellerPackages.ElementAt(0).order_id;
+            int sellerId = sellerPackages.ElementAt(0).seller_id;
 
             ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
             if (shipment is null) throw new Exception("Shipment ID " + orderId + " cannot be found in the database!");

@@ -11,7 +11,7 @@ namespace PaymentMS.Models
     public class OrderPaymentCardModel
 	{
 
-        public long order_id { get; set; }
+        public int order_id { get; set; }
 
         public int payment_sequential { get; set; }
 

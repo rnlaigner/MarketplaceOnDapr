@@ -16,11 +16,11 @@ namespace ShipmentMS.Migrations
                 name: "shipments",
                 columns: table => new
                 {
-                    order_id = table.Column<long>(type: "bigint", nullable: false)
+                    order_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    customer_id = table.Column<long>(type: "bigint", nullable: false),
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     package_count = table.Column<int>(type: "integer", nullable: false),
-                    total_freight_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
+                    total_freight_value = table.Column<float>(type: "real(4,2)", precision: 4, scale: 2, nullable: false),
                     request_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     first_name = table.Column<string>(type: "text", nullable: false),
@@ -40,12 +40,12 @@ namespace ShipmentMS.Migrations
                 name: "packages",
                 columns: table => new
                 {
-                    order_id = table.Column<long>(type: "bigint", nullable: false),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
                     package_id = table.Column<int>(type: "integer", nullable: false),
-                    seller_id = table.Column<long>(type: "bigint", nullable: false),
-                    product_id = table.Column<long>(type: "bigint", nullable: false),
+                    seller_id = table.Column<int>(type: "integer", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: false),
                     product_name = table.Column<string>(type: "text", nullable: false),
-                    freight_value = table.Column<decimal>(type: "numeric(4,2)", precision: 4, scale: 2, nullable: false),
+                    freight_value = table.Column<float>(type: "real(4,2)", precision: 4, scale: 2, nullable: false),
                     shipping_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     quantity = table.Column<int>(type: "integer", nullable: false),

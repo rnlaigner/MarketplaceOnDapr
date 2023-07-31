@@ -11,7 +11,7 @@ namespace PaymentMS.Models
     [PrimaryKey(nameof(order_id), nameof(sequential))]
     public class OrderPaymentModel
 	{
-        public long order_id { get; set; }
+        public int order_id { get; set; }
 
         // e.g., 1 - credit card, 2 - coupon, 3 - coupon
         public int sequential { get; set; }
@@ -23,7 +23,7 @@ namespace PaymentMS.Models
         public int installments { get; set; }
 
         // respective to this line (ie. coupon)
-        public decimal value { get; set; }
+        public float value { get; set; }
 
         public DateTime created_at { get; set; }
 

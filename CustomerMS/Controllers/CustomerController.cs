@@ -57,7 +57,7 @@ public class CustomerController : ControllerBase
     [HttpGet("{customerId}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Customer> GetCustomerById(long customerId)
+    public ActionResult<Customer> GetCustomerById(int customerId)
     {
         this.logger.LogInformation("[GetCustomerById] received for customer ID {0}", customerId);
         CustomerModel? customer = this.customerRepository.GetById(customerId);

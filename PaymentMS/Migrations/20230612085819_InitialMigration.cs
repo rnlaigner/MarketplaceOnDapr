@@ -15,11 +15,11 @@ namespace PaymentMS.Migrations
                 name: "order_payments",
                 columns: table => new
                 {
-                    order_id = table.Column<long>(type: "bigint", nullable: false),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
                     sequential = table.Column<int>(type: "integer", nullable: false),
                     type = table.Column<string>(type: "text", nullable: false),
                     installments = table.Column<int>(type: "integer", nullable: false),
-                    value = table.Column<decimal>(type: "numeric", nullable: false),
+                    value = table.Column<float>(type: "real", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: true)
                 },
@@ -33,7 +33,7 @@ namespace PaymentMS.Migrations
                 name: "order_payment_cards",
                 columns: table => new
                 {
-                    order_id = table.Column<long>(type: "bigint", nullable: false),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
                     payment_sequential = table.Column<int>(type: "integer", nullable: false),
                     card_number = table.Column<string>(type: "text", nullable: false),
                     card_holder_name = table.Column<string>(type: "text", nullable: false),

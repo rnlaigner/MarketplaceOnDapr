@@ -38,7 +38,7 @@ public class PaymentController : ControllerBase
     [Route("{orderId}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<IEnumerable<OrderPaymentModel>> GetPaymentByOrderId(long orderId)
+    public ActionResult<IEnumerable<OrderPaymentModel>> GetPaymentByOrderId(int orderId)
     {
         this.logger.LogInformation("[GetPaymentByOrderId] received for order ID {0}.", orderId);
         var res = this.paymentRepository.GetByOrderId(orderId);

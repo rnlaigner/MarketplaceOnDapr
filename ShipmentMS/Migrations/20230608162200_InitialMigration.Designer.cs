@@ -27,8 +27,8 @@ namespace ShipmentMS.Migrations
 
             modelBuilder.Entity("ShipmentMS.Models.PackageModel", b =>
                 {
-                    b.Property<long>("order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
                     b.Property<int>("package_id")
                         .HasColumnType("integer");
@@ -36,12 +36,12 @@ namespace ShipmentMS.Migrations
                     b.Property<DateTime?>("delivery_date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("freight_value")
+                    b.Property<float>("freight_value")
                         .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("float");
 
-                    b.Property<long>("product_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("product_id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("product_name")
                         .IsRequired()
@@ -50,8 +50,8 @@ namespace ShipmentMS.Migrations
                     b.Property<int>("quantity")
                         .HasColumnType("integer");
 
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("shipping_date")
                         .HasColumnType("timestamp with time zone");
@@ -67,11 +67,11 @@ namespace ShipmentMS.Migrations
 
             modelBuilder.Entity("ShipmentMS.Models.ShipmentModel", b =>
                 {
-                    b.Property<long>("order_id")
+                    b.Property<int>("order_id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("order_id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("order_id"));
 
                     b.Property<string>("city")
                         .IsRequired()
@@ -81,8 +81,8 @@ namespace ShipmentMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("customer_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("first_name")
                         .IsRequired()
@@ -110,9 +110,9 @@ namespace ShipmentMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("total_freight_value")
+                    b.Property<float>("total_freight_value")
                         .HasPrecision(4, 2)
-                        .HasColumnType("decimal");
+                        .HasColumnType("float");
 
                     b.Property<string>("zip_code")
                         .IsRequired()

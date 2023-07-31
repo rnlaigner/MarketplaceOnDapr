@@ -8,7 +8,7 @@ namespace CartMS.Models
     [PrimaryKey(nameof(customer_id))]
     public class CartModel
 	{
-        public long customer_id { get; set; }
+        public int customer_id { get; set; }
 
         public CartStatus status { get; set; } = CartStatus.OPEN;
 

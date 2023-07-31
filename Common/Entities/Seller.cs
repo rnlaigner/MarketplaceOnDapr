@@ -11,7 +11,7 @@ namespace Common.Entities
     public class Seller
     {
 
-        public long id { get; set; }
+        public int id { get; set; }
 
         public string name { get; set; } = "";
 

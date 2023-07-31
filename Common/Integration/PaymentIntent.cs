@@ -21,7 +21,7 @@ namespace Common.Integration
 		// example: pi_1GszdL2eZvKYlo2C4nORvwio
 		public string id { get; set; } = "";
 
-        public decimal amount { get; set; }
+        public float amount { get; set; }
 
         // https://stripe.com/docs/api/errors#errors-setup_intent-status
         public string status { get; set; } = PaymentStatus.succeeded.ToString();
@@ -35,7 +35,7 @@ namespace Common.Integration
 
 		public string confirmation_method = "automatic";
 
-        public long created { get; set; }
+        public int created { get; set; }
 
 	}
 }

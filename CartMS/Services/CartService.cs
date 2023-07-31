@@ -47,7 +47,7 @@ namespace CartMS.Services
             this.cartRepository.Update(cart);   
         }
 
-        private static readonly decimal[] emptyArray = Array.Empty<decimal>();
+        private static readonly float[] emptyArray = Array.Empty<float>();
 
         public async Task NotifyCheckout(CustomerCheckout customerCheckout, CartModel cart)
         {
@@ -66,7 +66,7 @@ namespace CartMS.Services
                     UnitPrice = i.unit_price,
                     FreightValue = i.freight_value,
                     Quantity = i.quantity,
-                    Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
+                    Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), float.Parse)
                 }).ToList();
 
                 this.Seal(cart);
@@ -116,7 +116,7 @@ namespace CartMS.Services
             {
                 if (products == null)
                 {
-                    var ids = (IReadOnlyList<long>)cart.items.Select(i => i.Value.ProductId).ToList();
+                    var ids = (IReadOnlyList<int>)cart.items.Select(i => i.Value.ProductId).ToList();
                     products = await productRepository.GetProducts(ids);
                 }
 

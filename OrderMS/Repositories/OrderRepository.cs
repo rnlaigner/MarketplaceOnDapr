@@ -28,12 +28,12 @@ namespace OrderMS.Repositories
             return this.dbContext.Orders;
         }
 
-        public IEnumerable<OrderModel> GetByCustomerId(long customerId)
+        public IEnumerable<OrderModel> GetByCustomerId(int customerId)
         {
             return this.dbContext.Orders.Where(o => o.customer_id == customerId);
         }
 
-        public OrderModel? GetOrder(long orderId)
+        public OrderModel? GetOrder(int orderId)
         {
             return this.dbContext.Orders.Find(orderId);
         }

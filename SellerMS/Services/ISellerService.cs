@@ -14,7 +14,7 @@ namespace SellerMS.Services
         void ProcessShipmentNotification(ShipmentNotification shipmentNotification);
         void ProcessStockItem(StockItem stockItem);
 
-        SellerDashboard QueryDashboard(long sellerId);
+        SellerDashboard QueryDashboard(int sellerId);
 
         void Cleanup();
         void Reset();

@@ -13,7 +13,7 @@ namespace PaymentMS.Repositories
             this.dbContext = paymentDbContext;
 		}
 
-        public IEnumerable<OrderPaymentModel> GetByOrderId(long orderId)
+        public IEnumerable<OrderPaymentModel> GetByOrderId(int orderId)
         {
             return dbContext.OrderPayments.Where(o=>o.order_id == orderId);
         }

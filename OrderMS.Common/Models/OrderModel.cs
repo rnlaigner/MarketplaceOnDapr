@@ -17,12 +17,12 @@ namespace OrderMS.Common.Models
          * Sequence does not block concurrent txs in PostgreSQL
          * but may leave holes if tx fails
          */
-        public long id { get; set; }
+        public int id { get; set; }
 
         // https://finom.co/en-fr/blog/invoice-number/
         public string invoice_number { get; set; } = "";
 
-        public long customer_id { get; set; }
+        public int customer_id { get; set; }
 
         public OrderStatus status { get; set; } = OrderStatus.CREATED;
 
@@ -42,11 +42,11 @@ namespace OrderMS.Common.Models
 
         public DateTime updated_at { get; set; }
 
-        public decimal total_amount { get; set; } = 0;
-        public decimal total_freight { get; set; } = 0;
-        public decimal total_incentive { get; set; } = 0;
-        public decimal total_invoice { get; set; } = 0;
-        public decimal total_items { get; set; } = 0;
+        public float total_amount { get; set; } = 0;
+        public float total_freight { get; set; } = 0;
+        public float total_incentive { get; set; } = 0;
+        public float total_invoice { get; set; } = 0;
+        public float total_items { get; set; } = 0;
 
         // only way to make migrations pick the relationship from the order item side?...
         [ForeignKey("order_id")]

@@ -4,11 +4,11 @@ namespace Common.Events
 {
     public record DeliveryNotification
     (
-        long customerId,
-        long orderId,
+        int customerId,
+        int orderId,
         int packageId,
-        long sellerId,
-        long productId,
+        int sellerId,
+        int productId,
         string productName,
         PackageStatus status,
         DateTime deliveryDate,

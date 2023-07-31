@@ -8,8 +8,8 @@ namespace Common.Events
     public record PaymentConfirmed
     (
         CustomerCheckout customer,
-        long orderId,
-        decimal totalAmount,
+        int orderId,
+        float totalAmount,
         IList<OrderItem> items,
         DateTime date,
         int instanceId

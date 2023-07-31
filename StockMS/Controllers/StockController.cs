@@ -57,10 +57,10 @@ public class StockController : ControllerBase
         return StatusCode((int)HttpStatusCode.InternalServerError);
     }
 
-    [HttpGet("{sellerId:long}/{productId:long}")]
+    [HttpGet("{sellerId:int}/{productId:int}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetBySellerIdAndProductId(long sellerId, long productId)
+    public ActionResult<Product> GetBySellerIdAndProductId(int sellerId, int productId)
     {
         this.logger.LogInformation("[GetBySellerIdAndProductId] received for item id {0}", productId);
         StockItemModel? item = this.stockRepository.GetItem(sellerId, productId);
@@ -83,7 +83,7 @@ public class StockController : ControllerBase
     [HttpGet("{sellerId}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(List<StockItemModel>), (int)HttpStatusCode.OK)]
-    public ActionResult<List<StockItemModel>> GetBySellerId(long sellerId)
+    public ActionResult<List<StockItemModel>> GetBySellerId(int sellerId)
     {
         this.logger.LogInformation("[GetBySeller] received for seller {0}", sellerId);
         if (sellerId <= 0)

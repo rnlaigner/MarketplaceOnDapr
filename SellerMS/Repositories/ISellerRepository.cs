@@ -5,7 +5,7 @@ namespace SellerMS.Repositories
 	public interface ISellerRepository
 	{
 		SellerModel Insert(SellerModel seller);
-		SellerModel? Get(long sellerId);
+		SellerModel? Get(int sellerId);
 	}
 }
 

@@ -3,13 +3,13 @@ using ShipmentMS.Models;
 
 namespace ShipmentMS.Repositories
 {
-	public interface IPackageRepository : IRepository<(long,int), PackageModel>
+	public interface IPackageRepository : IRepository<(int,int), PackageModel>
 	{
-        IDictionary<long, long> GetOldestOpenShipmentPerSeller();
+        IDictionary<int, int> GetOldestOpenShipmentPerSeller();
 
-        IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(long orderId, long sellerId);
+        IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(int orderId, int sellerId);
 
-        int GetTotalDeliveredPackagesForOrder(long orderId);
+        int GetTotalDeliveredPackagesForOrder(int orderId);
 
     }
 }

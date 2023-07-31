@@ -38,14 +38,14 @@ namespace OrderMS.Common.Infra
          */
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasSequence<long>("OrderNumbers").IncrementsBy(1).StartsAt(1);
+            modelBuilder.HasSequence<int>("OrderNumbers").IncrementsBy(1).StartsAt(1);
 
             modelBuilder.Entity<OrderModel>()
                 .Property(o => o.id)
                 .UseIdentityAlwaysColumn() // use ALWAYS db generated identity
                 .HasDefaultValueSql("nextval('\"OrderNumbers\"')");
 
-            modelBuilder.HasSequence<long>("OrderHistoryNumbers").IncrementsBy(1).StartsAt(1);
+            modelBuilder.HasSequence<int>("OrderHistoryNumbers").IncrementsBy(1).StartsAt(1);
 
             modelBuilder.Entity<OrderHistoryModel>()
              .Property(o => o.id)

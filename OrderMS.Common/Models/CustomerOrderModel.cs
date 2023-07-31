@@ -12,9 +12,9 @@ namespace OrderMS.Common.Models
     public class CustomerOrderModel
 	{
 
-        public long customer_id { get; set; }
+        public int customer_id { get; set; }
 
-        public long next_order_id { get; set; }
+        public int next_order_id { get; set; }
 
         public CustomerOrderModel() { }
 

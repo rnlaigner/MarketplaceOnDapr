@@ -3,7 +3,7 @@ namespace Common.Entities
 {
 	public class OrderPayment
 	{
-        public long order_id { get; set; }
+        public int order_id { get; set; }
 
         // 1 - coupon, 2 - coupon, 3 - credit card
         public int payment_sequential { get; set; }
@@ -15,7 +15,7 @@ namespace Common.Entities
         public int payment_installments { get; set; }
 
         // respective to this line (ie. coupon)
-        public decimal payment_value { get; set; }
+        public float payment_value { get; set; }
     }
 }
 

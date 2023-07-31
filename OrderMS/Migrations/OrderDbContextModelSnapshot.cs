@@ -28,14 +28,14 @@ namespace OrderMS.Migrations
 
             modelBuilder.Entity("OrderMS.Common.Models.CustomerOrderModel", b =>
                 {
-                    b.Property<long>("customer_id")
+                    b.Property<int>("customer_id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("customer_id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("customer_id"));
 
-                    b.Property<long>("next_order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("next_order_id")
+                        .HasColumnType("integer");
 
                     b.HasKey("customer_id");
 
@@ -44,18 +44,18 @@ namespace OrderMS.Migrations
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderHistoryModel", b =>
                 {
-                    b.Property<long>("id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
+                        .HasColumnType("integer")
                         .HasDefaultValueSql("nextval('\"OrderHistoryNumbers\"')");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("id"));
 
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("status")
                         .IsRequired()
@@ -70,17 +70,17 @@ namespace OrderMS.Migrations
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderItemModel", b =>
                 {
-                    b.Property<long>("order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("order_item_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_item_id")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("freight_value")
-                        .HasColumnType("numeric");
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
 
-                    b.Property<long>("product_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("product_id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("product_name")
                         .IsRequired()
@@ -89,20 +89,20 @@ namespace OrderMS.Migrations
                     b.Property<int>("quantity")
                         .HasColumnType("integer");
 
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("shipping_limit_date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("total_amount")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_amount")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_items")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_items")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("unit_price")
-                        .HasColumnType("numeric");
+                    b.Property<float>("unit_price")
+                        .HasColumnType("real");
 
                     b.HasKey("order_id", "order_item_id");
 
@@ -111,12 +111,12 @@ namespace OrderMS.Migrations
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderModel", b =>
                 {
-                    b.Property<long>("id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
+                        .HasColumnType("integer")
                         .HasDefaultValueSql("nextval('\"OrderNumbers\"')");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("id"));
 
                     b.Property<int>("count_items")
                         .HasColumnType("integer");
@@ -124,8 +124,8 @@ namespace OrderMS.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("customer_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("delivered_carrier_date")
                         .HasColumnType("timestamp with time zone");
@@ -150,20 +150,20 @@ namespace OrderMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("total_amount")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_amount")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_freight")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_freight")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_incentive")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_incentive")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_invoice")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_invoice")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_items")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_items")
+                        .HasColumnType("real");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");

@@ -6,19 +6,19 @@ namespace CartMS.Repositories
 {
     public interface ICartRepository
     {
-        CartModel? GetCart(long customerId);
+        CartModel? GetCart(int customerId);
 
-        IList<CartItemModel> GetItems(long customerId);
+        IList<CartItemModel> GetItems(int customerId);
 
         CartItemModel AddItem(CartItemModel item);
 
-        CartModel? Delete(long customerId);
+        CartModel? Delete(int customerId);
 
         CartModel Update(CartModel cart);
 
         CartModel Insert(CartModel cart);
 
-        void DeleteItems(long customerId);
+        void DeleteItems(int customerId);
 
         CartItemModel UpdateItem(CartItemModel item);
     }

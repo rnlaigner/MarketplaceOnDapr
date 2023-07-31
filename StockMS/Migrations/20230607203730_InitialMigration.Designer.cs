@@ -27,11 +27,11 @@ namespace StockMS.Migrations
 
             modelBuilder.Entity("StockMS.Models.StockItemModel", b =>
                 {
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("product_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("product_id")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("active")
                         .HasColumnType("boolean");

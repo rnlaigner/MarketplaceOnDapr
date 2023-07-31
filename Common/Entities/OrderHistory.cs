@@ -15,9 +15,9 @@ namespace Common.Entities
     public class OrderHistory
 	{
 		// PK. 
-		public long id { get; set; }
+		public int id { get; set; }
         // FK can be ommitted if document-oriented model (as a nested object) is adopted
-        public long order_id { get; set; }
+        public int order_id { get; set; }
 
         public DateTime created_at { get; set; }
 

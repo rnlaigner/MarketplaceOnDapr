@@ -10,9 +10,9 @@ namespace StockMS.Models
         // consider partitioning on seller id
         // https://www.postgresql.org/docs/current/ddl-partitioning.html
         // https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/managing?tabs=dotnet-core-cli#adding-raw-sql
-        public long seller_id { get; set; }
+        public int seller_id { get; set; }
 
-        public long product_id { get; set; }
+        public int product_id { get; set; }
 
         public int qty_available { get; set; }
 
@@ -35,7 +35,7 @@ namespace StockMS.Models
             this.updated_at = this.created_at;
         }
 
-        public StockItemModel(long product_id, long seller_id, int qty, DateTime created_at)
+        public StockItemModel(int product_id, int seller_id, int qty, DateTime created_at)
 		{
             this.product_id = product_id;
             this.seller_id = seller_id;

@@ -25,7 +25,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(List<Product>), (int)HttpStatusCode.OK)]
-    public ActionResult<List<Product>> GetBySellerId(long sellerId)
+    public ActionResult<List<Product>> GetBySellerId(int sellerId)
     {
         this.logger.LogInformation("[GetBySeller] received for seller {0}", sellerId);
         if (sellerId <= 0)
@@ -60,11 +60,11 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpGet("{sellerId:long}/{productId:long}")]
+    [HttpGet("{sellerId:int}/{productId:int}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetBySellerIdAndProductId(long sellerId, long productId)
+    public ActionResult<Product> GetBySellerIdAndProductId(int sellerId, int productId)
     {
         this.logger.LogInformation("[GetById] received for product {0}", productId);
         if (productId <= 0)

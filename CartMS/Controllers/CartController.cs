@@ -29,7 +29,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
-    public ActionResult AddItem(long customerId, [FromBody] CartItem item)
+    public ActionResult AddItem(int customerId, [FromBody] CartItem item)
     {
         this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
         if (item.Quantity <= 0)
@@ -75,12 +75,12 @@ public class CartController : ControllerBase
         return Accepted();
     }
 
-    private static readonly decimal[] emptyArray = Array.Empty<decimal>();
+    private static readonly float[] emptyArray = Array.Empty<float>();
 
     [HttpGet("{customerId}")]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Cart> Get(long customerId)
+    public ActionResult<Cart> Get(int customerId)
     {
         var cart = this.cartRepository.GetCart(customerId);
         if (cart is null)
@@ -98,7 +98,7 @@ public class CartController : ControllerBase
             UnitPrice = i.unit_price,
             FreightValue = i.freight_value,
             Quantity = i.quantity,
-            Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), decimal.Parse)
+            Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), float.Parse)
         }).ToList();
 
         return Ok(new Cart()
@@ -112,7 +112,7 @@ public class CartController : ControllerBase
     [HttpDelete("{customerId}")]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult Delete(long customerId)
+    public ActionResult Delete(int customerId)
     {
         this.logger.LogInformation("Customer {0} requested to delete cart.", customerId);
         var cart = this.cartRepository.Delete(customerId);
@@ -145,7 +145,7 @@ public class CartController : ControllerBase
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult Seal(long customerId)
+    public ActionResult Seal(int customerId)
     {
         var cart = this.cartRepository.GetCart(customerId);
         if(cart is null)
@@ -165,7 +165,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     [ProducesResponseType(typeof(Cart),(int)HttpStatusCode.MethodNotAllowed)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult> NotifyCheckout(long customerId, [FromBody] CustomerCheckout customerCheckout)
+    public async Task<ActionResult> NotifyCheckout(int customerId, [FromBody] CustomerCheckout customerCheckout)
     {
         this.logger.LogInformation("[NotifyCheckout] received request.");
 

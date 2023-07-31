@@ -9,9 +9,9 @@ namespace Common.Events
     (
         string status,
         CustomerCheckout customer,
-        long orderId,
+        int orderId,
         IList<OrderItem> items,
-        decimal totalAmount,
+        float totalAmount,
         int instanceId
     );
 }

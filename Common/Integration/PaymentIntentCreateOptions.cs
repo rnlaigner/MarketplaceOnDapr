@@ -10,7 +10,7 @@ namespace Common.Integration
     public class PaymentIntentCreateOptions {
 
         public string Customer { get; set; } = "";
-        public decimal Amount { get; set; }
+        public float Amount { get; set; }
         public string PaymentMethod { get; set; } = "";
         public string IdempotencyKey { get; set; } = "";
         public CardOptions? cardOptions { get; set; }

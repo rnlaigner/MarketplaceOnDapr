@@ -4,7 +4,7 @@ using ShipmentMS.Models;
 
 namespace ShipmentMS.Repositories
 {
-	public class PackageRepository : GenericRepository<(long,int), PackageModel>, IPackageRepository
+	public class PackageRepository : GenericRepository<(int,int), PackageModel>, IPackageRepository
 	{
 
         public PackageRepository(ShipmentDbContext context) : base(context)
@@ -13,7 +13,7 @@ namespace ShipmentMS.Repositories
 
         private const string query = "select seller_id, MIN(order_id) as custom from packages where packages.status == 'shipped' group by seller_id";
 
-        public IDictionary<long, long> GetOldestOpenShipmentPerSeller()
+        public IDictionary<int, int> GetOldestOpenShipmentPerSeller()
         {
             return this.dbSet
                             .Where(x => x.status.Equals(PackageStatus.shipped.ToString()))
@@ -22,12 +22,12 @@ namespace ShipmentMS.Repositories
                             .ToDictionary(g => g.key, g => g.Sort);
         }
 
-        public IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(long orderId, long sellerId)
+        public IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(int orderId, int sellerId)
         {
             return this.Get(p => p.status == PackageStatus.shipped && p.order_id == orderId);
         }
 
-        public int GetTotalDeliveredPackagesForOrder(long orderId)
+        public int GetTotalDeliveredPackagesForOrder(int orderId)
         {
             return this.dbSet.Where(p => p.status == PackageStatus.delivered && p.order_id == orderId).Count();
         }

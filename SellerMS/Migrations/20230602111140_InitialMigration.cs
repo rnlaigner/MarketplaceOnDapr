@@ -16,11 +16,11 @@ namespace SellerMS.Migrations
                 name: "order_entry_details",
                 columns: table => new
                 {
-                    order_id = table.Column<long>(type: "bigint", nullable: false)
+                    order_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     order_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
-                    customer_id = table.Column<long>(type: "bigint", nullable: false),
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     first_name = table.Column<string>(type: "text", nullable: false),
                     last_name = table.Column<string>(type: "text", nullable: false),
                     street = table.Column<string>(type: "text", nullable: false),
@@ -40,7 +40,7 @@ namespace SellerMS.Migrations
                 name: "sellers",
                 columns: table => new
                 {
-                    id = table.Column<long>(type: "bigint", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "text", nullable: false),
                     company_name = table.Column<string>(type: "text", nullable: false),
@@ -64,19 +64,19 @@ namespace SellerMS.Migrations
                 name: "order_entries",
                 columns: table => new
                 {
-                    order_id = table.Column<long>(type: "bigint", nullable: false),
-                    product_id = table.Column<long>(type: "bigint", nullable: false),
-                    seller_id = table.Column<long>(type: "bigint", nullable: false),
-                    package_id = table.Column<long>(type: "bigint", nullable: true),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: false),
+                    seller_id = table.Column<int>(type: "integer", nullable: false),
+                    package_id = table.Column<int>(type: "integer", nullable: true),
                     product_name = table.Column<string>(type: "text", nullable: false),
                     product_category = table.Column<string>(type: "text", nullable: false),
-                    unit_price = table.Column<decimal>(type: "numeric", nullable: false),
+                    unit_price = table.Column<float>(type: "real", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),
-                    total_items = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_incentive = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_invoice = table.Column<decimal>(type: "numeric", nullable: false),
-                    freight_value = table.Column<decimal>(type: "numeric", nullable: false),
+                    total_items = table.Column<float>(type: "real", nullable: false),
+                    total_amount = table.Column<float>(type: "real", nullable: false),
+                    total_incentive = table.Column<float>(type: "real", nullable: false),
+                    total_invoice = table.Column<float>(type: "real", nullable: false),
+                    freight_value = table.Column<float>(type: "real", nullable: false),
                     shipment_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     order_status = table.Column<string>(type: "text", nullable: false),

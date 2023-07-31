@@ -23,12 +23,12 @@ namespace CartMS.Repositories
             return track.Entity;
         }
 
-        public ProductModel? GetProduct(long sellerId, long productId)
+        public ProductModel? GetProduct(int sellerId, int productId)
         {
             return dbContext.Products.Find(sellerId, productId);
         }
 
-        public IList<ProductModel> GetProducts(IList<(long, long)> ids)
+        public IList<ProductModel> GetProducts(IList<(int, int)> ids)
         {
             List<ProductModel> products = new List<ProductModel>();
             foreach(var entry in ids)

@@ -7,7 +7,7 @@ namespace CustomerMS.Models
     [PrimaryKey(nameof(id))]
     public class CustomerModel
 	{
-        public long id { get; set; }
+        public int id { get; set; }
 
         public string first_name { get; set; } = "";
 

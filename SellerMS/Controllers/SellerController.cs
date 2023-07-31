@@ -51,7 +51,7 @@ public class SellerController : ControllerBase
     [Route("{sellerId}")]
     [ProducesResponseType(typeof(Seller),(int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Seller> GetSeller(long sellerId)
+    public ActionResult<Seller> GetSeller(int sellerId)
     {
         this.logger.LogInformation("[GetSeller] received for seller {0}", sellerId);
         var seller = this.sellerRepository.Get(sellerId);
@@ -78,7 +78,7 @@ public class SellerController : ControllerBase
     [HttpGet]
     [Route("/dashboard/{sellerId}")]
     [ProducesResponseType(typeof(SellerDashboard),(int)HttpStatusCode.OK)]
-    public ActionResult<SellerDashboard> GetDashboard(long sellerId)
+    public ActionResult<SellerDashboard> GetDashboard(int sellerId)
     {
         var dash = this.sellerService.QueryDashboard(sellerId);
         return Ok(dash);

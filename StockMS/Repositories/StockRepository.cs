@@ -38,7 +38,7 @@ namespace StockMS.Repositories
         // https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS
         private const string sqlGetItemsForUpdate = "SELECT * FROM stock_items s WHERE (s.seller_id, s.product_id) IN ({0}) order by s.seller_id, s.product_id FOR UPDATE";
 
-        public IEnumerable<StockItemModel> GetItems(List<(long SellerId, long ProductId)> ids)
+        public IEnumerable<StockItemModel> GetItems(List<(int SellerId, int ProductId)> ids)
         {
             var sb = new StringBuilder();
             foreach (var (SellerId, ProductId) in ids)
@@ -52,12 +52,12 @@ namespace StockMS.Repositories
             return dbContext.StockItems.FromSqlRaw(sql);
         }
 
-        public StockItemModel? GetItem(long sellerId, long productId)
+        public StockItemModel? GetItem(int sellerId, int productId)
         {
             return this.dbContext.StockItems.Find(sellerId, productId);
         }
 
-        public IEnumerable<StockItemModel> GetBySellerId(long sellerId)
+        public IEnumerable<StockItemModel> GetBySellerId(int sellerId)
         {
             return this.dbContext.StockItems.Where(p => p.seller_id == sellerId);
         }

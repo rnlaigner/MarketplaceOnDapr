@@ -7,8 +7,8 @@ namespace Common.Entities
 
     public class Cart
     {
-        // no longer identified within an actor. so it requires an id
-        public long customerId { get; set; } = 0;
+        // no inter identified within an actor. so it requires an id
+        public int customerId { get; set; } = 0;
 
         public CartStatus status { get; set; } = CartStatus.OPEN;
 

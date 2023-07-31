@@ -22,9 +22,9 @@ namespace OrderMS.Migrations
                 name: "customer_orders",
                 columns: table => new
                 {
-                    customer_id = table.Column<long>(type: "bigint", nullable: false)
+                    customer_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    next_order_id = table.Column<long>(type: "bigint", nullable: false)
+                    next_order_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,10 +35,10 @@ namespace OrderMS.Migrations
                 name: "orders",
                 columns: table => new
                 {
-                    id = table.Column<long>(type: "bigint", nullable: false, defaultValueSql: "nextval('\"OrderNumbers\"')")
+                    id = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('\"OrderNumbers\"')")
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     invoice_number = table.Column<string>(type: "text", nullable: false),
-                    customer_id = table.Column<long>(type: "bigint", nullable: false),
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     purchase_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     payment_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -48,11 +48,11 @@ namespace OrderMS.Migrations
                     count_items = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    total_amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_freight = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_incentive = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_invoice = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_items = table.Column<decimal>(type: "numeric", nullable: false)
+                    total_amount = table.Column<float>(type: "real", nullable: false),
+                    total_freight = table.Column<float>(type: "real", nullable: false),
+                    total_incentive = table.Column<float>(type: "real", nullable: false),
+                    total_invoice = table.Column<float>(type: "real", nullable: false),
+                    total_items = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,9 +63,9 @@ namespace OrderMS.Migrations
                 name: "order_history",
                 columns: table => new
                 {
-                    id = table.Column<long>(type: "bigint", nullable: false, defaultValueSql: "nextval('\"OrderHistoryNumbers\"')")
+                    id = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('\"OrderHistoryNumbers\"')")
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
-                    order_id = table.Column<long>(type: "bigint", nullable: false),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false)
                 },
@@ -84,17 +84,17 @@ namespace OrderMS.Migrations
                 name: "order_items",
                 columns: table => new
                 {
-                    order_id = table.Column<long>(type: "bigint", nullable: false),
-                    order_item_id = table.Column<long>(type: "bigint", nullable: false),
-                    product_id = table.Column<long>(type: "bigint", nullable: false),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
+                    order_item_id = table.Column<int>(type: "integer", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: false),
                     product_name = table.Column<string>(type: "text", nullable: false),
-                    seller_id = table.Column<long>(type: "bigint", nullable: false),
-                    unit_price = table.Column<decimal>(type: "numeric", nullable: false),
+                    seller_id = table.Column<int>(type: "integer", nullable: false),
+                    unit_price = table.Column<float>(type: "real", nullable: false),
                     shipping_limit_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    freight_value = table.Column<decimal>(type: "numeric", nullable: false),
+                    freight_value = table.Column<float>(type: "real", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),
-                    total_items = table.Column<decimal>(type: "numeric", nullable: false),
-                    total_amount = table.Column<decimal>(type: "numeric", nullable: false)
+                    total_items = table.Column<float>(type: "real", nullable: false),
+                    total_amount = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {

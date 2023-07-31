@@ -25,7 +25,7 @@ public class OrderController : ControllerBase
 
     [HttpGet("{customerId}")]
     [ProducesResponseType(typeof(IEnumerable<Order>), (int)HttpStatusCode.OK)]
-    public ActionResult<IEnumerable<Order>> GetByCustomerId(long customerId)
+    public ActionResult<IEnumerable<Order>> GetByCustomerId(int customerId)
     {
         return Ok(this.orderRepository.GetByCustomerId(customerId));
     }

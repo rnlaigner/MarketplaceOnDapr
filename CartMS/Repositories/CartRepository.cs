@@ -22,12 +22,12 @@ namespace CartMS.Repositories
             this.logger = logger;
         }
 
-        public CartModel? GetCart(long customerId)
+        public CartModel? GetCart(int customerId)
         {
             return this.dbContext.Carts.Find(customerId);
         }
 
-        public CartModel? Delete(long customerId)
+        public CartModel? Delete(int customerId)
         {
             CartModel? cart = GetCart(customerId);
             if (cart is not null)
@@ -47,7 +47,7 @@ namespace CartMS.Repositories
         }
 
 
-        public IList<CartItemModel> GetItems(long customerId)
+        public IList<CartItemModel> GetItems(int customerId)
         {
             return dbContext.CartItems.Where(c => c.customer_id == customerId).ToList();
         }
@@ -81,7 +81,7 @@ namespace CartMS.Repositories
             return f.Entity;
         }
 
-        public void DeleteItems(long customerId)
+        public void DeleteItems(int customerId)
         {
             var items = GetItems(customerId);
             dbContext.RemoveRange(items);

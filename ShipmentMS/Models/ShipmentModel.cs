@@ -10,11 +10,11 @@ namespace ShipmentMS.Models
     [PrimaryKey(nameof(order_id))]
     public class ShipmentModel
 	{
-        public long order_id { get; set; }
-        public long customer_id { get; set; }
+        public int order_id { get; set; }
+        public int customer_id { get; set; }
 
         public int package_count { get; set; }
-        public decimal total_freight_value { get; set; }
+        public float total_freight_value { get; set; }
 
         public DateTime request_date { get; set; }
 

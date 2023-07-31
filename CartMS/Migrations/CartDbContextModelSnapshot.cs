@@ -24,17 +24,17 @@ namespace CartMS.Migrations
 
             modelBuilder.Entity("CartMS.Models.CartItemModel", b =>
                 {
-                    b.Property<long>("customer_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("product_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("product_id")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("freight_value")
-                        .HasColumnType("numeric");
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
 
                     b.Property<string>("product_name")
                         .IsRequired()
@@ -43,8 +43,8 @@ namespace CartMS.Migrations
                     b.Property<int>("quantity")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("unit_price")
-                        .HasColumnType("numeric");
+                    b.Property<float>("unit_price")
+                        .HasColumnType("real");
 
                     b.Property<string>("vouchers")
                         .HasColumnType("text");
@@ -56,11 +56,11 @@ namespace CartMS.Migrations
 
             modelBuilder.Entity("CartMS.Models.CartModel", b =>
                 {
-                    b.Property<long>("customer_id")
+                    b.Property<int>("customer_id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("customer_id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("customer_id"));
 
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
@@ -79,11 +79,11 @@ namespace CartMS.Migrations
 
             modelBuilder.Entity("CartMS.Models.ProductModel", b =>
                 {
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("product_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("product_id")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("active")
                         .HasColumnType("boolean");
@@ -103,11 +103,11 @@ namespace CartMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("price")
-                        .HasColumnType("numeric");
+                    b.Property<float>("price")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("freight_value")
-                        .HasColumnType("numeric");
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
 
                     b.Property<string>("sku")
                         .IsRequired()
@@ -128,7 +128,7 @@ namespace CartMS.Migrations
             modelBuilder.Entity("CartMS.Models.CartItemModel", b =>
                 {
                     b.HasOne("CartMS.Models.CartModel", null)
-                        .WithMany("packages")
+                        .WithMany("items")
                         .HasForeignKey("customer_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -136,7 +136,7 @@ namespace CartMS.Migrations
 
             modelBuilder.Entity("CartMS.Models.CartModel", b =>
                 {
-                    b.Navigation("packages");
+                    b.Navigation("items");
                 });
 #pragma warning restore 612, 618
         }

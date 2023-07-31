@@ -15,8 +15,8 @@ namespace StockMS.Migrations
                 name: "stock_items",
                 columns: table => new
                 {
-                    seller_id = table.Column<long>(type: "bigint", nullable: false),
-                    product_id = table.Column<long>(type: "bigint", nullable: false),
+                    seller_id = table.Column<int>(type: "integer", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: false),
                     qty_available = table.Column<int>(type: "integer", nullable: false),
                     qty_reserved = table.Column<int>(type: "integer", nullable: false),
                     order_count = table.Column<int>(type: "integer", nullable: false),

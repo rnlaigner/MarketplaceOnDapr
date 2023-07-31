@@ -3,12 +3,12 @@ namespace Common.Entities
 {
 	public class Shipment
 	{
-        public long order_id;
-        public long customer_id;
+        public int order_id;
+        public int customer_id;
 
 		// materialized values from packages
 		public int package_count;
-		public decimal total_freight_value;
+		public float total_freight_value;
 
 		// date all deliveries were requested
         public DateTime request_date { get; set; }

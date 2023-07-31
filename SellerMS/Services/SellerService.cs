@@ -212,7 +212,7 @@ namespace SellerMS.Services
             logger.LogInformation("[ProcessStockItem] Product ID {0}", stockItem.product_id);
         }
 
-        public SellerDashboard QueryDashboard(long sellerId)
+        public SellerDashboard QueryDashboard(int sellerId)
         {
             using (var txCtx = dbContext.Database.BeginTransaction())
             {

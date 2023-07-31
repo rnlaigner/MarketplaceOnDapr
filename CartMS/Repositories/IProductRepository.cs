@@ -16,9 +16,9 @@ namespace CartMS.Repositories
 
         ProductModel Delete(ProductModel product);
 
-		IList<ProductModel> GetProducts(IList<(long, long)> ids);
+		IList<ProductModel> GetProducts(IList<(int, int)> ids);
 
-        ProductModel? GetProduct(long sellerId, long productId);
+        ProductModel? GetProduct(int sellerId, int productId);
     }
 }
 

@@ -9,17 +9,17 @@ namespace ShipmentMS.Models
     [PrimaryKey(nameof(order_id), nameof(package_id))]
     public class PackageModel
     {
-        public long order_id { get; set; }
+        public int order_id { get; set; }
 
         public int package_id { get; set; }
 
-        public long seller_id { get; set; }
+        public int seller_id { get; set; }
 
-        public long product_id { get; set; }
+        public int product_id { get; set; }
 
         public string product_name { get; set; } = "";
 
-        public decimal freight_value { get; set; }
+        public float freight_value { get; set; }
 
         public DateTime shipping_date { get; set; }
 

@@ -10,10 +10,10 @@ namespace Common.Entities
     public class Order
 	{
         // PK
-        public long id { get; set; }
+        public int id { get; set; }
 
         // FK
-        public long customer_id { get; set; }
+        public int customer_id { get; set; }
 
         public OrderStatus status { get; set; }
 
@@ -36,11 +36,11 @@ namespace Common.Entities
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
 
-        public decimal total_amount { get; set; }
-        public decimal total_freight { get; set; }
-        public decimal total_incentive { get; set; }
-        public decimal total_invoice { get; set; }
-        public decimal total_items { get; set; }
+        public float total_amount { get; set; }
+        public float total_freight { get; set; }
+        public float total_incentive { get; set; }
+        public float total_invoice { get; set; }
+        public float total_items { get; set; }
 
         public Order()
         {

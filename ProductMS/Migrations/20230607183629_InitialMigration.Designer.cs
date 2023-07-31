@@ -27,11 +27,11 @@ namespace ProductMS.Migrations
 
             modelBuilder.Entity("ProductMS.Models.ProductModel", b =>
                 {
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("product_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("product_id")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("active")
                         .HasColumnType("boolean");
@@ -47,15 +47,15 @@ namespace ProductMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("freight_value")
-                        .HasColumnType("numeric");
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
 
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("price")
-                        .HasColumnType("numeric");
+                    b.Property<float>("price")
+                        .HasColumnType("real");
 
                     b.Property<string>("sku")
                         .IsRequired()

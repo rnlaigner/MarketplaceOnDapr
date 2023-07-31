@@ -27,11 +27,11 @@ namespace SellerMS.Migrations
 
             modelBuilder.Entity("SellerMS.Models.OrderEntry", b =>
                 {
-                    b.Property<long>("order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("product_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("product_id")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("delivery_date")
                         .HasColumnType("timestamp with time zone");
@@ -39,15 +39,15 @@ namespace SellerMS.Migrations
                     b.Property<string>("delivery_status")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("freight_value")
-                        .HasColumnType("numeric");
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
 
                     b.Property<string>("order_status")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("package_id")
-                        .HasColumnType("bigint");
+                    b.Property<int?>("package_id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("product_category")
                         .IsRequired()
@@ -60,26 +60,26 @@ namespace SellerMS.Migrations
                     b.Property<int>("quantity")
                         .HasColumnType("integer");
 
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("shipment_date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("total_amount")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_amount")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_incentive")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_incentive")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_invoice")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_invoice")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_items")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_items")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("unit_price")
-                        .HasColumnType("numeric");
+                    b.Property<float>("unit_price")
+                        .HasColumnType("real");
 
                     b.HasKey("order_id", "product_id");
 
@@ -93,11 +93,11 @@ namespace SellerMS.Migrations
 
             modelBuilder.Entity("SellerMS.Models.OrderEntryDetails", b =>
                 {
-                    b.Property<long>("order_id")
+                    b.Property<int>("order_id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("order_id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("order_id"));
 
                     b.Property<string>("card_brand")
                         .IsRequired()
@@ -111,8 +111,8 @@ namespace SellerMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("customer_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("first_name")
                         .IsRequired()
@@ -163,26 +163,26 @@ namespace SellerMS.Migrations
                     b.Property<int>("count_items")
                         .HasColumnType("integer");
 
-                    b.Property<long>("order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("seller_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("seller_id")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("total_amount")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_amount")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_freight")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_freight")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_incentive")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_incentive")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_invoice")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_invoice")
+                        .HasColumnType("real");
 
-                    b.Property<decimal>("total_items")
-                        .HasColumnType("numeric");
+                    b.Property<float>("total_items")
+                        .HasColumnType("real");
 
                     b.ToTable((string)null);
 
@@ -191,11 +191,11 @@ namespace SellerMS.Migrations
 
             modelBuilder.Entity("SellerMS.Models.SellerModel", b =>
                 {
-                    b.Property<long>("id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<string>("address")
                         .IsRequired()

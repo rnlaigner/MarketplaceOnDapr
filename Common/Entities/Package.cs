@@ -4,26 +4,26 @@ namespace Common.Entities
 	public class Package
 	{
 		// PK
-		public long shipment_id;
+		public int shipment_id;
 		public int package_id;
 
         // FK
         // product identification
-        public long seller_id;
-        public long product_id;
+        public int seller_id;
+        public int product_id;
 
-        public decimal freight_value;
+        public float freight_value;
 
 		// date the shipment has actually been performed
-		public long shipping_date;
+		public int shipping_date;
 
         // delivery date
-        public long delivery_date;
-		// public long estimated_delivery_date;
+        public int delivery_date;
+		// public int estimated_delivery_date;
 
 		// delivery to carrier date
 		// seller must deliver to carrier
-		// public long delivered_carrier_date;
+		// public int delivered_carrier_date;
 
 		public int quantity;
 

@@ -34,7 +34,7 @@ namespace OrderMS.Test
 
         private void CreateOrder(CountdownEvent ctd)
         {
-            long customer_id = 1;
+            int customer_id = 1;
             try
             {
                 var now = DateTime.UtcNow;

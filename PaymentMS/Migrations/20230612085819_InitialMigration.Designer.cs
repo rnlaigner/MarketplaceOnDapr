@@ -27,8 +27,8 @@ namespace PaymentMS.Migrations
 
             modelBuilder.Entity("PaymentMS.Models.OrderPaymentCardModel", b =>
                 {
-                    b.Property<long>("order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
                     b.Property<int>("payment_sequential")
                         .HasColumnType("integer");
@@ -55,8 +55,8 @@ namespace PaymentMS.Migrations
 
             modelBuilder.Entity("PaymentMS.Models.OrderPaymentModel", b =>
                 {
-                    b.Property<long>("order_id")
-                        .HasColumnType("bigint");
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
                     b.Property<int>("sequential")
                         .HasColumnType("integer");
@@ -74,8 +74,8 @@ namespace PaymentMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("value")
-                        .HasColumnType("numeric");
+                    b.Property<float>("value")
+                        .HasColumnType("real");
 
                     b.HasKey("order_id", "sequential");
 

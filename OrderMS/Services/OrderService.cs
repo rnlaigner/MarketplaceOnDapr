@@ -36,7 +36,7 @@ namespace OrderMS.Handlers
         private readonly OrderConfig config;
         private readonly ILogger<OrderService> logger;
 
-        private static readonly decimal[] emptyArray = Array.Empty<decimal>();
+        private static readonly float[] emptyArray = Array.Empty<float>();
 
         public OrderService(OrderDbContext dbContext, IOrderRepository orderRepository, DaprClient daprClient,
              IOptions<OrderConfig> config, ILogger<OrderService> logger)
@@ -60,29 +60,29 @@ namespace OrderMS.Handlers
                 var now = DateTime.UtcNow;
 
                 // calculate total freight_value
-                decimal total_freight = 0;
+                float total_freight = 0;
                 foreach (var item in checkout.items)
                 {
                     total_freight += item.FreightValue;
                 }
 
-                decimal total_amount = 0;
+                float total_amount = 0;
                 foreach (var item in checkout.items)
                 {
                     total_amount += (item.UnitPrice * item.Quantity);
                 }
 
                 // total before discounts
-                decimal total_items = total_amount;
+                float total_items = total_amount;
 
                 // apply vouchers per product, but only until total >= 0 for each item
                 // https://www.amazon.com/gp/help/customer/display.html?nodeId=G9R2MLD3EX557D77
-                Dictionary<long, decimal> totalPerItem = new();
-                decimal total_incentive = 0;
+                Dictionary<int, float> totalPerItem = new();
+                float total_incentive = 0;
                 foreach(var item in checkout.items) {
-                    decimal total_item = item.UnitPrice * item.Quantity;
+                    float total_item = item.UnitPrice * item.Quantity;
 
-                    decimal sumVouchers = item.Vouchers.Sum();
+                    float sumVouchers = item.Vouchers.Sum();
 
                     if (total_item - sumVouchers > 0)
                     {
@@ -103,7 +103,7 @@ namespace OrderMS.Handlers
                 // https://finom.co/en-fr/blog/invoice-number/
                 // postresql does not give us sequence ids. it is interesting for the analyst to get
                 // a sense of how much orders this customer has made by simply looking at patterns in
-                // the invoice. the format <customer_id>-<long_date>-total_orders+1 can be represented like:
+                // the invoice. the format <customer_id>-<int_date>-total_orders+1 can be represented like:
                 // 50-20220928-001
                 // it is inefficient to get count(*) on customer orders. better to have a table like tpc-c does for next_order_id
 
@@ -202,7 +202,7 @@ namespace OrderMS.Handlers
 
 		}
 
-        private OrderItem AsOrderItem(OrderItemModel orderItem, decimal[] vouchers)
+        private OrderItem AsOrderItem(OrderItemModel orderItem, float[] vouchers)
         {
             return new()
             {

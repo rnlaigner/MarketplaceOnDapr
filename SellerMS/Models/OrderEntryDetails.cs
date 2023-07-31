@@ -10,14 +10,14 @@ namespace SellerMS.Models
     [PrimaryKey(nameof(order_id))]
     public class OrderEntryDetails
 	{
-        public long order_id { get; set; }
+        public int order_id { get; set; }
 
         public DateTime order_date { get; set; }
 
         public OrderStatus status { get; set; }
 
         // customer info
-        public long customer_id { get; set; }
+        public int customer_id { get; set; }
 
         public string first_name { get; set; } = "";
 

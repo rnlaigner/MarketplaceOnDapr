@@ -9,7 +9,7 @@ namespace SellerMS.Models
     public class SellerModel
 	{
 
-        public long id { get; set; }
+        public int id { get; set; }
 
         public string name { get; set; } = "";
 

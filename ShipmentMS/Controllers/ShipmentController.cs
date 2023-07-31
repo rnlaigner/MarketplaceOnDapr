@@ -29,7 +29,7 @@ public class ShipmentController : ControllerBase
     [Route("{orderId}")]
     [ProducesResponseType(typeof(Shipment), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Shipment> GetShipment(long orderId)
+    public ActionResult<Shipment> GetShipment(int orderId)
     {
         this.logger.LogInformation("[GetShipment] received for item id {0}", orderId);
         ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);

@@ -8,12 +8,12 @@ namespace StockMS.Repositories
 
         void Update(StockItemModel product);
 
-        StockItemModel? GetItem(long sellerId, long productId);
+        StockItemModel? GetItem(int sellerId, int productId);
 
         IEnumerable<StockItemModel> GetAll();
 
-        IEnumerable<StockItemModel> GetItems(List<(long SellerId, long ProductId)> ids);
-        IEnumerable<StockItemModel> GetBySellerId(long sellerId);
+        IEnumerable<StockItemModel> GetItems(List<(int SellerId, int ProductId)> ids);
+        IEnumerable<StockItemModel> GetBySellerId(int sellerId);
     }
 }
 
