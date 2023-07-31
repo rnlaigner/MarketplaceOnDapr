@@ -36,7 +36,7 @@ namespace StockMS.Repositories
         }
 
         // https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS
-        private const string sqlGetItemsForUpdate = "SELECT * FROM stock_items s WHERE (s.seller_id, s.product_id) IN ({0}) FOR UPDATE";
+        private const string sqlGetItemsForUpdate = "SELECT * FROM stock_items s WHERE (s.seller_id, s.product_id) IN ({0}) order by s.seller_id, s.product_id FOR UPDATE";
 
         public IEnumerable<StockItemModel> GetItems(List<(long SellerId, long ProductId)> ids)
         {

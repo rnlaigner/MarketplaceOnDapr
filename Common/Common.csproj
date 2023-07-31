@@ -16,6 +16,7 @@
     <None Remove="Integration\" />
     <None Remove="Requests\" />
     <None Remove="Driver\" />
+    <None Remove="Infra\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Entities\" />
@@ -24,5 +25,6 @@
     <Folder Include="Integration\" />
     <Folder Include="Requests\" />
     <Folder Include="Driver\" />
+    <Folder Include="Infra\" />
   </ItemGroup>
 </Project>
