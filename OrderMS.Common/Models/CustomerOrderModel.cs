@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
  */
 namespace OrderMS.Common.Models
 {
-    [Table("customer_orders")]
+    [Table("customer_orders", Schema = "order")]
     [PrimaryKey(nameof(customer_id))]
     public class CustomerOrderModel
 	{

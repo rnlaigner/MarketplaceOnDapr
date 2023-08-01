@@ -72,9 +72,7 @@ namespace SellerMS.Services
                 oe.delivery_status = deliveryNotification.status;
 
                 dbContext.OrderEntries.Update(oe);
-
                 dbContext.SaveChanges();
-
                 txCtx.Commit();
             }
         }
@@ -107,7 +105,7 @@ namespace SellerMS.Services
                             quantity = item.quantity,
                             total_amount = item.total_amount,
                             total_items = item.total_items,
-                            // total_invoice = ? total_amount + total_freight (but seller dont know [yet] the freight value...)
+                            total_invoice = item.total_amount + item.freight_value,
                             total_incentive = item.total_items - item.total_amount,
                             freight_value = item.freight_value,
                             // shipment_date
@@ -153,7 +151,6 @@ namespace SellerMS.Services
             Thread.Sleep(1000); // wait for order entry processing
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-
                 OrderEntryDetails? oed = dbContext.OrderEntryDetails.Find(paymentConfirmed.orderId);
                 if (oed is null) throw new Exception("[ProcessPaymentConfirmed] Cannot find corresponding order entry " + paymentConfirmed.orderId);
 
@@ -169,8 +166,7 @@ namespace SellerMS.Services
                 oed.status = OrderStatus.PAYMENT_PROCESSED;
                 dbContext.OrderEntryDetails.Update(oed);
                 dbContext.SaveChanges();
-                txCtx.Commit();
-                
+                txCtx.Commit();  
             }
 
         }
@@ -224,20 +220,23 @@ namespace SellerMS.Services
             }
         }
 
+        // cleanup cleans up the database
         public void Cleanup()
         {
             this.dbContext.Sellers.ExecuteDelete();
             this.dbContext.OrderEntries.ExecuteDelete();
             this.dbContext.OrderEntryDetails.ExecuteDelete();
             this.dbContext.SaveChanges();
+            this.dbContext.Database.ExecuteSqlRaw($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(OrderSellerView)};");
         }
 
+        // reset maintains seller records
         public void Reset()
         {
             this.dbContext.OrderEntries.ExecuteDelete();
-            this.dbContext.OrderEntries.ExecuteDelete();
             this.dbContext.OrderEntryDetails.ExecuteDelete();
             this.dbContext.SaveChanges();
+            this.dbContext.Database.ExecuteSqlRaw($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(OrderSellerView)};");
         }
 
     }

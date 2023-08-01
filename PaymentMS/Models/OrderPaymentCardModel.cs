@@ -1,12 +1,10 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using Common.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace PaymentMS.Models
 {
 
-    [Table("order_payment_cards")]
+    [Table("order_payment_cards", Schema = "payment")]
     [PrimaryKey(nameof(order_id), nameof(payment_sequential))]
     public class OrderPaymentCardModel
 	{

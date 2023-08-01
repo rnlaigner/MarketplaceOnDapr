@@ -19,12 +19,11 @@ namespace ProductMS.Infra
             options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasDefaultSchema("product");
             modelBuilder.Entity<ProductModel>().ToTable(t => t.HasCheckConstraint(
                 "CK_Product_Price", "price >= 0"
                 ));

@@ -1,13 +1,10 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Common.Entities;
-using Common.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace OrderMS.Common.Models
 {
-    [Table("orders")]
+    [Table("orders", Schema = "order")]
     [PrimaryKey(nameof(id))]
     [Index(nameof(customer_id), IsUnique = false)]
     public class OrderModel

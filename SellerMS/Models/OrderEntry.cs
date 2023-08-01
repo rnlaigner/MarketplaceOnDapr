@@ -10,7 +10,7 @@ namespace SellerMS.Models
      * The fact table for order historical view.
      */
 
-    [Table("order_entries")]
+    [Table("order_entries", Schema = "seller")]
     [PrimaryKey(nameof(order_id), nameof(product_id))]
     [Index(nameof(seller_id))]
     public class OrderEntry

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CustomerMS.Models
 {
-    [Table("customers")]
+    [Table("customers", Schema = "customer")]
     [PrimaryKey(nameof(id))]
     public class CustomerModel
 	{

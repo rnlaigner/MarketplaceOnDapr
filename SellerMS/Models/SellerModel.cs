@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace SellerMS.Models
 {
 
-    [Table("sellers")]
+    [Table("sellers", Schema = "seller")]
     [PrimaryKey(nameof(id))]
     public class SellerModel
 	{

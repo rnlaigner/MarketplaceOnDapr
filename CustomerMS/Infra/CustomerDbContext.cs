@@ -20,8 +20,11 @@ namespace CustomerMS.Infra
             options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
+        }
 
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.HasDefaultSchema("customer");
         }
 
     }

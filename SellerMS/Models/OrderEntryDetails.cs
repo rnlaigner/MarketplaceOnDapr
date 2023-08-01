@@ -1,12 +1,11 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Common.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace SellerMS.Models
 {
 
-    [Table("order_entry_details")]
+    [Table("order_entry_details", Schema = "seller")]
     [PrimaryKey(nameof(order_id))]
     public class OrderEntryDetails
 	{

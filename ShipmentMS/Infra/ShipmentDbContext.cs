@@ -19,15 +19,13 @@ namespace ShipmentMS.Infra
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"))
-                // .AddInterceptors(new TransactionInterceptor())
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasDefaultSchema("shipment");
             modelBuilder.Entity<ShipmentModel>()
                            .Property(e => e.status)
                            .HasConversion<string>();

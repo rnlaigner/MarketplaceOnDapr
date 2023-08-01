@@ -1,5 +1,4 @@
-﻿using System;
-namespace Common.Entities
+﻿namespace Common.Entities
 {
     /**
      * Seller information is assembled based on two sources:

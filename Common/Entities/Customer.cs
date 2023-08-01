@@ -1,8 +1,5 @@
 ﻿namespace Common.Entities
 {
-    /**
-     * 
-     */
     public class Customer
     {
         // olist data set

@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Common.Entities;
 using Common.Integration;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace PaymentMS.Models
 {
 
-    [Table("order_payments")]
+    [Table("order_payments", Schema = "payment")]
     [PrimaryKey(nameof(order_id), nameof(sequential))]
     public class OrderPaymentModel
 	{

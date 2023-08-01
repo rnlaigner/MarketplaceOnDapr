@@ -41,12 +41,11 @@ namespace SellerMS.Infra
                 .UsePostgreSqlTriggers()
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasDefaultSchema("seller");
             // https://stackoverflow.com/questions/60285154/how-to-set-partial-index-with-npgsql
             modelBuilder.Entity<OrderEntry>(e =>
             {

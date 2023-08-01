@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProductMS.Models
 {
-    [Table("products")]
+    [Table("products", Schema = "product")]
     [PrimaryKey(nameof(seller_id),nameof(product_id))]
     public class ProductModel
 	{

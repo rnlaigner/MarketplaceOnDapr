@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 using Common.Entities;
 
 namespace OrderMS.Common.Models
 {
     // https://learn.microsoft.com/en-us/ef/core/modeling/indexes?tabs=data-annotations
-    [Table("order_history")]
+    [Table("order_history", Schema = "order")]
     [PrimaryKey(nameof(id))]
     public class OrderHistoryModel
     {

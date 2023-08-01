@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CartMS.Models
 {
-    [Table("cart_items")]
+    [Table("cart_items", Schema = "cart")]
     [PrimaryKey(nameof(customer_id), nameof(seller_id), nameof(product_id))]
     public class CartItemModel
 	{

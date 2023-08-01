@@ -38,6 +38,8 @@ namespace OrderMS.Common.Infra
          */
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasDefaultSchema("order");
+
             modelBuilder.HasSequence<int>("OrderNumbers").IncrementsBy(1).StartsAt(1);
 
             modelBuilder.Entity<OrderModel>()

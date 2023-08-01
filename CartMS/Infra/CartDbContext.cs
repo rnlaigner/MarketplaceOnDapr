@@ -21,12 +21,11 @@ namespace CartMS.Infra
             options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasDefaultSchema("cart");
             modelBuilder.Entity<CartModel>()
                  .Property(e => e.status)
                  .HasConversion<string>();

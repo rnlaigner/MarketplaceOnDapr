@@ -1,11 +1,10 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 using Common.Entities;
 
 namespace ShipmentMS.Models
 {
-    [Table("packages")]
+    [Table("packages", Schema = "shipment")]
     [PrimaryKey(nameof(order_id), nameof(package_id))]
     public class PackageModel
     {

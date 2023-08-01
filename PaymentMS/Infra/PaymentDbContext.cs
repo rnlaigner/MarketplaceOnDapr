@@ -1,7 +1,4 @@
-﻿using System;
-using Common.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore;
 using PaymentMS.Models;
 
 namespace PaymentMS.Infra
@@ -24,13 +21,11 @@ namespace PaymentMS.Infra
             options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
-
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
+            modelBuilder.HasDefaultSchema("payment");
             modelBuilder.Entity<OrderPaymentModel>().ToTable(t => t.HasCheckConstraint(
                 "CK_OrderPayment_Value", "value >= 0"
                 ));

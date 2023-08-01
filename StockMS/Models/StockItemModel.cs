@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace StockMS.Models
 {
-    [Table("stock_items")]
+    [Table("stock_items", Schema = "stock")]
     [PrimaryKey(nameof(seller_id),nameof(product_id))]
     public class StockItemModel
 	{

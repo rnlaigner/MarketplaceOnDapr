@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Reflection.Metadata;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 /*
@@ -9,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
  */
 namespace OrderMS.Common.Models
 {
-    [Table("order_items")]
+    [Table("order_items", Schema = "order")]
     [PrimaryKey(nameof(order_id), nameof(order_item_id))]
     public class OrderItemModel
 	{

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CartMS.Models
 {
-    [Table("carts")]
+    [Table("carts", Schema = "cart")]
     [PrimaryKey(nameof(customer_id))]
     public class CartModel
 	{
