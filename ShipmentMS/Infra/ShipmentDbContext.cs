@@ -20,7 +20,8 @@ namespace ShipmentMS.Infra
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"))
                 .EnableSensitiveDataLogging()
-                .EnableDetailedErrors();
+                .EnableDetailedErrors()
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

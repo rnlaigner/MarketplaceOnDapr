@@ -13,7 +13,7 @@ make
 
 cd src
 
-./redis-server '--protected-mode no'
+./redis-server --save "" --protected-mode no --io-threads 12 --io-threads-do-reads yes
 
 # set bind to 0.0.0.0
 # https://stackoverflow.com/questions/19091087/open-redis-port-for-remote-connections

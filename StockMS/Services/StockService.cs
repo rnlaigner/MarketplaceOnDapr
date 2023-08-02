@@ -51,7 +51,7 @@ namespace StockMS.Services
 
                 if (items.Count() == 0)
                 {
-                    logger.LogError("[ReserveStockAsync] ReserveStock has retrieved no items!");
+                    logger.LogError("[ReserveStockAsync] ReserveStock has retrieved no items from IDs: {0}", ids);
                     string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId));
                     return;

@@ -40,7 +40,8 @@ namespace SellerMS.Infra
                 .UseNpgsql(configuration.GetConnectionString("Database"))
                 .UsePostgreSqlTriggers()
                 .EnableSensitiveDataLogging()
-                .EnableDetailedErrors();
+                .EnableDetailedErrors()
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
