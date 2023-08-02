@@ -5,7 +5,7 @@ using Common.Entities;
 using Common.Events;
 using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
-using OrderMS.Common.Infra;
+using OrderMS.Infra;
 using Dapr.Client;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -14,6 +14,7 @@ using System.Text;
 using System.Globalization;
 using OrderMS.Services;
 using Microsoft.Extensions.Options;
+using OrderMS.Common.Infra;
 
 namespace OrderMS.Handlers
 {

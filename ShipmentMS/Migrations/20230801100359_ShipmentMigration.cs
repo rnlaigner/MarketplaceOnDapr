@@ -7,20 +7,24 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ShipmentMS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class ShipmentMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "shipment");
+
             migrationBuilder.CreateTable(
                 name: "shipments",
+                schema: "shipment",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     customer_id = table.Column<int>(type: "integer", nullable: false),
                     package_count = table.Column<int>(type: "integer", nullable: false),
-                    total_freight_value = table.Column<float>(type: "real(4,2)", precision: 4, scale: 2, nullable: false),
+                    total_freight_value = table.Column<float>(type: "real", nullable: false),
                     request_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     first_name = table.Column<string>(type: "text", nullable: false),
@@ -38,6 +42,7 @@ namespace ShipmentMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "packages",
+                schema: "shipment",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false),
@@ -45,7 +50,7 @@ namespace ShipmentMS.Migrations
                     seller_id = table.Column<int>(type: "integer", nullable: false),
                     product_id = table.Column<int>(type: "integer", nullable: false),
                     product_name = table.Column<string>(type: "text", nullable: false),
-                    freight_value = table.Column<float>(type: "real(4,2)", precision: 4, scale: 2, nullable: false),
+                    freight_value = table.Column<float>(type: "real", nullable: false),
                     shipping_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     quantity = table.Column<int>(type: "integer", nullable: false),
@@ -57,6 +62,7 @@ namespace ShipmentMS.Migrations
                     table.ForeignKey(
                         name: "FK_packages_shipments_order_id",
                         column: x => x.order_id,
+                        principalSchema: "shipment",
                         principalTable: "shipments",
                         principalColumn: "order_id",
                         onDelete: ReferentialAction.Cascade);
@@ -67,10 +73,12 @@ namespace ShipmentMS.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "packages");
+                name: "packages",
+                schema: "shipment");
 
             migrationBuilder.DropTable(
-                name: "shipments");
+                name: "shipments",
+                schema: "shipment");
         }
     }
 }

@@ -5,29 +5,30 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using OrderMS.Common.Infra;
+using OrderMS.Infra;
 
 #nullable disable
 
 namespace OrderMS.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20230609114239_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20230801100400_OrderMigration")]
+    partial class OrderMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("order")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.HasSequence("OrderHistoryNumbers");
+            modelBuilder.HasSequence<int>("OrderHistoryNumbers");
 
-            modelBuilder.HasSequence("OrderNumbers");
+            modelBuilder.HasSequence<int>("OrderNumbers");
 
             modelBuilder.Entity("OrderMS.Common.Models.CustomerOrderModel", b =>
                 {
@@ -42,7 +43,7 @@ namespace OrderMS.Migrations
 
                     b.HasKey("customer_id");
 
-                    b.ToTable("customer_orders");
+                    b.ToTable("customer_orders", "order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderHistoryModel", b =>
@@ -68,7 +69,7 @@ namespace OrderMS.Migrations
 
                     b.HasIndex("order_id");
 
-                    b.ToTable("order_history");
+                    b.ToTable("order_history", "order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderItemModel", b =>
@@ -109,7 +110,7 @@ namespace OrderMS.Migrations
 
                     b.HasKey("order_id", "order_item_id");
 
-                    b.ToTable("order_items");
+                    b.ToTable("order_items", "order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderModel", b =>
@@ -175,7 +176,7 @@ namespace OrderMS.Migrations
 
                     b.HasIndex("customer_id");
 
-                    b.ToTable("orders");
+                    b.ToTable("orders", "order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderHistoryModel", b =>

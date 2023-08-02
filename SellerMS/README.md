@@ -1,4 +1,4 @@
-﻿dotnet ef migrations add InitialMigration -c SellerDbContext
+﻿dotnet ef migrations add SellerMigration -c SellerDbContext
 
 dapr run --app-port 5006 --app-id payment --app-protocol http --dapr-http-port 3506 -- dotnet run --project SellerMS.csproj
 

@@ -6,13 +6,17 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PaymentMS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class PaymentMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "payment");
+
             migrationBuilder.CreateTable(
                 name: "order_payments",
+                schema: "payment",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false),
@@ -31,6 +35,7 @@ namespace PaymentMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "order_payment_cards",
+                schema: "payment",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false),
@@ -46,6 +51,7 @@ namespace PaymentMS.Migrations
                     table.ForeignKey(
                         name: "FK_order_payment_cards_order_payments_order_id_payment_sequent~",
                         columns: x => new { x.order_id, x.payment_sequential },
+                        principalSchema: "payment",
                         principalTable: "order_payments",
                         principalColumns: new[] { "order_id", "sequential" });
                 });
@@ -55,10 +61,12 @@ namespace PaymentMS.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "order_payment_cards");
+                name: "order_payment_cards",
+                schema: "payment");
 
             migrationBuilder.DropTable(
-                name: "order_payments");
+                name: "order_payments",
+                schema: "payment");
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OrderMS.Common.Models;
 using OrderMS.Common.Repositories;
-using OrderMS.Common.Infra;
+using OrderMS.Infra;
 
 namespace OrderMS.Repositories
 {

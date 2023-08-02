@@ -7,19 +7,25 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace OrderMS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class OrderMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateSequence(
-                name: "OrderHistoryNumbers");
+            migrationBuilder.EnsureSchema(
+                name: "order");
 
-            migrationBuilder.CreateSequence(
-                name: "OrderNumbers");
+            migrationBuilder.CreateSequence<int>(
+                name: "OrderHistoryNumbers",
+                schema: "order");
+
+            migrationBuilder.CreateSequence<int>(
+                name: "OrderNumbers",
+                schema: "order");
 
             migrationBuilder.CreateTable(
                 name: "customer_orders",
+                schema: "order",
                 columns: table => new
                 {
                     customer_id = table.Column<int>(type: "integer", nullable: false)
@@ -33,6 +39,7 @@ namespace OrderMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "orders",
+                schema: "order",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('\"OrderNumbers\"')")
@@ -61,6 +68,7 @@ namespace OrderMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "order_history",
+                schema: "order",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('\"OrderHistoryNumbers\"')")
@@ -75,6 +83,7 @@ namespace OrderMS.Migrations
                     table.ForeignKey(
                         name: "FK_order_history_orders_order_id",
                         column: x => x.order_id,
+                        principalSchema: "order",
                         principalTable: "orders",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -82,6 +91,7 @@ namespace OrderMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "order_items",
+                schema: "order",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false),
@@ -102,6 +112,7 @@ namespace OrderMS.Migrations
                     table.ForeignKey(
                         name: "FK_order_items_orders_order_id",
                         column: x => x.order_id,
+                        principalSchema: "order",
                         principalTable: "orders",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -109,11 +120,13 @@ namespace OrderMS.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_order_history_order_id",
+                schema: "order",
                 table: "order_history",
                 column: "order_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_orders_customer_id",
+                schema: "order",
                 table: "orders",
                 column: "customer_id");
         }
@@ -122,22 +135,28 @@ namespace OrderMS.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "customer_orders");
+                name: "customer_orders",
+                schema: "order");
 
             migrationBuilder.DropTable(
-                name: "order_history");
+                name: "order_history",
+                schema: "order");
 
             migrationBuilder.DropTable(
-                name: "order_items");
+                name: "order_items",
+                schema: "order");
 
             migrationBuilder.DropTable(
-                name: "orders");
+                name: "orders",
+                schema: "order");
 
             migrationBuilder.DropSequence(
-                name: "OrderHistoryNumbers");
+                name: "OrderHistoryNumbers",
+                schema: "order");
 
             migrationBuilder.DropSequence(
-                name: "OrderNumbers");
+                name: "OrderNumbers",
+                schema: "order");
         }
     }
 }

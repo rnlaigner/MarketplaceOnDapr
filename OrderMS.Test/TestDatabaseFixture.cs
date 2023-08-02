@@ -1,4 +1,4 @@
-﻿using OrderMS.Common.Infra;
+﻿using OrderMS.Infra;
 
 namespace OrderMS.Test;
 
@@ -21,7 +21,7 @@ public class TestDatabaseFixture
                 using (var context = CreateContext())
                 {
                     context.Database.EnsureCreated();
-
+                    _databaseInitialized = true;
                 }
             }
         }

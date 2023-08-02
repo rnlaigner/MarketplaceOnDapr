@@ -24,19 +24,19 @@ namespace SellerMS.Infra
         }
 
         // the amount being transacted at the moment
-        public static readonly string OrderSellerViewSql = $"CREATE MATERIALIZED VIEW IF NOT EXISTS {nameof(Models.OrderSellerView)} " +
+        public static readonly string OrderSellerViewSql = $"CREATE MATERIALIZED VIEW IF NOT EXISTS seller.{nameof(Models.OrderSellerView)} " +
                                                             $"AS SELECT seller_id, COUNT(DISTINCT order_id) as count_orders, COUNT(product_id) as count_items, SUM(total_amount) as total_amount, SUM(freight_value) as total_freight, " +
                                                             $"SUM(total_items - total_amount) as total_incentive, SUM(total_invoice) as total_invoice, SUM(total_items) as total_items " +
                                                             $"FROM order_entries " +
                                                             $"WHERE order_status = \'{OrderStatus.INVOICED}\' OR order_status = \'{OrderStatus.PAYMENT_PROCESSED}\' " +
                                                             $"OR order_status = \'{OrderStatus.READY_FOR_SHIPMENT}\' OR order_status = \'{OrderStatus.IN_TRANSIT}\' GROUP BY seller_id";
 
-        public const string OrderSellerViewSqlIndex = $"CREATE UNIQUE INDEX IF NOT EXISTS order_seller_index ON {nameof(Models.OrderSellerView)} (seller_id)";
+        public const string OrderSellerViewSqlIndex = $"CREATE UNIQUE INDEX IF NOT EXISTS order_seller_index ON seller.{nameof(Models.OrderSellerView)} (seller_id)";
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // https://github.com/win7user10/Laraue.EfCoreTriggers#laraueefcoretriggerspostgresql
-            options = options
+            options
                 .UseNpgsql(configuration.GetConnectionString("Database"))
                 .UsePostgreSqlTriggers()
                 .EnableSensitiveDataLogging()
@@ -64,12 +64,12 @@ namespace SellerMS.Infra
             modelBuilder.Entity<OrderSellerView>(e =>
             {
                 e.HasNoKey();
-                e.ToView(nameof(OrderSellerView));
+                e.ToView(nameof(OrderSellerView), schema: "seller");
             });
 
             // library does not support (after insert or update)
-            modelBuilder.Entity<OrderEntryDetails>().AfterInsert(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(Models.OrderSellerView)};")));
-            modelBuilder.Entity<OrderEntryDetails>().AfterUpdate(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY {nameof(Models.OrderSellerView)};")));
+            modelBuilder.Entity<OrderEntryDetails>().AfterInsert(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY seller.{nameof(Models.OrderSellerView)};")));
+            modelBuilder.Entity<OrderEntryDetails>().AfterUpdate(t => t.Action(a => a.ExecuteRawSql($"REFRESH MATERIALIZED VIEW CONCURRENTLY seller.{nameof(Models.OrderSellerView)};")));
 
         }
     }

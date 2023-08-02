@@ -17,7 +17,8 @@ namespace CartMS.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("cart")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -51,7 +52,7 @@ namespace CartMS.Migrations
 
                     b.HasKey("customer_id", "seller_id", "product_id");
 
-                    b.ToTable("cart_items");
+                    b.ToTable("cart_items", "cart");
                 });
 
             modelBuilder.Entity("CartMS.Models.CartModel", b =>
@@ -74,7 +75,7 @@ namespace CartMS.Migrations
 
                     b.HasKey("customer_id");
 
-                    b.ToTable("carts");
+                    b.ToTable("carts", "cart");
                 });
 
             modelBuilder.Entity("CartMS.Models.ProductModel", b =>
@@ -99,14 +100,14 @@ namespace CartMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
+
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<float>("price")
-                        .HasColumnType("real");
-
-                    b.Property<float>("freight_value")
                         .HasColumnType("real");
 
                     b.Property<string>("sku")
@@ -122,7 +123,7 @@ namespace CartMS.Migrations
 
                     b.HasKey("seller_id", "product_id");
 
-                    b.ToTable("replica_products");
+                    b.ToTable("replica_products", "cart");
                 });
 
             modelBuilder.Entity("CartMS.Models.CartItemModel", b =>

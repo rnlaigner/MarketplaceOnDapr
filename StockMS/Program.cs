@@ -40,9 +40,8 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
     var context = services.GetRequiredService<StockDbContext>();
-    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
+    context.Database.Migrate();
 }
 
 // Configure the HTTP request pipeline.

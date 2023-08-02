@@ -6,13 +6,17 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StockMS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class StockMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "stock");
+
             migrationBuilder.CreateTable(
                 name: "stock_items",
+                schema: "stock",
                 columns: table => new
                 {
                     seller_id = table.Column<int>(type: "integer", nullable: false),
@@ -39,7 +43,8 @@ namespace StockMS.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "stock_items");
+                name: "stock_items",
+                schema: "stock");
         }
     }
 }

@@ -12,15 +12,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartMS.Migrations
 {
     [DbContext(typeof(CartDbContext))]
-    [Migration("20230607190247_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20230801100359_CartMigration")]
+    partial class CartMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("cart")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -54,7 +55,7 @@ namespace CartMS.Migrations
 
                     b.HasKey("customer_id", "seller_id", "product_id");
 
-                    b.ToTable("cart_items");
+                    b.ToTable("cart_items", "cart");
                 });
 
             modelBuilder.Entity("CartMS.Models.CartModel", b =>
@@ -77,7 +78,7 @@ namespace CartMS.Migrations
 
                     b.HasKey("customer_id");
 
-                    b.ToTable("carts");
+                    b.ToTable("carts", "cart");
                 });
 
             modelBuilder.Entity("CartMS.Models.ProductModel", b =>
@@ -102,6 +103,9 @@ namespace CartMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
+
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -122,13 +126,13 @@ namespace CartMS.Migrations
 
                     b.HasKey("seller_id", "product_id");
 
-                    b.ToTable("products");
+                    b.ToTable("replica_products", "cart");
                 });
 
             modelBuilder.Entity("CartMS.Models.CartItemModel", b =>
                 {
                     b.HasOne("CartMS.Models.CartModel", null)
-                        .WithMany("packages")
+                        .WithMany("items")
                         .HasForeignKey("customer_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -136,7 +140,7 @@ namespace CartMS.Migrations
 
             modelBuilder.Entity("CartMS.Models.CartModel", b =>
                 {
-                    b.Navigation("packages");
+                    b.Navigation("items");
                 });
 #pragma warning restore 612, 618
         }

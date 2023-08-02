@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OrderMS.Infra;
 using OrderMS.Common.Infra;
 using OrderMS.Common.Repositories;
 using OrderMS.Handlers;
@@ -47,9 +48,8 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
     var context = services.GetRequiredService<OrderDbContext>();
-    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
+    context.Database.Migrate();
 }
 
 app.MapControllers();

@@ -6,7 +6,7 @@ Managing migrations:
 https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
 
 To build the first version:
-dotnet ef migrations add InitialMigration -c OrderDbContext
+dotnet ef migrations add OrderMigration -c OrderDbContext
 
 if needs to delete the db file and recreate it:
 dotnet ef database update

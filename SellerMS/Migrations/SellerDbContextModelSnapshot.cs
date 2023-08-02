@@ -17,7 +17,8 @@ namespace SellerMS.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("seller")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -85,7 +86,7 @@ namespace SellerMS.Migrations
                     b.HasIndex(new[] { "order_status" }, "order_entry_open_idx")
                         .HasFilter("order_status = 'INVOICED' OR order_status = 'PAYMENT_PROCESSED' OR order_status = 'READY_FOR_SHIPMENT' OR order_status = 'IN_TRANSIT'");
 
-                    b.ToTable("order_entries");
+                    b.ToTable("order_entries", "seller");
                 });
 
             modelBuilder.Entity("SellerMS.Models.OrderEntryDetails", b =>
@@ -143,7 +144,7 @@ namespace SellerMS.Migrations
 
                     b.HasKey("order_id");
 
-                    b.ToTable("order_entry_details", t =>
+                    b.ToTable("order_entry_details", "seller", t =>
                         {
                             t.HasTrigger("LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS");
 
@@ -151,16 +152,13 @@ namespace SellerMS.Migrations
                         });
 
                     b
-                        .HasAnnotation("LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS", "CREATE FUNCTION \"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS AFTER INSERT\r\nON \"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"();")
-                        .HasAnnotation("LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS", "CREATE FUNCTION \"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS AFTER UPDATE\r\nON \"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"();");
+                        .HasAnnotation("LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS", "CREATE FUNCTION \"seller\".\"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS AFTER INSERT\r\nON \"seller\".\"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"seller\".\"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"();")
+                        .HasAnnotation("LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS", "CREATE FUNCTION \"seller\".\"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS AFTER UPDATE\r\nON \"seller\".\"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"seller\".\"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"();");
                 });
 
             modelBuilder.Entity("SellerMS.Models.OrderSellerView", b =>
                 {
                     b.Property<int>("count_items")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("order_id")
                         .HasColumnType("integer");
 
                     b.Property<int>("seller_id")
@@ -183,7 +181,7 @@ namespace SellerMS.Migrations
 
                     b.ToTable((string)null);
 
-                    b.ToView("OrderSellerView", (string)null);
+                    b.ToView("OrderSellerView", "seller");
                 });
 
             modelBuilder.Entity("SellerMS.Models.SellerModel", b =>
@@ -244,7 +242,7 @@ namespace SellerMS.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("sellers");
+                    b.ToTable("sellers", "seller");
                 });
 
             modelBuilder.Entity("SellerMS.Models.OrderEntry", b =>

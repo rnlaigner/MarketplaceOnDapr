@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
 using Microsoft.Extensions.Configuration;
 
-namespace OrderMS.Common.Infra
+namespace OrderMS.Infra
 {
 
     public class OrderDbContext : DbContext

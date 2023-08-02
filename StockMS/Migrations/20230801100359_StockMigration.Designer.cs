@@ -12,15 +12,16 @@ using StockMS.Infra;
 namespace StockMS.Migrations
 {
     [DbContext(typeof(StockDbContext))]
-    [Migration("20230607203730_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20230801100359_StockMigration")]
+    partial class StockMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("stock")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -59,7 +60,7 @@ namespace StockMS.Migrations
 
                     b.HasKey("seller_id", "product_id");
 
-                    b.ToTable("stock_items", t =>
+                    b.ToTable("stock_items", "stock", t =>
                         {
                             t.HasCheckConstraint("CK_StockItem_QtyAvailable", "qty_available >= 0");
 

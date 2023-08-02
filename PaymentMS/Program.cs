@@ -41,9 +41,8 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
     var context = services.GetRequiredService<PaymentDbContext>();
-    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
+    context.Database.Migrate();
 }
 
 app.MapControllers();

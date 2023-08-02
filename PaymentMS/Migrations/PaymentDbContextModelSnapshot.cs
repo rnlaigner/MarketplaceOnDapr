@@ -17,7 +17,8 @@ namespace PaymentMS.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("payment")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -47,7 +48,7 @@ namespace PaymentMS.Migrations
 
                     b.HasKey("order_id", "payment_sequential");
 
-                    b.ToTable("order_payment_cards");
+                    b.ToTable("order_payment_cards", "payment");
                 });
 
             modelBuilder.Entity("PaymentMS.Models.OrderPaymentModel", b =>
@@ -76,7 +77,7 @@ namespace PaymentMS.Migrations
 
                     b.HasKey("order_id", "sequential");
 
-                    b.ToTable("order_payments", t =>
+                    b.ToTable("order_payments", "payment", t =>
                         {
                             t.HasCheckConstraint("CK_OrderPayment_Value", "value >= 0");
                         });

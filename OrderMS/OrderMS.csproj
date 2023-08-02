@@ -20,11 +20,13 @@
     <None Remove="Repositories\" />
     <None Remove="Handlers\" />
     <None Remove="Services\" />
+    <None Remove="Infra\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Repositories\" />
     <Folder Include="Handlers\" />
     <Folder Include="Services\" />
+    <Folder Include="Infra\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OrderMS.Common\OrderMS.Common.csproj">

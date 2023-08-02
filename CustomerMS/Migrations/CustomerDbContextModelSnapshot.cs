@@ -17,7 +17,8 @@ namespace CustomerMS.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("customer")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -103,7 +104,7 @@ namespace CustomerMS.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("customers");
+                    b.ToTable("customers", "customer");
                 });
 #pragma warning restore 612, 618
         }

@@ -35,7 +35,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<SellerDbContext>();
-    RelationalDatabaseFacadeExtensions.Migrate(context.Database);
+    context.Database.Migrate();
 
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSql);
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSqlIndex);

@@ -7,13 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CustomerMS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class CustomerMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "customer");
+
             migrationBuilder.CreateTable(
                 name: "customers",
+                schema: "customer",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -48,7 +52,8 @@ namespace CustomerMS.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "customers");
+                name: "customers",
+                schema: "customer");
         }
     }
 }

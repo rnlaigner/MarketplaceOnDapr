@@ -7,13 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SellerMS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class SellerMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "seller");
+
             migrationBuilder.CreateTable(
                 name: "order_entry_details",
+                schema: "seller",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false)
@@ -38,6 +42,7 @@ namespace SellerMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "sellers",
+                schema: "seller",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -62,6 +67,7 @@ namespace SellerMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "order_entries",
+                schema: "seller",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false),
@@ -88,6 +94,7 @@ namespace SellerMS.Migrations
                     table.ForeignKey(
                         name: "FK_order_entries_order_entry_details_order_id",
                         column: x => x.order_id,
+                        principalSchema: "seller",
                         principalTable: "order_entry_details",
                         principalColumn: "order_id",
                         onDelete: ReferentialAction.Cascade);
@@ -95,35 +102,40 @@ namespace SellerMS.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_order_entries_seller_id",
+                schema: "seller",
                 table: "order_entries",
                 column: "seller_id");
 
             migrationBuilder.CreateIndex(
                 name: "order_entry_open_idx",
+                schema: "seller",
                 table: "order_entries",
                 column: "order_status",
                 filter: "order_status = 'INVOICED' OR order_status = 'PAYMENT_PROCESSED' OR order_status = 'READY_FOR_SHIPMENT' OR order_status = 'IN_TRANSIT'");
 
-            migrationBuilder.Sql("CREATE FUNCTION \"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS AFTER INSERT\r\nON \"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"();");
+            migrationBuilder.Sql("CREATE FUNCTION \"seller\".\"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS AFTER INSERT\r\nON \"seller\".\"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"seller\".\"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"();");
 
-            migrationBuilder.Sql("CREATE FUNCTION \"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS AFTER UPDATE\r\nON \"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"();");
+            migrationBuilder.Sql("CREATE FUNCTION \"seller\".\"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS AFTER UPDATE\r\nON \"seller\".\"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"seller\".\"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"();");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql("DROP FUNCTION \"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"() CASCADE;");
+            migrationBuilder.Sql("DROP FUNCTION \"seller\".\"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"() CASCADE;");
 
-            migrationBuilder.Sql("DROP FUNCTION \"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"() CASCADE;");
-
-            migrationBuilder.DropTable(
-                name: "order_entries");
+            migrationBuilder.Sql("DROP FUNCTION \"seller\".\"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"() CASCADE;");
 
             migrationBuilder.DropTable(
-                name: "sellers");
+                name: "order_entries",
+                schema: "seller");
 
             migrationBuilder.DropTable(
-                name: "order_entry_details");
+                name: "sellers",
+                schema: "seller");
+
+            migrationBuilder.DropTable(
+                name: "order_entry_details",
+                schema: "seller");
         }
     }
 }

@@ -17,7 +17,8 @@ namespace ProductMS.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("product")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -67,7 +68,7 @@ namespace ProductMS.Migrations
 
                     b.HasKey("seller_id", "product_id");
 
-                    b.ToTable("products", t =>
+                    b.ToTable("products", "product", t =>
                         {
                             t.HasCheckConstraint("CK_Product_Price", "price >= 0");
                         });

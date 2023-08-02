@@ -12,15 +12,16 @@ using ShipmentMS.Infra;
 namespace ShipmentMS.Migrations
 {
     [DbContext(typeof(ShipmentDbContext))]
-    [Migration("20230608162200_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20230801100359_ShipmentMigration")]
+    partial class ShipmentMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasDefaultSchema("shipment")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -37,8 +38,7 @@ namespace ShipmentMS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<float>("freight_value")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("float");
+                        .HasColumnType("real");
 
                     b.Property<int>("product_id")
                         .HasColumnType("integer");
@@ -62,7 +62,7 @@ namespace ShipmentMS.Migrations
 
                     b.HasKey("order_id", "package_id");
 
-                    b.ToTable("packages");
+                    b.ToTable("packages", "shipment");
                 });
 
             modelBuilder.Entity("ShipmentMS.Models.ShipmentModel", b =>
@@ -111,8 +111,7 @@ namespace ShipmentMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<float>("total_freight_value")
-                        .HasPrecision(4, 2)
-                        .HasColumnType("float");
+                        .HasColumnType("real");
 
                     b.Property<string>("zip_code")
                         .IsRequired()
@@ -120,7 +119,7 @@ namespace ShipmentMS.Migrations
 
                     b.HasKey("order_id");
 
-                    b.ToTable("shipments");
+                    b.ToTable("shipments", "shipment");
                 });
 
             modelBuilder.Entity("ShipmentMS.Models.PackageModel", b =>

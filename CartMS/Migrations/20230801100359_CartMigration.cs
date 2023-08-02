@@ -7,13 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartMS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class CartMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "cart");
+
             migrationBuilder.CreateTable(
                 name: "carts",
+                schema: "cart",
                 columns: table => new
                 {
                     customer_id = table.Column<int>(type: "integer", nullable: false)
@@ -29,6 +33,7 @@ namespace CartMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "replica_products",
+                schema: "cart",
                 columns: table => new
                 {
                     seller_id = table.Column<int>(type: "integer", nullable: false),
@@ -51,6 +56,7 @@ namespace CartMS.Migrations
 
             migrationBuilder.CreateTable(
                 name: "cart_items",
+                schema: "cart",
                 columns: table => new
                 {
                     customer_id = table.Column<int>(type: "integer", nullable: false),
@@ -68,6 +74,7 @@ namespace CartMS.Migrations
                     table.ForeignKey(
                         name: "FK_cart_items_carts_customer_id",
                         column: x => x.customer_id,
+                        principalSchema: "cart",
                         principalTable: "carts",
                         principalColumn: "customer_id",
                         onDelete: ReferentialAction.Cascade);
@@ -78,13 +85,16 @@ namespace CartMS.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "cart_items");
+                name: "cart_items",
+                schema: "cart");
 
             migrationBuilder.DropTable(
-                name: "replica_products");
+                name: "replica_products",
+                schema: "cart");
 
             migrationBuilder.DropTable(
-                name: "carts");
+                name: "carts",
+                schema: "cart");
         }
     }
 }
