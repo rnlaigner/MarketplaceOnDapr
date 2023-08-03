@@ -31,9 +31,7 @@ public class ShipmentController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public ActionResult<Shipment> GetShipment(int orderId)
     {
-        this.logger.LogInformation("[GetShipment] received for item id {0}", orderId);
         ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
-        this.logger.LogInformation("[GetShipment] completed for item id {0}.", orderId);
         if (shipment is not null)
             return Ok(new Shipment()
             {
@@ -58,20 +56,16 @@ public class ShipmentController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
     public async Task<ActionResult> ProcessShipment([FromBody] PaymentConfirmed paymentRequest)
     {
-        this.logger.LogInformation("[ProcessShipment] received for order id {0}", paymentRequest.orderId);
         await this.shipmentService.ProcessShipment(paymentRequest);
-        this.logger.LogInformation("[ProcessShipment] succeeded for order id {0}", paymentRequest.orderId);
         return Ok();
     }
 
-    [HttpPatch("UpdateShipments")]
+    [HttpPatch]
     [Route("{instanceId}")]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public async Task<ActionResult> UpdateShipment(int instanceId)
     {
-        this.logger.LogInformation("[UpdateShipment] received.");
         await this.shipmentService.UpdateShipment(instanceId);
-        this.logger.LogInformation("[UpdateShipment] completed.");
         return Accepted();
     }
 

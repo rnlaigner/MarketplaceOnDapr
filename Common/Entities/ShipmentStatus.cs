@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices;
-
-namespace Common.Entities
+﻿namespace Common.Entities
 {
     /**
      * it seems there is no explicit shipment status,

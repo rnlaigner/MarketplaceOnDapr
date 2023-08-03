@@ -12,7 +12,7 @@ using ShipmentMS.Repositories;
 
 namespace ShipmentMS.Service
 {
-	public class ShipmentService : IShipmentService
+    public class ShipmentService : IShipmentService
     {
         private const string PUBSUB_NAME = "pubsub";
 
@@ -114,18 +114,17 @@ namespace ShipmentMS.Service
                 // perform a sql query to query the objects. write lock...
                 var q = packageRepository.GetOldestOpenShipmentPerSeller();
 
-                List<Task> tasks = new();
                 foreach (var kv in q)
                 {
+                    // logger.LogWarning("Seller ID {0}", kv.Key);
                     var packages_ = this.packageRepository.GetShippedPackagesByOrderAndSeller(kv.Value, kv.Key).ToList();
-                    tasks.Add(UpdatePackageDelivery(packages_, instanceId));
+                    if (packages_.Count() == 0)
+                    {
+                        logger.LogWarning("No packages retrieved from the DB for seller {0}", kv.Key);
+                        continue;
+                    }
+                    await UpdatePackageDelivery(packages_, instanceId);
                 }
-
-                await Task.WhenAll(tasks);
-                dbContext.SaveChanges();
-
-                // not necessary since it is a http response expected by the driver
-                // await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TransactionMark), new TransactionMark(instanceId, "UPDATE_DELIVERY"));
 
                 txCtx.Commit();
             }
@@ -138,49 +137,50 @@ namespace ShipmentMS.Service
 
             ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
             if (shipment is null) throw new Exception("Shipment ID " + orderId + " cannot be found in the database!");
-
+            List<Task> tasks = new(sellerPackages.Count() + 1);
             var now = DateTime.UtcNow;
             if (shipment.status == ShipmentStatus.approved)
             {
                 shipment.status = ShipmentStatus.delivery_in_progress;
                 this.shipmentRepository.Update(shipment);
+                this.shipmentRepository.Save();
                 ShipmentNotification shipmentNotification = new ShipmentNotification(
-                        shipment.customer_id, shipment.order_id, now, instanceId, shipment.status);
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification);
+                        shipment.customer_id, shipment.order_id, now, instanceId, ShipmentStatus.delivery_in_progress);
+                tasks.Add(this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification));
             }
 
             // aggregate operation
             int countDelivered = this.packageRepository.GetTotalDeliveredPackagesForOrder(orderId);
 
-            this.logger.LogWarning("Count delivery for shipment id {1}: {2} total of {3}",
+            this.logger.LogDebug("Count delivery for shipment id {1}: {2} total of {3}",
                  shipment.order_id, countDelivered, shipment.package_count);
 
-            List<Task> tasks = new(sellerPackages.Count());
             foreach (var package in sellerPackages)
             {
                 package.status = PackageStatus.delivered;
                 package.delivery_date = now;
-
+                this.packageRepository.Update(package);
                 var delivery = new DeliveryNotification(
                     shipment.customer_id, package.order_id, package.package_id, package.seller_id,
                     package.product_id, package.product_name, PackageStatus.delivered, now, instanceId);
 
                 tasks.Add(this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(DeliveryNotification), delivery));
             }
+            this.packageRepository.Save();
 
             if (shipment.package_count == countDelivered + sellerPackages.Count())
             {
-                this.logger.LogWarning("Delivery concluded for shipment id {1}", shipment.order_id);
+                this.logger.LogDebug("Delivery concluded for shipment id {1}", shipment.order_id);
                 shipment.status = ShipmentStatus.concluded;
                 this.shipmentRepository.Update(shipment);
-
+                this.shipmentRepository.Save();
                 ShipmentNotification shipmentNotification = new ShipmentNotification(
                     shipment.customer_id, shipment.order_id, now, instanceId, ShipmentStatus.concluded);
-                tasks.Add( this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification) );
+                tasks.Add(this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification));
             }
             else
             {
-                this.logger.LogWarning("Delivery not yet concluded for shipment id {1}: count {2} of total {3}",
+                this.logger.LogDebug("Delivery not yet concluded for shipment id {1}: count {2} of total {3}",
                      shipment.order_id, countDelivered + sellerPackages.Count(), shipment.package_count);
             }
 

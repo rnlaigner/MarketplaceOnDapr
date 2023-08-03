@@ -26,9 +26,7 @@ namespace OrderMS.Controllers
         [Topic(PUBSUB_NAME, nameof(StockConfirmed))]
         public async Task<ActionResult> ProcessCheckout([FromBody] StockConfirmed checkout)
         {
-            this.logger.LogInformation("[StockConfirmed] received for customer ID {0}.", checkout.customerCheckout.CustomerId);
             await this.orderService.ProcessCheckout(checkout);
-            this.logger.LogInformation("[StockConfirmed] processed for customer ID {0}.", checkout.customerCheckout.CustomerId);
             return Ok();
         }
 
@@ -36,9 +34,7 @@ namespace OrderMS.Controllers
         [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
         public ActionResult ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
         {
-            this.logger.LogInformation("[ShipmentNotification] received for order ID {0}.", shipmentNotification.orderId);
             this.orderService.ProcessShipmentNotification(shipmentNotification);
-            this.logger.LogInformation("[ShipmentNotification] processed for order ID {0}.", shipmentNotification.orderId);
             return Ok();
         }
 
@@ -46,9 +42,7 @@ namespace OrderMS.Controllers
         [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
         public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
         {
-            this.logger.LogInformation("[PaymentConfirmed] received for order ID {0}.", paymentConfirmed.orderId);
             this.orderService.ProcessPaymentConfirmed(paymentConfirmed);
-            this.logger.LogInformation("[PaymentConfirmed] processed for order ID {0}.", paymentConfirmed.orderId);
             return Ok();
         }
 
@@ -56,9 +50,7 @@ namespace OrderMS.Controllers
         [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
         public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
         {
-            this.logger.LogInformation("[PaymentFailed] received for order ID {0}.", paymentFailed.orderId);
             this.orderService.ProcessPaymentFailed(paymentFailed);
-            this.logger.LogInformation("[PaymentFailed] processed for order ID {0}.", paymentFailed.orderId);
             return Ok();
         }
 

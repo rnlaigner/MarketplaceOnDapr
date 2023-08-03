@@ -11,12 +11,10 @@ namespace ShipmentMS.Repositories
 		{
         }
 
-        private const string query = "select seller_id, MIN(order_id) as custom from packages where packages.status == 'shipped' group by seller_id";
-
         public IDictionary<int, int> GetOldestOpenShipmentPerSeller()
         {
             return this.dbSet
-                            .Where(x => x.status.Equals(PackageStatus.shipped.ToString()))
+                            .Where(x => x.status.Equals(PackageStatus.shipped))
                             .GroupBy(x => x.seller_id)
                             .Select(g => new { key = g.Key, Sort = g.Min(x => x.order_id) })
                             .ToDictionary(g => g.key, g => g.Sort);
@@ -24,7 +22,7 @@ namespace ShipmentMS.Repositories
 
         public IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(int orderId, int sellerId)
         {
-            return this.Get(p => p.status == PackageStatus.shipped && p.order_id == orderId);
+            return this.dbSet.Where(p => p.order_id == orderId && p.status == PackageStatus.shipped && p.seller_id == sellerId);
         }
 
         public int GetTotalDeliveredPackagesForOrder(int orderId)
