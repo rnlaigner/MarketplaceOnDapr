@@ -27,7 +27,7 @@ namespace ShipmentMS.Repositories
 
         public int GetTotalDeliveredPackagesForOrder(int orderId)
         {
-            return this.dbSet.Where(p => p.status == PackageStatus.delivered && p.order_id == orderId).Count();
+            return this.dbSet.Where(p => p.order_id == orderId && p.status == PackageStatus.delivered).Count();
         }
     }
 }
