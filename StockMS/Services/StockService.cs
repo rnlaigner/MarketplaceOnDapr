@@ -73,9 +73,6 @@ namespace StockMS.Services
                     }
 
                     var stockItem = stockItems[(item.SellerId, item.ProductId)];
-
-                    // blindly increase or check here too?
-                    // dbms will also check due to the constraint
                     if (stockItem.qty_available < (stockItem.qty_reserved + item.Quantity))
                     {
                         unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.OUT_OF_STOCK, stockItem.qty_available));
@@ -94,7 +91,6 @@ namespace StockMS.Services
                     this.dbContext.UpdateRange(stockItemsReserved);
                     int entriesWritten = this.dbContext.SaveChanges();
                     txCtx.Commit();
-                    logger.LogInformation("[ReserveStockAsync] Entries written: {0}", entriesWritten);
                 }
 
                 if (config.StockStreaming)
@@ -168,7 +164,6 @@ namespace StockMS.Services
             var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
             using (var txCtx = dbContext.Database.BeginTransaction())
             {
-
                 var items = stockRepository.GetItems(ids);
                 var stockItems = items.ToDictionary(p => (p.seller_id, p.product_id), c => c);
 
@@ -177,9 +172,8 @@ namespace StockMS.Services
                     var stockItem = stockItems[(item.seller_id,item.product_id)];
                     stockItem.qty_reserved -= item.quantity;
                     stockItem.updated_at = now;
+                    this.dbContext.Update(stockItem);
                 }
-
-                this.dbContext.UpdateRange(items);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
             }
@@ -189,9 +183,9 @@ namespace StockMS.Services
         {
             var now = DateTime.UtcNow;
             var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
-            using (var txCtx = dbContext.Database.BeginTransaction())
+            using (var txCtx = this.dbContext.Database.BeginTransaction())
             {
-                var items = stockRepository.GetItems(ids);
+                IEnumerable<StockItemModel> items = stockRepository.GetItems(ids);
                 var stockItems = items.ToDictionary(p => (p.seller_id, p.product_id), c => c);
 
                 foreach (var item in payment.items)
@@ -199,14 +193,13 @@ namespace StockMS.Services
                     var stockItem = stockItems[(item.seller_id, item.product_id)];
                     stockItem.qty_available -= item.quantity;
                     stockItem.qty_reserved -= item.quantity;
+                    stockItem.order_count++;
                     stockItem.updated_at = now;
+                    this.dbContext.Update(stockItem);
                 }
-
-                this.dbContext.UpdateRange(items);
                 this.dbContext.SaveChanges();
                 txCtx.Commit();
             }
-
         }
 
         public Task CreateStockItem(StockItem stockItem)

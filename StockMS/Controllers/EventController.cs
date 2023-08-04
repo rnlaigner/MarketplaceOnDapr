@@ -23,9 +23,7 @@ namespace StockMS.Controllers
         [Topic(PUBSUB_NAME, nameof(ReserveStock))]
         public async Task<ActionResult> ProcessReserveStock([FromBody] ReserveStock checkout)
         {
-            this.logger.LogInformation("[ReserveStock] received for instanceId {0}", checkout.instanceId);
             await this.stockService.ReserveStockAsync(checkout);
-            this.logger.LogInformation("[ReserveStock] completed for instanceId {0}", checkout.instanceId);
             return Ok();
         }
 
