@@ -16,7 +16,7 @@ namespace ShipmentMS.Repositories
             return this.dbSet
                             .Where(x => x.status.Equals(PackageStatus.shipped))
                             .GroupBy(x => x.seller_id)
-                            .Select(g => new { key = g.Key, Sort = g.Min(x => x.order_id) })
+                            .Select(g => new { key = g.Key, Sort = g.Min(x => x.order_id) }).Take(10)
                             .ToDictionary(g => g.key, g => g.Sort);
         }
 
