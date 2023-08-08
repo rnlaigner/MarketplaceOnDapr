@@ -6,6 +6,7 @@ namespace PaymentMS.Services
 	{
         Task ProcessPayment(InvoiceIssued paymentRequest);
         void Cleanup();
+        Task ProcessPoisonPayment(InvoiceIssued invoice);
     }
 }
 

@@ -17,22 +17,8 @@ namespace PaymentMS.Services
             this.config = config.Value;
 		}
 
-        public async Task<PaymentIntent?> Create(PaymentIntentCreateOptions options)
+        public PaymentIntent? Create(PaymentIntentCreateOptions options)
         {
-            if (!config.PaymentProvider)
-            {
-                await Task.Delay(config.Delay);
-                return new PaymentIntent()
-                {
-                    id = Guid.NewGuid().ToString(),
-                    amount = options.Amount,
-                    client_secret = "",
-                    currency = options.Currency.ToString(),
-                    customer = options.Customer,
-                    created = DateTime.UtcNow.Millisecond
-                };
-            }
-
             // perform http request
             var msg = new HttpRequestMessage(HttpMethod.Post, config.PaymentProviderUrl);
             var payload = JsonConvert.SerializeObject(options);

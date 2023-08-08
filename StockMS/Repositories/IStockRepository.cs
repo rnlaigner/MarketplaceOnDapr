@@ -14,6 +14,8 @@ namespace StockMS.Repositories
 
         IEnumerable<StockItemModel> GetItems(List<(int SellerId, int ProductId)> ids);
         IEnumerable<StockItemModel> GetBySellerId(int sellerId);
+
+        StockItemModel GetItemForUpdate(int seller_id, int product_id);
     }
 }
 

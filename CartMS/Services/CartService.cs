@@ -139,6 +139,50 @@ namespace CartMS.Services
             return divergencies;
         }
 
+        public async Task ProcessProductUpdate(ProductUpdate productUpdate)
+        {
+            using (var txCtx = dbContext.Database.BeginTransaction())
+            {
+                ProductModel? product = this.productRepository.GetProduct(productUpdate.seller_id, productUpdate.product_id);
+                if (product is null)
+                {
+                    this.logger.LogWarning("[ProcessProductUpdate] seller {0} product {1} has been deleted prior to processing this product update...", productUpdate.seller_id, productUpdate.product_id);
+                }
+                else
+                {
+                    if (productUpdate.active)
+                    {
+                        product.price = productUpdate.price;
+                        this.productRepository.Update(product);
+                    }
+                    else
+                    {
+                        this.productRepository.Delete(product);
+                    }
+
+                    txCtx.Commit();
+                    
+                }
+            }
+            // has to send only if not a delete otherwise it will cause duplicate tx mark in the driver (given the stock is responsible for issuing the delete mark)
+            if (productUpdate.active && config.CartStreaming)
+            {
+                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, productUpdate.seller_id);
+                string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.PRICE_UPDATE, productUpdate.seller_id, MarkStatus.SUCCESS, "cart"));
+            }
+
+        }
+
+        public async Task ProcessPoisonProductUpdate(ProductUpdate productUpdate)
+        {
+            if (productUpdate.active)
+            {
+                string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.PRICE_UPDATE, productUpdate.seller_id, MarkStatus.ABORT, "cart"));
+            }
+        }
+
         public void Cleanup()
         {
             this.dbContext.Carts.ExecuteDelete();
@@ -151,47 +195,8 @@ namespace CartMS.Services
         {
             this.dbContext.Carts.ExecuteDelete();
             this.dbContext.CartItems.ExecuteDelete();
-            this.dbContext.Database.ExecuteSqlRaw( "UPDATE replica_products SET active=true" );
+            this.dbContext.Database.ExecuteSqlRaw("UPDATE replica_products SET active=true");
             this.dbContext.SaveChanges();
-        }
-
-        public async Task ProcessProductUpdate(ProductUpdate productUpdate)
-        {
-            using (var txCtx = dbContext.Database.BeginTransaction())
-            {
-                ProductModel? product = this.productRepository.GetProduct(productUpdate.seller_id, productUpdate.product_id);
-                if (product is null)
-                {
-                    this.logger.LogWarning("[ProcessProductUpdate] seller {0} product {1} has been deleted prior to processing this product update...", productUpdate.seller_id, productUpdate.product_id);
-                }
-                else
-                {
-                    var now = DateTime.UtcNow;
-                    if (productUpdate.active)
-                    {
-                        product.price = productUpdate.price;
-                        product.updated_at = now;
-                        this.productRepository.Update(product);
-                    }
-                    else
-                    {
-                        this.productRepository.Delete(product);
-                    }
-
-                    txCtx.Commit();
-                }
-            }
-
-            // has to send only if not a delete otherwise it will cause duplicate tx mark in the driver (given the stock is responsible for issuing the delete mark)
-            if (productUpdate.active && config.CartStreaming)
-            {
-                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productUpdate.instanceId, productUpdate.seller_id);
-                string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productUpdate.instanceId, TransactionType.PRICE_UPDATE, productUpdate.seller_id));
-            }
-
-            this.logger.LogInformation("[ProcessProductUpdate] completed for seller {0} product {1}", productUpdate.seller_id, productUpdate.product_id);
-
         }
     }
 }

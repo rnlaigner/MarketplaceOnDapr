@@ -20,6 +20,9 @@ namespace StockMS.Services
         void Cleanup();
 
         void Reset();
+
+        Task ProcessPoisonProductUpdate(ProductUpdate product);
+        Task ProcessPoisonReserveStock(ReserveStock reserveStock);
     }
 }
 

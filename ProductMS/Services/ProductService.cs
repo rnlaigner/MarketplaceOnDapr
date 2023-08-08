@@ -45,7 +45,7 @@ namespace ProductMS.Services
                     {
                         this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productToDelete.instanceId, productToDelete.productId);
                         string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productToDelete.instanceId, TransactionType.DELETE_PRODUCT, productToDelete.sellerId));
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productToDelete.instanceId, TransactionType.DELETE_PRODUCT, productToDelete.sellerId, MarkStatus.ERROR, "product"));
                     }
 
                     return;
@@ -59,7 +59,7 @@ namespace ProductMS.Services
                     {
                         this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", productToDelete.instanceId, productToDelete.productId);
                         string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productToDelete.instanceId, TransactionType.DELETE_PRODUCT, productToDelete.sellerId));
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(productToDelete.instanceId, TransactionType.DELETE_PRODUCT, productToDelete.sellerId, MarkStatus.ERROR, "product"));
                     }
 
                     return;
@@ -97,7 +97,7 @@ namespace ProductMS.Services
                     {
                         this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
                         string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId));
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId, MarkStatus.ERROR, "product"));
                     }
                     return;
                 }
@@ -110,7 +110,7 @@ namespace ProductMS.Services
                     {
                         this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
                         string streamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.PRICE_UPDATE.ToString()).ToString();
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId));
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId, MarkStatus.ERROR, "product"));
                     }
                     return;
                 }

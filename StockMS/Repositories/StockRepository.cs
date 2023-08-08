@@ -57,6 +57,14 @@ namespace StockMS.Repositories
             return this.dbContext.StockItems.Find(sellerId, productId);
         }
 
+        private const string sqlGetItemForUpdate = "SELECT * FROM stock.stock_items s WHERE s.seller_id = {0} AND s.product_id ={0} FOR UPDATE";
+
+        public StockItemModel GetItemForUpdate(int sellerId, int productId)
+        {
+            var sql = string.Format(sqlGetItemForUpdate, sellerId, productId);
+            return dbContext.StockItems.FromSqlRaw(sql).First();
+        }
+
         public IEnumerable<StockItemModel> GetBySellerId(int sellerId)
         {
             return this.dbContext.StockItems.Where(p => p.seller_id == sellerId);

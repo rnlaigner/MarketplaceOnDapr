@@ -3,6 +3,7 @@ using Dapr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OrderMS.Services;
+using System;
 using System.Threading.Tasks;
 
 namespace OrderMS.Controllers
@@ -22,19 +23,18 @@ namespace OrderMS.Controllers
             this.logger = logger;
         }
 
-        [HttpPost("ProcessCheckout")]
+        [HttpPost("ProcessStockConfirmed")]
         [Topic(PUBSUB_NAME, nameof(StockConfirmed))]
-        public async Task<ActionResult> ProcessCheckout([FromBody] StockConfirmed checkout)
+        public async Task<ActionResult> ProcessStockConfirmed([FromBody] StockConfirmed stockConfirmed)
         {
-            await this.orderService.ProcessCheckout(checkout);
-            return Ok();
-        }
-
-        [HttpPost("ProcessShipmentNotification")]
-        [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
-        public ActionResult ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
-        {
-            this.orderService.ProcessShipmentNotification(shipmentNotification);
+            try
+            {
+                await this.orderService.ProcessStockConfirmed(stockConfirmed);
+            }
+            catch (Exception)
+            {
+                await this.orderService.ProcessPoisonStockConfirmed(stockConfirmed);
+            }
             return Ok();
         }
 
@@ -51,6 +51,14 @@ namespace OrderMS.Controllers
         public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
         {
             this.orderService.ProcessPaymentFailed(paymentFailed);
+            return Ok();
+        }
+
+        [HttpPost("ProcessShipmentNotification")]
+        [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
+        public ActionResult ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
+        {
+            this.orderService.ProcessShipmentNotification(shipmentNotification);
             return Ok();
         }
 

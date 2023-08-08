@@ -56,7 +56,14 @@ public class ShipmentController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
     public async Task<ActionResult> ProcessShipment([FromBody] PaymentConfirmed paymentRequest)
     {
-        await this.shipmentService.ProcessShipment(paymentRequest);
+        try
+        {
+            await this.shipmentService.ProcessShipment(paymentRequest);
+        }
+        catch (Exception)
+        {
+            await this.shipmentService.ProcessPoisonShipment(paymentRequest);
+        }
         return Ok();
     }
 

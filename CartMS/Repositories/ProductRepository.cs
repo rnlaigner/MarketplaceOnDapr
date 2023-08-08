@@ -17,6 +17,7 @@ namespace CartMS.Repositories
 
         public ProductModel Delete(ProductModel product)
         {
+            product.updated_at = DateTime.UtcNow;
             product.active = false;
             var track = dbContext.Products.Update(product);
             dbContext.SaveChanges();
@@ -42,6 +43,8 @@ namespace CartMS.Repositories
 
         public ProductModel Insert(ProductModel product)
         {
+            product.updated_at = DateTime.UtcNow;
+            product.created_at = product.updated_at;
             var track = dbContext.Products.Add(product);
             dbContext.SaveChanges();
             return track.Entity;
@@ -49,6 +52,7 @@ namespace CartMS.Repositories
 
         public ProductModel Update(ProductModel product)
         {
+            product.updated_at = DateTime.UtcNow;
             var track = dbContext.Products.Update(product);
             dbContext.SaveChanges();
             return track.Entity;

@@ -29,8 +29,14 @@ public class PaymentController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
     public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued invoice)
     {
-        this.logger.LogInformation("[InvoiceIssued] received for order ID {0}.", invoice.orderId);
-        await this.paymentService.ProcessPayment(invoice);
+        try
+        {
+            await this.paymentService.ProcessPayment(invoice);
+        }
+        catch (Exception)
+        {
+            await this.paymentService.ProcessPoisonPayment(invoice);
+        }
         return Ok();
     }
 
@@ -40,7 +46,6 @@ public class PaymentController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public ActionResult<IEnumerable<OrderPaymentModel>> GetPaymentByOrderId(int orderId)
     {
-        this.logger.LogInformation("[GetPaymentByOrderId] received for order ID {0}.", orderId);
         var res = this.paymentRepository.GetByOrderId(orderId);
         return res is not null ? Ok( res ) : NotFound();
     }

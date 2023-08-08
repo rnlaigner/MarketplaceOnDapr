@@ -201,7 +201,6 @@ public class CartController : ControllerBase
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, new Cart()
             {
                 customerId = cart.customer_id,
-                // items = cartItems,
                 status = cart.status,
                 divergencies = divergencies
             });

@@ -1,14 +1,15 @@
 ﻿using Common.Events;
 
-namespace ShipmentMS.Service
+namespace ShipmentMS.Service;
+
+public interface IShipmentService
 {
-	public interface IShipmentService
-	{
-        public Task ProcessShipment(PaymentConfirmed paymentResult);
+    public Task ProcessShipment(PaymentConfirmed paymentResult);
 
-        public Task UpdateShipment(int instanceId);
+    public Task UpdateShipment(int instanceId);
 
-        void Cleanup();
-    }
+    void Cleanup();
+
+    Task ProcessPoisonShipment(PaymentConfirmed paymentRequest);
 }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using Common.Integration;
+﻿using Common.Integration;
 
 namespace PaymentMS.Services
 {
@@ -18,7 +17,7 @@ namespace PaymentMS.Services
      */
     public interface IExternalProvider
 	{
-        Task<PaymentIntent?> Create(PaymentIntentCreateOptions options);
+        PaymentIntent? Create(PaymentIntentCreateOptions options);
     }
 }
 
