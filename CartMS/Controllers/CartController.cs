@@ -1,11 +1,13 @@
 ﻿using System.Globalization;
 using System.Net;
+using CartMS.Infra;
 using CartMS.Models;
 using CartMS.Repositories;
 using CartMS.Services;
 using Common.Entities;
 using Common.Requests;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace CartMS.Controllers;
 
@@ -16,11 +18,13 @@ public class CartController : ControllerBase
     private readonly ILogger<CartController> logger;
     private readonly ICartService cartService;
     private readonly ICartRepository cartRepository;
+    private readonly CartConfig config;
 
-    public CartController(ICartService cartService, ICartRepository cartRepository, ILogger<CartController> logger)
+    public CartController(ICartService cartService, ICartRepository cartRepository, IOptions<CartConfig> config, ILogger<CartController> logger)
     {
         this.cartService = cartService;
         this.cartRepository = cartRepository;
+        this.config = config.Value;
         this.logger = logger;
     }
 
@@ -31,7 +35,6 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     public ActionResult AddItem(int customerId, [FromBody] CartItem item)
     {
-        this.logger.LogInformation("Customer {0} received request for adding item.", customerId);
         if (item.Quantity <= 0)
         {
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
@@ -55,7 +58,7 @@ public class CartController : ControllerBase
         string? vouchersInput = null;
         if(item.Vouchers is not null && item.Vouchers.Count() > 0)
         {
-            vouchersInput = String.Join(",", item.Vouchers.Select(v => v.ToString(CultureInfo.InvariantCulture)));
+            vouchersInput = string.Join(",", item.Vouchers.Select(v => v.ToString(CultureInfo.InvariantCulture)));
         }
 
         CartItemModel cartItemModel = new()
@@ -71,8 +74,63 @@ public class CartController : ControllerBase
         };
 
         this.cartRepository.AddItem(cartItemModel);
-        this.logger.LogInformation("Customer {0} added item successfully.", customerId);
         return Accepted();
+    }
+
+    [Route("{customerId}/checkout")]
+    [HttpPost]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.MethodNotAllowed)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<ActionResult> NotifyCheckout(int customerId, [FromBody] CustomerCheckout customerCheckout)
+    {
+        if (config.ControllerChecks)
+        {
+            ObjectResult? res = null;
+            if (customerId != customerCheckout.CustomerId)
+            {
+                logger.LogError("Customer checkout payload ({0}) does not match customer ID ({1}) in URL", customerId, customerCheckout.CustomerId);
+                res = StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer checkout payload does not match customer ID in URL");
+            }
+
+            var cart = this.cartRepository.GetCart(customerCheckout.CustomerId);
+
+            if (cart is null)
+            {
+                this.logger.LogWarning("Customer {0} cart cannot be found", customerCheckout.CustomerId);
+                res = NotFound("Customer " + customerCheckout.CustomerId + " cart cannot be found");
+            } else if (cart.status == CartStatus.CHECKOUT_SENT)
+            {
+                this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
+                res = StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer " + customerCheckout.CustomerId + " cart has already been submitted for checkout");
+            }
+
+            if(res is not null)
+            {
+                await this.cartService.ProcessPoisonCheckout(customerCheckout, Common.Driver.MarkStatus.NOT_ACCEPTED);
+                return res;
+            }
+
+            var items = this.cartRepository.GetItems(customerCheckout.CustomerId);
+            if (items is null || items.Count() == 0)
+            {
+                res = StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer " + customerCheckout.CustomerId + " cart has no items to be submitted for checkout");
+                await this.cartService.ProcessPoisonCheckout(customerCheckout, Common.Driver.MarkStatus.NOT_ACCEPTED);
+                return res;
+            }
+        }
+
+        try
+        {
+            await this.cartService.NotifyCheckout(customerCheckout);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            await this.cartService.ProcessPoisonCheckout(customerCheckout, Common.Driver.MarkStatus.ABORT);
+            return StatusCode((int)HttpStatusCode.InternalServerError, e.Message);
+        }
+        
     }
 
     private static readonly float[] emptyArray = Array.Empty<float>();
@@ -121,26 +179,6 @@ public class CartController : ControllerBase
         return Accepted();
     }
 
-    [Route("/cleanup")]
-    [HttpPatch]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public ActionResult Cleanup()
-    {
-        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
-        this.cartService.Cleanup();
-        return Ok();
-    }
-
-    [Route("/reset")]
-    [HttpPatch]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public ActionResult Reset()
-    {
-        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
-        this.cartService.Reset();
-        return Ok();
-    }
-
     [Route("{customerId}/seal")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
@@ -160,53 +198,25 @@ public class CartController : ControllerBase
         return Accepted();
     }
 
-    [Route("{customerId}/checkout")]
-    [HttpPost]
+
+
+    [Route("/cleanup")]
+    [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    [ProducesResponseType(typeof(Cart),(int)HttpStatusCode.MethodNotAllowed)]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult> NotifyCheckout(int customerId, [FromBody] CustomerCheckout customerCheckout)
+    public ActionResult Cleanup()
     {
-        this.logger.LogInformation("[NotifyCheckout] received request.");
+        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
+        this.cartService.Cleanup();
+        return Ok();
+    }
 
-        if (customerId != customerCheckout.CustomerId)
-        {
-            logger.LogError("Customer checkout payload ({0}) does not match customer ID ({1}) in URL", customerId, customerCheckout.CustomerId);
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer checkout payload does not match customer ID in URL");
-        }
-        
-        CartModel? cart = this.cartRepository.GetCart(customerCheckout.CustomerId);
-
-        if(cart is null)
-        {
-            this.logger.LogWarning("Customer {0} cart cannot be found", customerCheckout.CustomerId);
-            return NotFound("Customer "+ customerCheckout.CustomerId + " cart cannot be found");
-        }
-
-        if (cart.status == CartStatus.CHECKOUT_SENT)
-        {
-            this.logger.LogWarning("Customer {0} cart has already been submitted to checkout", customerCheckout.CustomerId);
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer "+ customerCheckout.CustomerId + " cart has already been submitted for checkout");
-        }
-
-        var items = this.cartRepository.GetItems(customerCheckout.CustomerId);
-        if(items is null || items.Count() == 0)
-        {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer " + customerCheckout.CustomerId + " cart has no items to be submitted for checkout");
-        }
-
-        List<ProductStatus> divergencies = this.cartService.CheckCartForDivergencies(cart);
-        if (divergencies.Count() > 0)
-        {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, new Cart()
-            {
-                customerId = cart.customer_id,
-                status = cart.status,
-                divergencies = divergencies
-            });
-        }
-
-        await this.cartService.NotifyCheckout(customerCheckout, cart);
+    [Route("/reset")]
+    [HttpPatch]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public ActionResult Reset()
+    {
+        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
+        this.cartService.Reset();
         return Ok();
     }
 

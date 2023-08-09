@@ -1,5 +1,4 @@
-﻿using System;
-namespace CartMS.Infra
+﻿namespace CartMS.Infra
 {
     /**
      * https://stackoverflow.com/questions/31453495/how-to-read-appsettings-values-from-a-json-file-in-asp-net-core
@@ -7,8 +6,9 @@ namespace CartMS.Infra
      */
     public class CartConfig
 	{
-        public bool CartStreaming { get; set; } = true;
-        public bool CheckPriceUpdateOnCheckout { get; set; } = true;
-        public bool CheckIfProductExistsOnCheckout { get; set; } = true;
+        public bool ControllerChecks { get; set; }
+        public bool CartStreaming { get; set; }
+        public bool CheckPriceUpdateOnCheckout { get; set; }
+        public bool CheckIfProductExistsOnCheckout { get; set; }
     }
 }

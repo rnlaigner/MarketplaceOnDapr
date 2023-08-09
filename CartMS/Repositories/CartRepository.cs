@@ -1,12 +1,5 @@
-﻿using System;
-using Common.Entities;
-using Dapr.Client;
-using CartMS.Controllers;
-using Common.Events;
-using System.Net;
-using CartMS.Infra;
+﻿using CartMS.Infra;
 using CartMS.Models;
-using static Grpc.Core.Metadata;
 
 namespace CartMS.Repositories
 {
@@ -22,14 +15,14 @@ namespace CartMS.Repositories
             this.logger = logger;
         }
 
-        public CartModel? GetCart(int customerId)
+        public CartModel GetCart(int customerId)
         {
-            return this.dbContext.Carts.Find(customerId);
+            return this.dbContext.Carts.Where( f=> f.customer_id == customerId).First();
         }
 
         public CartModel? Delete(int customerId)
         {
-            CartModel? cart = GetCart(customerId);
+            CartModel cart = GetCart(customerId);
             if (cart is not null)
             {
                 dbContext.Remove(cart);

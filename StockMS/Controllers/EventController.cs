@@ -33,7 +33,7 @@ public class EventController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("ReserveStock")]
+    [HttpPost("ProcessReserveStock")]
     [Topic(PUBSUB_NAME, nameof(ReserveStock))]
     public async Task<ActionResult> ProcessReserveStock([FromBody] ReserveStock reserveStock)
     {

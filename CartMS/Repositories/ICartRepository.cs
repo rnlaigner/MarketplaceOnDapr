@@ -1,12 +1,10 @@
-﻿using System;
-using CartMS.Models;
-using Common.Entities;
+﻿using CartMS.Models;
 
 namespace CartMS.Repositories
 {
     public interface ICartRepository
     {
-        CartModel? GetCart(int customerId);
+        CartModel GetCart(int customerId);
 
         IList<CartItemModel> GetItems(int customerId);
 

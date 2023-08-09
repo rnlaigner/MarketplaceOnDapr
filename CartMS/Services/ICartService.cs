@@ -1,26 +1,24 @@
 ﻿using CartMS.Models;
-using Common.Entities;
+using Common.Driver;
 using Common.Events;
 using Common.Requests;
 
-namespace CartMS.Services
+namespace CartMS.Services;
+
+public interface ICartService
 {
-	public interface ICartService
-	{
-        // can also be used for test
-        void Seal(CartModel cart, bool cleanItems = true);
+    // can also be used for test
+    void Seal(CartModel cart, bool cleanItems = true);
 
-        Task NotifyCheckout(CustomerCheckout customerCheckout, CartModel cart);
+    Task NotifyCheckout(CustomerCheckout customerCheckout);
 
-        List<ProductStatus> CheckCartForDivergencies(CartModel cart);
+    void Cleanup();
 
-        void Cleanup();
+    Task ProcessProductUpdate(ProductUpdate updatePrice);
 
-        Task ProcessProductUpdate(ProductUpdate updatePrice);
+    void Reset();
 
-        void Reset();
-
-        Task ProcessPoisonProductUpdate(ProductUpdate update);
-    }
+    Task ProcessPoisonProductUpdate(ProductUpdate update);
+    Task ProcessPoisonCheckout(CustomerCheckout customerCheckout, MarkStatus status);
 }
 
