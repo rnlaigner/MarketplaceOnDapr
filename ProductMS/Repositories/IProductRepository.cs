@@ -10,7 +10,7 @@ namespace ProductMS.Repositories
 
         void Delete(ProductModel product);
 
-        ProductModel? GetProduct(int sellerId, int productId);
+        ProductModel GetProduct(int sellerId, int productId);
 
         List<ProductModel> GetBySeller(int sellerId);
         

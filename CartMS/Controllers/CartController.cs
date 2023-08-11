@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Net;
+﻿using System.Net;
 using CartMS.Infra;
 using CartMS.Models;
 using CartMS.Repositories;
@@ -49,16 +48,10 @@ public class CartController : ControllerBase
         }
 
         if (cart is null) {
-            cart = cartRepository.Insert(new()
+            _ = cartRepository.Insert(new()
             {
                 customer_id = customerId,
             });
-        }
-
-        string? vouchersInput = null;
-        if(item.Vouchers is not null && item.Vouchers.Count() > 0)
-        {
-            vouchersInput = string.Join(",", item.Vouchers.Select(v => v.ToString(CultureInfo.InvariantCulture)));
         }
 
         CartItemModel cartItemModel = new()
@@ -70,7 +63,8 @@ public class CartController : ControllerBase
             unit_price = item.UnitPrice,
             freight_value = item.FreightValue,
             quantity = item.Quantity,
-            vouchers = vouchersInput
+            voucher = item.Voucher,
+            version = item.Version
         };
 
         this.cartRepository.AddItem(cartItemModel);
@@ -122,8 +116,9 @@ public class CartController : ControllerBase
 
         try
         {
-            await this.cartService.NotifyCheckout(customerCheckout);
-            return Ok();
+            if(await this.cartService.NotifyCheckout(customerCheckout))
+                return Accepted();
+            return StatusCode((int)HttpStatusCode.InternalServerError);
         }
         catch (Exception e)
         {
@@ -132,8 +127,6 @@ public class CartController : ControllerBase
         }
         
     }
-
-    private static readonly float[] emptyArray = Array.Empty<float>();
 
     [HttpGet("{customerId}")]
     [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
@@ -156,7 +149,7 @@ public class CartController : ControllerBase
             UnitPrice = i.unit_price,
             FreightValue = i.freight_value,
             Quantity = i.quantity,
-            Vouchers = i.vouchers is null ? emptyArray : Array.ConvertAll(i.vouchers.Split(','), float.Parse)
+            Voucher = i.voucher
         }).ToList();
 
         return Ok(new Cart()
@@ -198,14 +191,11 @@ public class CartController : ControllerBase
         return Accepted();
     }
 
-
-
     [Route("/cleanup")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
-        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.cartService.Cleanup();
         return Ok();
     }
@@ -215,7 +205,6 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Reset()
     {
-        logger.LogWarning("Reset requested at {0}", DateTime.UtcNow);
         this.cartService.Reset();
         return Ok();
     }

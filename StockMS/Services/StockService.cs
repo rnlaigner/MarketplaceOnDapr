@@ -1,5 +1,5 @@
-﻿using Common.Driver;
-using System.Text;
+﻿using System.Text;
+using Common.Driver;
 using Common.Entities;
 using Common.Events;
 using Dapr.Client;
@@ -32,46 +32,28 @@ public class StockService : IStockService
         this.logger = logger;
     }
 
-    /**
-     * What if the product has been reserved?
-     * the order should proceed and if necessary, be cancelled afterwards by an external process
-    */
-    public async Task ProcessProductUpdate(ProductUpdate productUpdate)
+    public async Task ProcessProductUpdate(ProductUpdated productUpdate)
     {
-        // discard price updates, cart will send transaction mark
-        if (productUpdate.active) return;
-
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
-            var stockItem = stockRepository.GetItemForUpdate(productUpdate.seller_id, productUpdate.product_id);
-            if (stockItem is null)
+            var stockItem = stockRepository.GetItemForUpdate(productUpdate.sellerId, productUpdate.productId);
+            stockItem.version = productUpdate.instanceId;
+            stockRepository.Update(stockItem);
+            txCtx.Commit();
+            if (config.StockStreaming)
             {
-                this.logger.LogWarning("Attempt to delete product that does not exists in Stock DB {0}|{1}", productUpdate.seller_id, productUpdate.product_id);
-                // has to send either case otherwise it can (i) block the driver or (ii) decrease the concurrency level prescribed
-                if (config.StockStreaming)
-                {
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamDeleteId, new TransactionMark(productUpdate.instanceId, TransactionType.DELETE_PRODUCT, productUpdate.seller_id, MarkStatus.ERROR, "stock"));
-                }
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdate.instanceId, TransactionType.UPDATE_PRODUCT, productUpdate.sellerId, MarkStatus.SUCCESS, "stock"));
             }
-            else
-            {
-                stockRepository.Delete(stockItem);
-                txCtx.Commit();
-                if (config.StockStreaming)
-                {
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamDeleteId, new TransactionMark(productUpdate.instanceId, TransactionType.DELETE_PRODUCT, productUpdate.seller_id, MarkStatus.SUCCESS, "stock"));
-                }
-            }
+
         }
-
     }
 
-    static readonly string streamDeleteId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.DELETE_PRODUCT.ToString()).ToString();
-
-    public async Task ProcessPoisonProductUpdate(ProductUpdate productUpdate)
+    public async Task ProcessPoisonProductUpdate(ProductUpdated productUpdate)
     {
-        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamDeleteId, new TransactionMark(productUpdate.instanceId, TransactionType.DELETE_PRODUCT, productUpdate.seller_id, MarkStatus.ABORT, "stock"));
+        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdate.instanceId, TransactionType.UPDATE_PRODUCT, productUpdate.sellerId, MarkStatus.ABORT, "stock"));
     }
+
+    static readonly string streamUpdateId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.UPDATE_PRODUCT.ToString()).ToString();
 
     public async Task ReserveStockAsync(ReserveStock checkout)
     {
@@ -90,7 +72,7 @@ public class StockService : IStockService
 
             if (items.Count() == 0)
             {
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamDeleteId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.ERROR, "stock"));
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.ERROR, "stock"));
                 return;
             }
 
@@ -103,9 +85,9 @@ public class StockService : IStockService
             foreach (var item in checkout.items)
             {
 
-                if (!stockItems.ContainsKey((item.SellerId, item.ProductId)) || !stockItems[(item.SellerId, item.ProductId)].active)
+                if (!stockItems.ContainsKey((item.SellerId, item.ProductId)) || stockItems[(item.SellerId, item.ProductId)].version != item.Version)
                 {
-                    unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.DELETED));
+                    unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.UNAVAILABLE));
                     continue;
                 }
 
@@ -278,5 +260,6 @@ public class StockService : IStockService
         this.dbContext.Database.ExecuteSqlRaw(string.Format("UPDATE stock_items SET active=true, qty_reserved=0, qty_available={0}",config.DefaultInventory));
         this.dbContext.SaveChanges();
     }
+
 }
 

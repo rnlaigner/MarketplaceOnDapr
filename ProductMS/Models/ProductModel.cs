@@ -29,7 +29,9 @@ namespace ProductMS.Models
 
         public string status { get; set; } = "approved";
 
-        public bool active { get; set; } = true;
+        public int version { get; set; }
+
+        public bool active { get; set; }
 
         public ProductModel()
 		{

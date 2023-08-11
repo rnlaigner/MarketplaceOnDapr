@@ -5,28 +5,28 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using StockMS.Infra;
+using ProductMS.Infra;
 
 #nullable disable
 
-namespace StockMS.Migrations
+namespace ProductMS.Migrations
 {
-    [DbContext(typeof(StockDbContext))]
-    [Migration("20230801100359_StockMigration")]
-    partial class StockMigration
+    [DbContext(typeof(ProductDbContext))]
+    [Migration("20230811173302_ProductMigration")]
+    partial class ProductMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("stock")
+                .HasDefaultSchema("product")
                 .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("StockMS.Models.StockItemModel", b =>
+            modelBuilder.Entity("ProductMS.Models.ProductModel", b =>
                 {
                     b.Property<int>("seller_id")
                         .HasColumnType("integer");
@@ -37,36 +37,46 @@ namespace StockMS.Migrations
                     b.Property<bool>("active")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("data")
+                    b.Property<string>("description")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("order_count")
-                        .HasColumnType("integer");
+                    b.Property<float>("freight_value")
+                        .HasColumnType("real");
 
-                    b.Property<int>("qty_available")
-                        .HasColumnType("integer");
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("qty_reserved")
-                        .HasColumnType("integer");
+                    b.Property<float>("price")
+                        .HasColumnType("real");
+
+                    b.Property<string>("sku")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ytd")
+                    b.Property<int>("version")
                         .HasColumnType("integer");
 
                     b.HasKey("seller_id", "product_id");
 
-                    b.ToTable("stock_items", "stock", t =>
+                    b.ToTable("products", "product", t =>
                         {
-                            t.HasCheckConstraint("CK_StockItem_QtyAvailable", "qty_available >= 0");
-
-                            t.HasCheckConstraint("CK_StockItem_QtyReserved", "qty_reserved >= 0");
-
-                            t.HasCheckConstraint("CK_StockItem_QtyReservedLessThanQtyAvailable", "qty_reserved <= qty_available");
+                            t.HasCheckConstraint("CK_Product_Price", "price >= 0");
                         });
                 });
 #pragma warning restore 612, 618

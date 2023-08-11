@@ -52,6 +52,9 @@ namespace StockMS.Migrations
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("version")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ytd")
                         .HasColumnType("integer");
 

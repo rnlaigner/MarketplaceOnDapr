@@ -24,9 +24,9 @@ namespace CartMS.Repositories
             return track.Entity;
         }
 
-        public ProductModel? GetProduct(int sellerId, int productId)
+        public ProductModel GetProduct(int sellerId, int productId)
         {
-            return dbContext.Products.Find(sellerId, productId);
+            return dbContext.Products.Where(f=>f.seller_id == sellerId && f.product_id == productId).First();
         }
 
         public IList<ProductModel> GetProducts(IList<(int, int)> ids)

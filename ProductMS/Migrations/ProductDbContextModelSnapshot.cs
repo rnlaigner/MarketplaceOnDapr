@@ -66,6 +66,9 @@ namespace ProductMS.Migrations
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("version")
+                        .HasColumnType("integer");
+
                     b.HasKey("seller_id", "product_id");
 
                     b.ToTable("products", "product", t =>

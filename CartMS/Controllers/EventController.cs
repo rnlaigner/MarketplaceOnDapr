@@ -44,35 +44,28 @@ public class EventController : ControllerBase
             seller_id = product.seller_id,
             product_id = product.product_id,
             name = product.name,
-            sku = product.sku,
-            category = product.category,
-            description = product.description,
             price = product.price,
-            freight_value = product.freight_value,
             created_at = now,
             updated_at = now,
-            status = product.status,
-            active = product.active
+            version = product.version
         };
         this.productRepository.Insert(product_);
         return Ok();
     }
 
-    [HttpPost("ProductUpdateStreaming")]
-    [Topic(PUBSUB_NAME, nameof(ProductUpdate))]
-    public async Task<ActionResult> ProcessProductUpdateStream([FromBody] ProductUpdate update)
+    [HttpPost("PriceUpdate")]
+    [Topic(PUBSUB_NAME, nameof(PriceUpdated))]
+    public async Task<ActionResult> ProcessPriceUpdate([FromBody] PriceUpdated update)
     {
         try
         {
-            await this.cartService.ProcessProductUpdate(update);
+            await this.cartService.ProcessPriceUpdate(update);
         }
         catch (Exception)
         {
-            await this.cartService.ProcessPoisonProductUpdate(update);
+            await this.cartService.ProcessPoisonPriceUpdate(update);
         }
         return Ok();
     }
-
-
 
 }

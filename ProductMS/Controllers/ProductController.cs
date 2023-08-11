@@ -93,31 +93,31 @@ public class ProductController : ControllerBase
         return NotFound();
     }
 
-    [HttpDelete]
-    [Route("/")]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<ActionResult> DeleteProduct([FromBody] DeleteProduct deleteProduct)
-    {
-        await this.productService.ProcessDelete(deleteProduct);
-        return Accepted();
-    }
-
     [HttpPost]
     [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     public async Task<ActionResult> AddProduct([FromBody] Product product)
     {
-        await this.productService.ProcessNewProduct(product);
+        await this.productService.ProcessCreateProduct(product);
         return StatusCode((int)HttpStatusCode.Created);
+    }
+
+    [HttpPut]
+    [Route("/")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<ActionResult> UpdateProduct([FromBody] Product product)
+    {
+        await this.productService.ProcessProductUpdate(product);
+        return Ok();
     }
 
     [HttpPatch]
     [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<ActionResult> UpdateProduct([FromBody] UpdatePrice update)
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<ActionResult> UpdateProductPrice([FromBody] PriceUpdate update)
     {
-        await this.productService.ProcessUpdate(update);
+        await this.productService.ProcessPriceUpdate(update);
         return Accepted();
     }
 

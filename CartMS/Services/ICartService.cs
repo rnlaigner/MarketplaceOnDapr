@@ -10,15 +10,15 @@ public interface ICartService
     // can also be used for test
     void Seal(CartModel cart, bool cleanItems = true);
 
-    Task NotifyCheckout(CustomerCheckout customerCheckout);
+    Task<bool> NotifyCheckout(CustomerCheckout customerCheckout);
 
     void Cleanup();
 
-    Task ProcessProductUpdate(ProductUpdate updatePrice);
+    Task ProcessPriceUpdate(PriceUpdated updatePrice);
 
     void Reset();
 
-    Task ProcessPoisonProductUpdate(ProductUpdate update);
+    Task ProcessPoisonPriceUpdate(PriceUpdated update);
     Task ProcessPoisonCheckout(CustomerCheckout customerCheckout, MarkStatus status);
 }
 

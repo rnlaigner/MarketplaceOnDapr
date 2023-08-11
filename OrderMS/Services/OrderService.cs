@@ -77,16 +77,15 @@ public class OrderService : IOrderService
             // https://www.amazon.com/gp/help/customer/display.html?nodeId=G9R2MLD3EX557D77
             Dictionary<int, float> totalPerItem = new();
             float total_incentive = 0;
-            foreach(var item in checkout.items) {
+            foreach(var item in checkout.items)
+            {
                 float total_item = item.UnitPrice * item.Quantity;
 
-                float sumVouchers = item.Vouchers.Sum();
-
-                if (total_item - sumVouchers > 0)
+                if (total_item - item.Voucher > 0)
                 {
-                    total_amount -= sumVouchers;
-                    total_incentive += sumVouchers;
-                    total_item -= sumVouchers;
+                    total_amount -= item.Voucher;
+                    total_incentive += item.Voucher;
+                    total_item -= item.Voucher;
                 }
                 else
                 {
@@ -171,7 +170,7 @@ public class OrderService : IOrderService
                 dbContext.OrderItems.Add(oim);
 
                 // vouchers so payment can process
-                orderItems.Add(AsOrderItem(oim, item.Vouchers));
+                orderItems.Add(AsOrderItem(oim, item.Voucher));
 
                 id++;
             }
@@ -207,7 +206,7 @@ public class OrderService : IOrderService
         await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(stockConfirmed.instanceId, TransactionType.CUSTOMER_SESSION, stockConfirmed.customerCheckout.CustomerId, MarkStatus.ABORT, "order"));
     }
 
-    private OrderItem AsOrderItem(OrderItemModel orderItem, float[] vouchers)
+    private OrderItem AsOrderItem(OrderItemModel orderItem, float voucher)
     {
         return new()
         {
@@ -221,7 +220,7 @@ public class OrderService : IOrderService
             total_items = orderItem.total_items,
             total_amount = orderItem.total_amount,
             shipping_limit_date = orderItem.shipping_limit_date,
-            vouchers = vouchers
+            voucher = voucher
         };
     }
 

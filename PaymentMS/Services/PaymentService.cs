@@ -137,7 +137,7 @@ public class PaymentService : IPaymentService
                 // then one line for each voucher
                 foreach (var item in paymentRequest.items)
                 {
-                    foreach (var voucher in item.vouchers)
+                    if(item.voucher > 0)
                     {
                         paymentLines.Add(new OrderPaymentModel()
                         {
@@ -145,7 +145,7 @@ public class PaymentService : IPaymentService
                             sequential = seq,
                             type = PaymentType.VOUCHER,
                             installments = 1,
-                            value = voucher,
+                            value = item.voucher,
                             created_at = now
                         });
                         seq++;

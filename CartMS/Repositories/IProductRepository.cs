@@ -18,7 +18,7 @@ namespace CartMS.Repositories
 
 		IList<ProductModel> GetProducts(IList<(int, int)> ids);
 
-        ProductModel? GetProduct(int sellerId, int productId);
+        ProductModel GetProduct(int sellerId, int productId);
     }
 }
 

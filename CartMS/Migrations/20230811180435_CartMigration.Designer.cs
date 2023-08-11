@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartMS.Migrations
 {
     [DbContext(typeof(CartDbContext))]
-    [Migration("20230801100359_CartMigration")]
+    [Migration("20230811180435_CartMigration")]
     partial class CartMigration
     {
         /// <inheritdoc />
@@ -50,8 +50,11 @@ namespace CartMS.Migrations
                     b.Property<float>("unit_price")
                         .HasColumnType("real");
 
-                    b.Property<string>("vouchers")
-                        .HasColumnType("text");
+                    b.Property<int>("version")
+                        .HasColumnType("integer");
+
+                    b.Property<float>("voucher")
+                        .HasColumnType("real");
 
                     b.HasKey("customer_id", "seller_id", "product_id");
 
@@ -92,19 +95,8 @@ namespace CartMS.Migrations
                     b.Property<bool>("active")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("category")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<float>("freight_value")
-                        .HasColumnType("real");
 
                     b.Property<string>("name")
                         .IsRequired()
@@ -113,16 +105,11 @@ namespace CartMS.Migrations
                     b.Property<float>("price")
                         .HasColumnType("real");
 
-                    b.Property<string>("sku")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("version")
+                        .HasColumnType("integer");
 
                     b.HasKey("seller_id", "product_id");
 

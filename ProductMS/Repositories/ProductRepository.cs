@@ -24,10 +24,9 @@ namespace ProductMS.Repositories
             return this.dbContext.Products.Where(p => p.seller_id == sellerId).ToList();
         }
 
-        public ProductModel? GetProduct(int sellerId, int productId)
+        public ProductModel GetProduct(int sellerId, int productId)
         {
-            var product = this.dbContext.Products.Find(sellerId, productId);
-            return product;
+            return this.dbContext.Products.Where(f=> f.seller_id == sellerId && f.product_id == productId).First();
         }
 
         public void Insert(ProductModel product)

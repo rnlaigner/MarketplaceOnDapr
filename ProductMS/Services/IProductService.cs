@@ -5,10 +5,14 @@ namespace ProductMS.Services
 {
 	public interface IProductService
 	{
-        Task ProcessNewProduct(Product productToUpdate);
-        Task ProcessDelete(DeleteProduct productToDelete);
-        Task ProcessUpdate(UpdatePrice update);
+        Task ProcessCreateProduct(Product product);
+
+        Task ProcessProductUpdate(Product product);
+
+        Task ProcessPriceUpdate(PriceUpdate priceUpdate);
+
         void Cleanup();
         void Reset();
+        
     }
 }

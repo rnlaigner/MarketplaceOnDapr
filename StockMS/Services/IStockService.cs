@@ -11,7 +11,7 @@ namespace StockMS.Services
 
         void CancelReservation(PaymentFailed paymentFailure);
 
-        Task ProcessProductUpdate(ProductUpdate product);
+        Task ProcessProductUpdate(ProductUpdated productUpdate);
 
         Task CreateStockItem(StockItem stockItem);
 
@@ -21,8 +21,9 @@ namespace StockMS.Services
 
         void Reset();
 
-        Task ProcessPoisonProductUpdate(ProductUpdate product);
         Task ProcessPoisonReserveStock(ReserveStock reserveStock);
+        Task ProcessPoisonProductUpdate(ProductUpdated productUpdate);
+     
     }
 }
 

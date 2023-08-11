@@ -28,7 +28,9 @@ namespace StockMS.Models
 
         public string? data { get; set; }
 
-        public bool active { get; set; } = true;
+        public int version { get; set; }
+
+        public bool active { get; set; }
 
         public StockItemModel() {
             this.created_at = DateTime.UtcNow;

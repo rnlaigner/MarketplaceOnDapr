@@ -20,13 +20,14 @@ public class EventController : ControllerBase
     }
 
     [HttpPost("ProcessProductUpdate")]
-    [Topic(PUBSUB_NAME, nameof(ProductUpdate))]
-    public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdate product)
+    [Topic(PUBSUB_NAME, nameof(ProductUpdated))]
+    public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated product)
     {
         try
         {
             await this.stockService.ProcessProductUpdate(product);
-        } catch (Exception)
+        }
+        catch (Exception)
         {
             await this.stockService.ProcessPoisonProductUpdate(product);
         }

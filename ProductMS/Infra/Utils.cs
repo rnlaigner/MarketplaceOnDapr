@@ -1,5 +1,4 @@
-﻿using System;
-using Common.Entities;
+﻿using Common.Entities;
 using ProductMS.Models;
 
 namespace ProductMS.Infra
@@ -19,6 +18,7 @@ namespace ProductMS.Infra
                 price = product.price,
                 freight_value = product.freight_value,
                 status = product.status,
+                version = product.version,
                 active = product.active
             };
 
@@ -37,6 +37,7 @@ namespace ProductMS.Infra
                 price = product.price,
                 freight_value = product.freight_value,
                 status = product.status,
+                version = product.version,
                 active = product.active
             };
 
