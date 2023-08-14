@@ -39,6 +39,7 @@ public class ProductController : ControllerBase
             List<Product> productsResp = new List<Product>(products.Count());
             foreach(var product in products)
             {
+                if (!product.active) continue;
                 productsResp.Add(
                 new Product()
                 {
@@ -50,8 +51,7 @@ public class ProductController : ControllerBase
                     description = product.description,
                     price = product.price,
                     freight_value = product.freight_value,
-                    status = product.status,
-                    active = product.active
+                    status = product.status
                 });
             }
             this.logger.LogInformation("[GetBySeller] returning seller {0} products...", sellerId);
@@ -73,24 +73,25 @@ public class ProductController : ControllerBase
         }
         var product = this.productRepository.GetProduct(sellerId, productId);
 
-        if (product != null)
+        if (product is null || !product.active)
         {
-            this.logger.LogInformation("[GetById] returning product {0}", productId);
-            return Ok(new Product()
-            {
-                seller_id = product.seller_id,
-                product_id= product.product_id,
-                name = product.name,
-                sku = product.sku,
-                category = product.category,
-                description = product.description,
-                price = product.price,
-                freight_value = product.freight_value,
-                status = product.status,
-                active = product.active
-            });
+            return NotFound();
         }
-        return NotFound();
+        
+        this.logger.LogInformation("[GetById] returning product {0}", productId);
+        return Ok(new Product()
+        {
+            seller_id = product.seller_id,
+            product_id= product.product_id,
+            name = product.name,
+            sku = product.sku,
+            category = product.category,
+            description = product.description,
+            price = product.price,
+            freight_value = product.freight_value,
+            status = product.status
+        });
+        
     }
 
     [HttpPost]

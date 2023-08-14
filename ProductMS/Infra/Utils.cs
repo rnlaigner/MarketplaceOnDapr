@@ -18,8 +18,7 @@ namespace ProductMS.Infra
                 price = product.price,
                 freight_value = product.freight_value,
                 status = product.status,
-                version = product.version,
-                active = product.active
+                version = product.version
             };
 
         }
@@ -37,8 +36,7 @@ namespace ProductMS.Infra
                 price = product.price,
                 freight_value = product.freight_value,
                 status = product.status,
-                version = product.version,
-                active = product.active
+                version = product.version
             };
 
         }

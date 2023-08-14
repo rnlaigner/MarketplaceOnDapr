@@ -16,5 +16,6 @@
 
         public string? data { get; set; }
 
+        public int version { get; set; }
     }
 }

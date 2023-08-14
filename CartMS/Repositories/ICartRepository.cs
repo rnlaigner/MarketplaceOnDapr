@@ -4,7 +4,7 @@ namespace CartMS.Repositories
 {
     public interface ICartRepository
     {
-        CartModel GetCart(int customerId);
+        CartModel? GetCart(int customerId);
 
         IList<CartItemModel> GetItems(int customerId);
 

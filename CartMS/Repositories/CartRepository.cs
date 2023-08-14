@@ -15,9 +15,9 @@ namespace CartMS.Repositories
             this.logger = logger;
         }
 
-        public CartModel GetCart(int customerId)
+        public CartModel? GetCart(int customerId)
         {
-            return this.dbContext.Carts.Where( f=> f.customer_id == customerId).First();
+            return this.dbContext.Carts.Find(customerId);
         }
 
         public CartModel? Delete(int customerId)

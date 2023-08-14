@@ -22,7 +22,7 @@ public class EventController : ControllerBase
     private readonly ICartService cartService;
 
     public EventController(DaprClient daprClient,
-                            ICartService cartService, 
+                            ICartService cartService,
                             ICartRepository cartRepository,
                             IProductRepository productRepository,
                             ILogger<EventController> logger)

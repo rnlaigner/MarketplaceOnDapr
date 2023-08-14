@@ -72,7 +72,7 @@ public class StockService : IStockService
 
             if (items.Count() == 0)
             {
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.ERROR, "stock"));
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.NOT_ACCEPTED, "stock"));
                 return;
             }
 
@@ -205,7 +205,7 @@ public class StockService : IStockService
             order_count = stockItem.order_count,
             ytd = stockItem.ytd,
             data = stockItem.data,
-
+            version = stockItem.version
         };
         using (var txCtx = dbContext.Database.BeginTransaction())
         {

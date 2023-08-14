@@ -6,6 +6,7 @@ public enum TransactionType
     QUERY_DASHBOARD,
     PRICE_UPDATE,
     UPDATE_PRODUCT,
-    UPDATE_DELIVERY
+    UPDATE_DELIVERY,
+    NONE
 }
 
