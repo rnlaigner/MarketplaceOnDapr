@@ -23,5 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OrderMS.Common\OrderMS.Common.csproj" />
+    <ProjectReference Include="..\OrderMS\OrderMS.csproj" />
   </ItemGroup>
 </Project>

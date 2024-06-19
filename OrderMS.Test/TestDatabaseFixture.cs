@@ -1,29 +1,42 @@
-﻿using OrderMS.Infra;
+﻿using MysticMind.PostgresEmbed;
+using OrderMS.Infra;
 
 namespace OrderMS.Test;
 
 // https://learn.microsoft.com/en-us/ef/core/testing/testing-with-the-database
 public class TestDatabaseFixture
 {
-    private const string ConnectionString = "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=password";
+    private const string ConnectionString = "Server=localhost;Port=5432;Database=postgres;User Id=postgres;Password=test";
 
-    public OrderDbContext CreateContext() => new(ConnectionString);
+    public OrderDbContext GetContext()
+    {
+        return context;
+    }
 
-    private static readonly object _lock = new();
-    private static bool _databaseInitialized;
+    private static readonly OrderDbContext context;
+
+    private static readonly PgServer server;
+
+    static TestDatabaseFixture(){
+        // create the server instance
+        server = new PgServer("15.3.0", port: 5432, clearInstanceDirOnStop: true);
+        // start the server
+        server.Start();
+        context = new(ConnectionString);
+        context.Database.EnsureCreated();
+    }
 
     public TestDatabaseFixture()
     {
-        lock (_lock)
+        
+    }
+
+    public void Dispose()
+    {
+        if (server != null)
         {
-            if (!_databaseInitialized)
-            {
-                using (var context = CreateContext())
-                {
-                    context.Database.EnsureCreated();
-                    _databaseInitialized = true;
-                }
-            }
+            server.Stop();
         }
     }
+
 }

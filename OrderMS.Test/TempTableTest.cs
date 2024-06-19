@@ -15,7 +15,7 @@ namespace OrderMS.Test
         {
             try
             {
-                using var context = Fixture.CreateContext();
+                using var context = Fixture.GetContext();
                 context.Database.ExecuteSqlRaw("CREATE TEMPORARY TABLE tx_products ( tid real, product_id real )"); //, ts timestamp with time zone ) ON COMMIT PRESERVE ROWS");
                 var command = string.Format( "INSERT INTO tx_products (tid,product_id,ts) VALUES ({0},{1})", 1,1 );
                 context.Database.ExecuteSqlRaw(command);

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace OrderMS.Infra
 {
 
-    public class OrderDbContext : DbContext
+    public sealed class OrderDbContext : DbContext
     {
         public DbSet<OrderModel> Orders => Set<OrderModel>();
         public DbSet<OrderItemModel> OrderItems => Set<OrderItemModel>();

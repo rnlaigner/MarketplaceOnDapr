@@ -50,6 +50,69 @@ public class OrderService : IOrderService
         this.logger = logger;
     }
 
+    public void CreateOrderSimple()
+    {
+        int customer_id = 1;
+        int next_order_id;
+        try
+        {
+            var now = DateTime.UtcNow;
+            using (var transaction = dbContext.Database.BeginTransaction())
+            {
+                var customerOrder = dbContext.CustomerOrders.FromSqlRaw(string.Format("SELECT co.* FROM customer_orders AS co WHERE co.customer_id = {0} FOR UPDATE", customer_id));
+                CustomerOrderModel com;
+                if (customerOrder is null || customerOrder.Count() == 0)
+                {
+                    com = new()
+                    {
+                        customer_id = customer_id,
+                        next_order_id = 1
+                    };
+                    com = dbContext.CustomerOrders.Add(com).Entity;
+                    next_order_id = 1;
+                }
+                else
+                {
+                    com = customerOrder.First();
+                    com.next_order_id += 1;
+                    dbContext.CustomerOrders.Update(com);
+                    next_order_id = com.next_order_id;
+                }
+
+                StringBuilder stringBuilder = new StringBuilder().Append(1)
+                                                                    .Append('-').Append(now.ToString("d"))
+                                                                    .Append('-').Append(com.next_order_id);
+
+                var order = new OrderModel() { invoice_number = stringBuilder.ToString(), purchase_date = DateTime.UtcNow, customer_id = 1, count_items = 0, created_at = DateTime.UtcNow, updated_at = DateTime.UtcNow };
+
+                var orderPersisted = dbContext.Orders.Add(order);
+                dbContext.SaveChanges();
+
+                dbContext.OrderHistory.Add(new OrderHistoryModel()
+                {
+                    order_id = orderPersisted.Entity.id,
+                    created_at = orderPersisted.Entity.created_at,
+                    status = OrderStatus.INVOICED
+                });
+
+                dbContext.SaveChanges();
+                transaction.Commit();
+            }
+
+            // retrieve order in another transaction
+            using (var transaction = dbContext.Database.BeginTransaction())
+            {
+                var com = dbContext.CustomerOrders.Find(1);
+                Console.WriteLine("Expected: {0} Retrieved {1}", next_order_id, com.next_order_id);
+            }
+
+        }
+        catch (Exception e) {
+            Console.WriteLine("Error: {0}", e.Message);
+        }
+
+    }
+
     public async Task ProcessStockConfirmed(StockConfirmed checkout)
 	{
         // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN

@@ -6,6 +6,7 @@ using OrderMS.Common.Repositories;
 using System.Collections.Generic;
 using OrderMS.Services;
 using System;
+using Common.Events;
 
 namespace OrderMS.Controllers;
 
@@ -28,6 +29,17 @@ public class OrderController : ControllerBase
     public ActionResult<IEnumerable<Order>> GetByCustomerId(int customerId)
     {
         return Ok(this.orderRepository.GetByCustomerId(customerId));
+    }
+
+    [Route("/testEmbed")]
+    [HttpPost]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    public ActionResult TestEmbed()
+    {
+        logger.LogWarning("TestEmbed requested at {0}", DateTime.UtcNow);
+        this.orderService.CreateOrderSimple();
+        return Ok();
     }
 
     [Route("/cleanup")]
