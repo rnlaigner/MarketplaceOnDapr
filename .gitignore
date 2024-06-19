@@ -111,3 +111,6 @@ local.properties
 # csv files
 *.csv
 */*.csv
+
+pg_embed/
+*/pg_embed/

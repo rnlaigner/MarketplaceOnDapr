@@ -1,15 +1,18 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace Common.Utils
 {
-	public class Utils
+	public sealed class Utils
 	{
-		public static string FromCamelCaseToUnderscoreLowerCase(string input, bool plural = true)
+		public static Guid GetGuid(string str)
 		{
-			var nonPlural = System.Text.RegularExpressions.Regex.Replace(input, "(?<=.)([A-Z])", "_$0",
-					  System.Text.RegularExpressions.RegexOptions.Compiled).ToLower();
-			return new StringBuilder().Append(nonPlural).Append("s").ToString();
+            byte[] array = new byte[16]; 
+			var base_ = Encoding.UTF8.GetBytes(str);
+            for (int i = 0; i < base_.Length; i++)
+            {
+                array[i] = base_[i];
+            }
+            return new Guid(array);
         }
 	}
 }

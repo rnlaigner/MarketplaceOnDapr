@@ -2,7 +2,7 @@
 {
 	public sealed class OrderConfig
 	{
-        public bool OrderStreaming { get; set; } = false;
+        public bool Streaming { get; set; } = false;
 
         public bool PostgresEmbed { get; set; } = false;
 

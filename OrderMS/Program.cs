@@ -13,6 +13,7 @@ using OrderMS.Repositories;
 using OrderMS.Services;
 using System.Linq;
 using MysticMind.PostgresEmbed;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,30 @@ builder.Services.Configure<OrderConfig>(configSection);
 var config = configSection.Get<OrderConfig>();
 if(config == null)
     System.Environment.Exit(1);
+
+if (config.PostgresEmbed)
+{
+    PgServer server;
+    var instanceId = Utils.GetGuid("OrderDb");
+    if (config.Unlogged)
+    {
+        // https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-NAMES-VALUES
+        var serverParams = new Dictionary<string, string>();
+        // switch off synchronous commit
+        serverParams.Add("synchronous_commit", "off");
+        // set max connections
+        serverParams.Add("max_connections", "300");
+        // The default value is localhost, which allows only local TCP/IP "loopback" connections to be made.
+        serverParams.Add("listen_addresses", "*");
+        // serverParams.Add("shared_buffers", X);
+        server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams, instanceId: instanceId);
+    }
+    else
+    {
+        server = new PgServer("15.3.0", port: 5432, instanceId: instanceId);
+    }
+    server.Start();
+}
 
 // scoped here because db context is scoped
 builder.Services.AddDbContext<OrderDbContext>();
@@ -46,39 +71,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-bool OrderStreaming = false;
-
 // https://www.npgsql.org/doc/types/datetime.html
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
-    if (config.OrderStreaming)
-    {
-        OrderStreaming = true;
-    }
-
-    if (config.PostgresEmbed)
-    {
-        PgServer server;
-        if (config.Unlogged)
-        {
-            // https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-NAMES-VALUES
-            var serverParams = new Dictionary<string, string>();
-            // switch off synchronous commit
-            serverParams.Add("synchronous_commit", "off");
-            // serverParams.Add("shared_buffers", X);
-            server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams, clearInstanceDirOnStop: true);
-        } else
-        {
-            server = new PgServer("15.3.0", port: 5432, clearInstanceDirOnStop: true);
-        }
-        server.Start();
-    }
-
     var context = services.GetRequiredService<OrderDbContext>();
-    context.Database.Migrate();
+    try
+    {
+        Console.WriteLine(context.ConnectionString);
+        context.Database.Migrate();
+    }
+    catch (Exception ex) { 
+        Console.Write(ex.Message);
+        throw new ApplicationException(ex.ToString());
+    }
 
     if (config.Unlogged)
     {
@@ -101,14 +108,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-if(OrderStreaming)
+if(config.Streaming)
     app.UseCloudEvents();
 
 app.MapControllers();
 
 app.MapHealthChecks("/health");
 
-if (OrderStreaming)
+if(config.Streaming)
     app.MapSubscribeHandler();
 
 app.Run();

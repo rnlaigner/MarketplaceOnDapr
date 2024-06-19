@@ -26,6 +26,7 @@ namespace StockMS.Infra
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("stock");
+
             modelBuilder.Entity<StockItemModel>().ToTable(t => t.HasCheckConstraint(
                 "CK_StockItem_QtyAvailable", "qty_available >= 0"
                 ));

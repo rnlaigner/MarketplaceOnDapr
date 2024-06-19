@@ -50,7 +50,7 @@ public class OrderService : IOrderService
         this.logger = logger;
     }
 
-    public void CreateOrderSimple()
+    public async Task CreateOrderSimple()
     {
         int customer_id = 1;
         int next_order_id;
@@ -97,6 +97,11 @@ public class OrderService : IOrderService
 
                 dbContext.SaveChanges();
                 transaction.Commit();
+
+                // create product updated to test in-memory pubsub
+                TestEmbed testEmbed = new TestEmbed();
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TestEmbed), testEmbed);
+
             }
 
             // retrieve order in another transaction
@@ -185,8 +190,8 @@ public class OrderService : IOrderService
             }
 
             StringBuilder stringBuilder = new StringBuilder().Append(checkout.customerCheckout.CustomerId)
-                                                                .Append("-").Append(now.ToString("d", enUS))
-                                                                .Append("-").Append(customerOrder.next_order_id);
+                                                                .Append('-').Append(now.ToString("d", enUS))
+                                                                .Append('-').Append(customerOrder.next_order_id);
 
             OrderModel newOrder = new()
             {
@@ -253,7 +258,7 @@ public class OrderService : IOrderService
 
             // if the event is published and the transaction fails to commit (e.g., concurrency exception)
             // the dapr will retry the event processing and the invoiceIssued event will be duplicated in the system
-            if (config.OrderStreaming)
+            if (config.Streaming)
             {
                 InvoiceIssued invoice = new InvoiceIssued(checkout.customerCheckout, orderPersisted.id, newOrder.invoice_number,
                 now, newOrder.total_invoice, orderItems, checkout.instanceId);

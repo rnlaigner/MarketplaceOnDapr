@@ -19,6 +19,14 @@ public class EventController : ControllerBase
         this.logger = logger;
     }
 
+    [HttpPost("ProcessTestEmbed")]
+    [Topic(PUBSUB_NAME, nameof(TestEmbed))]
+    public ActionResult ProcessTestEmbed([FromBody] TestEmbed testEmbed)
+    {
+        Console.WriteLine("SUCCESS");
+        return Ok();
+    }
+
     [HttpPost("ProcessProductUpdate")]
     [Topic(PUBSUB_NAME, nameof(ProductUpdated))]
     public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated product)

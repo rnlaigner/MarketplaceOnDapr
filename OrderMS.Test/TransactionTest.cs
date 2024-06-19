@@ -88,7 +88,8 @@ namespace OrderMS.Test
                 using (var transaction = dbContext.Database.BeginTransaction())
                 {
                     var com = dbContext.CustomerOrders.Find(1);
-                    Console.WriteLine("Expected: {0} Retrieved {1}", 1, com.next_order_id);
+                    if(com is not null)
+                        Console.WriteLine("Expected: {0} Retrieved {1}", 1, com.next_order_id);
                 }
 
             }

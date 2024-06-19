@@ -2,6 +2,8 @@
 using StockMS.Infra;
 using StockMS.Services;
 using Microsoft.EntityFrameworkCore;
+using MysticMind.PostgresEmbed;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,15 +12,16 @@ builder.Services.AddOptions();
 // Add our Config object so it can be injected
 IConfigurationSection configSection = builder.Configuration.GetSection("StockConfig");
 builder.Services.Configure<StockConfig>(configSection);
-
-// Add services to the container
-builder.Services.AddDaprClient();
+var config = configSection.Get<StockConfig>();
+if (config == null)
+    System.Environment.Exit(1);
 
 builder.Services.AddDbContext<StockDbContext>();
 
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
 
+builder.Services.AddDaprClient();
 builder.Services.AddControllers();
 
 builder.Services.AddHealthChecks();
@@ -34,21 +37,54 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCloudEvents();
-
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
+    if (config.PostgresEmbed)
+    {
+        PgServer server;
+        var instanceId = Utils.GetGuid("StockDb");
+        if (config.Unlogged)
+        {
+            var serverParams = new Dictionary<string, string>();
+            serverParams.Add("synchronous_commit", "off");
+            // serverParams.Add("shared_buffers", X);
+            server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams);
+        }
+        else
+        {
+            server = new PgServer("15.3.0", port: 5432, instanceId: instanceId);
+        }
+        server.Start();
+    }
+
     var context = services.GetRequiredService<StockDbContext>();
     context.Database.Migrate();
+
+    if (config.Unlogged)
+    {
+        var tableNames = context.Model.GetEntityTypes()
+                            .Select(t => t.GetTableName())
+                            .Distinct()
+                            .ToList();
+        foreach (var table in tableNames)
+        {
+            context.Database.ExecuteSqlRaw($"ALTER TABLE stock.{table} SET unlogged");
+        }
+    }
+
 }
 
-// Configure the HTTP request pipeline.
+if (config.Streaming)
+    app.UseCloudEvents();
+
 app.MapControllers();
 
 app.MapHealthChecks("/health");
 
-app.MapSubscribeHandler();
+if (config.Streaming)
+    app.MapSubscribeHandler();
 
 app.Run();

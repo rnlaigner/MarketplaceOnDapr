@@ -9,7 +9,7 @@ namespace OrderMS.Services
 
         public Task ProcessStockConfirmed(StockConfirmed checkout);
 
-        public void CreateOrderSimple();
+        public Task CreateOrderSimple();
 
         public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
 

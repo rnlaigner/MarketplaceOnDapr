@@ -59,13 +59,14 @@ public class CartService : ICartService
             if (items.Count > 0)
             {
                 var cart = this.cartRepository.GetCart(customerCheckout.CustomerId);
+                if (cart is null) throw new ApplicationException($"Cart {customerCheckout.CustomerId} not found");
                 cart.status = CartStatus.CHECKOUT_SENT;
                 this.cartRepository.Update(cart);
                 var cartItems = items.Select(i => new CartItem()
                 {
                     SellerId = i.seller_id,
                     ProductId = i.product_id,
-                    ProductName = i.product_name,
+                    ProductName = i.product_name is null ? "" : i.product_name,
                     UnitPrice = i.unit_price,
                     FreightValue = i.freight_value,
                     Quantity = i.quantity,

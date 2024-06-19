@@ -43,7 +43,7 @@ namespace SellerMS.Models
 
         // from down below, all the same. could be normalized.... e.g., order_details table, shared across sellers
         [ForeignKey("order_id")]
-        public OrderEntryDetails details { get; set; }
+        public OrderEntryDetails? details { get; set; }
 
         public OrderEntry()
 		{

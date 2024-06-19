@@ -6,7 +6,6 @@ using OrderMS.Common.Repositories;
 using System.Collections.Generic;
 using OrderMS.Services;
 using System;
-using Common.Events;
 
 namespace OrderMS.Controllers;
 

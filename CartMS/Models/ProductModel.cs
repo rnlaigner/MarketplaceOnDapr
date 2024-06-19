@@ -26,6 +26,7 @@ namespace CartMS.Models
         public ProductModel()
         {
             this.active = true;
+            this.name = "";
         }
     }
 }

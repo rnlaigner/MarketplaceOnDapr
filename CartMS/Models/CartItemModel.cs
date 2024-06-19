@@ -13,7 +13,7 @@ namespace CartMS.Models
 
         public int product_id { get; set; }
 
-        public string product_name { get; set; }
+        public string? product_name { get; set; }
 
         public float unit_price { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿using MysticMind.PostgresEmbed;
 using OrderMS.Infra;
+using Common.Utils;
 
 namespace OrderMS.Test;
 
@@ -19,7 +20,8 @@ public class TestDatabaseFixture
 
     static TestDatabaseFixture(){
         // create the server instance
-        server = new PgServer("15.3.0", port: 5432, clearInstanceDirOnStop: true);
+        var instanceId = Utils.GetGuid("OrderDb");
+        server = new PgServer("15.3.0", port: 5432, instanceId: instanceId);
         // start the server
         server.Start();
         context = new(ConnectionString);

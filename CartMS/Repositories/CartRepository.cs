@@ -22,7 +22,7 @@ namespace CartMS.Repositories
 
         public CartModel? Delete(int customerId)
         {
-            CartModel cart = GetCart(customerId);
+            CartModel? cart = this.GetCart(customerId);
             if (cart is not null)
             {
                 dbContext.Remove(cart);

@@ -6,14 +6,14 @@ using Microsoft.Extensions.Configuration;
 namespace OrderMS.Infra
 {
 
-    public sealed class OrderDbContext : DbContext
+    public class OrderDbContext : DbContext
     {
         public DbSet<OrderModel> Orders => Set<OrderModel>();
         public DbSet<OrderItemModel> OrderItems => Set<OrderItemModel>();
         public DbSet<OrderHistoryModel> OrderHistory => Set<OrderHistoryModel>();
         public DbSet<CustomerOrderModel> CustomerOrders => Set<CustomerOrderModel>();
 
-        private readonly string ConnectionString;
+        public readonly string ConnectionString;
 
         public OrderDbContext(IConfiguration configuration)
         {

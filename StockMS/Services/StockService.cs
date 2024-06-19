@@ -40,7 +40,7 @@ public class StockService : IStockService
             stockItem.version = productUpdate.instanceId;
             stockRepository.Update(stockItem);
             txCtx.Commit();
-            if (config.StockStreaming)
+            if (config.Streaming)
             {
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdate.instanceId, TransactionType.UPDATE_PRODUCT, productUpdate.sellerId, MarkStatus.SUCCESS, "stock"));
             }
@@ -112,7 +112,7 @@ public class StockService : IStockService
                 txCtx.Commit();
             }
 
-            if (config.StockStreaming)
+            if (config.Streaming)
             {
                 if (cartItemsReserved.Count() > 0)
                 {
@@ -233,7 +233,7 @@ public class StockService : IStockService
             stockRepository.Update(item);
             txCtx.Commit();
 
-            if (config.StockStreaming)
+            if (config.Streaming)
             {
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), new StockItem()
                 {

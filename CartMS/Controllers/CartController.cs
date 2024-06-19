@@ -145,7 +145,7 @@ public class CartController : ControllerBase
         {
             SellerId = i.seller_id,
             ProductId = i.product_id,
-            ProductName = i.product_name,
+            ProductName = i.product_name is null ? "" : i.product_name,
             UnitPrice = i.unit_price,
             FreightValue = i.freight_value,
             Quantity = i.quantity,

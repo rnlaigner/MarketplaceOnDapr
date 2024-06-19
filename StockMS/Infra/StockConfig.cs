@@ -1,9 +1,17 @@
 ﻿namespace StockMS.Infra
 {
-	public class StockConfig
+	public sealed class StockConfig
 	{
-        public bool StockStreaming { get; set; } = false;
+        public bool Streaming { get; set; } = false;
+
         public int DefaultInventory { get; set; } = 10000;
+
+        public bool PostgresEmbed { get; set; } = false;
+
+        public bool Unlogged { get; set; } = false;
+
+        public string RamDiskDir { get; set; } = "";
+
     }
 }
 
