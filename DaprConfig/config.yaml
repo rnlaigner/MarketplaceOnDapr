@@ -4,4 +4,4 @@ metadata:
   name: daprConfig
 spec:
   metrics:
-    enabled: true
+    enabled: false

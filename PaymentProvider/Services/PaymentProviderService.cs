@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Net.NetworkInformation;
+﻿using System.Collections.Concurrent;
 using Common.Integration;
 using Microsoft.Extensions.Options;
 using PaymentProvider.Infra;

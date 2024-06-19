@@ -24,3 +24,7 @@ https://learn.microsoft.com/en-us/dotnet/architecture/dapr-for-net-developers/ge
 
 How Redis is automatically configured in Dapr:
 https://docs.dapr.io/developing-applications/building-blocks/state-management/howto-get-save-state/
+
+Locale issues in Ubuntu:
+https://askubuntu.com/questions/1219271/im-having-a-problem-with-locale-and-locale-gen-in-ubuntu
+

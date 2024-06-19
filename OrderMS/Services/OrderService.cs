@@ -59,7 +59,7 @@ public class OrderService : IOrderService
             var now = DateTime.UtcNow;
             using (var transaction = dbContext.Database.BeginTransaction())
             {
-                var customerOrder = dbContext.CustomerOrders.FromSqlRaw(string.Format("SELECT co.* FROM customer_orders AS co WHERE co.customer_id = {0} FOR UPDATE", customer_id));
+                var customerOrder = dbContext.CustomerOrders.FromSqlRaw(string.Format("SELECT co.* FROM  \"order\".customer_orders AS co WHERE co.customer_id = {0} FOR UPDATE", customer_id));
                 CustomerOrderModel com;
                 if (customerOrder is null || customerOrder.Count() == 0)
                 {
@@ -103,7 +103,8 @@ public class OrderService : IOrderService
             using (var transaction = dbContext.Database.BeginTransaction())
             {
                 var com = dbContext.CustomerOrders.Find(1);
-                Console.WriteLine("Expected: {0} Retrieved {1}", next_order_id, com.next_order_id);
+                if(com != null)
+                    Console.WriteLine("Expected: {0} Retrieved {1}", next_order_id, com.next_order_id);
             }
 
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +18,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 IConfigurationSection configSection = builder.Configuration.GetSection("OrderConfig");
 builder.Services.Configure<OrderConfig>(configSection);
+var config = configSection.Get<OrderConfig>();
+if(config == null)
+    System.Environment.Exit(1);
 
 // scoped here because db context is scoped
 builder.Services.AddDbContext<OrderDbContext>();
@@ -49,7 +53,6 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var config = services.GetRequiredService<OrderConfig>();
 
     if (config.OrderStreaming)
     {
@@ -58,7 +61,19 @@ using (var scope = app.Services.CreateScope())
 
     if (config.PostgresEmbed)
     {
-        var server = new PgServer("15.3.0", port: 5432, clearInstanceDirOnStop: true);
+        PgServer server;
+        if (config.Unlogged)
+        {
+            // https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-NAMES-VALUES
+            var serverParams = new Dictionary<string, string>();
+            // switch off synchronous commit
+            serverParams.Add("synchronous_commit", "off");
+            // serverParams.Add("shared_buffers", X);
+            server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams, clearInstanceDirOnStop: true);
+        } else
+        {
+            server = new PgServer("15.3.0", port: 5432, clearInstanceDirOnStop: true);
+        }
         server.Start();
     }
 
