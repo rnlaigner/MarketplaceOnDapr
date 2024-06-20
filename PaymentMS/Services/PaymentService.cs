@@ -157,7 +157,7 @@ public class PaymentService : IPaymentService
                 dbContext.OrderPayments.AddRange(paymentLines);
             dbContext.SaveChanges();
             txCtx.Commit();
-            if (config.PaymentStreaming)
+            if (config.Streaming)
             {
                 if (status == PaymentStatus.succeeded)
                 {

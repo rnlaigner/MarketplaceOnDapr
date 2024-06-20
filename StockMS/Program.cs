@@ -9,12 +9,34 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOptions();
 
-// Add our Config object so it can be injected
 IConfigurationSection configSection = builder.Configuration.GetSection("StockConfig");
 builder.Services.Configure<StockConfig>(configSection);
 var config = configSection.Get<StockConfig>();
 if (config == null)
-    System.Environment.Exit(1);
+    Environment.Exit(1);
+
+Task? waitPgSql = null;
+PgServer? server = null;
+if (config.PostgresEmbed)
+{
+    var instanceId = Utils.GetGuid("StockDb");
+    if (config.Unlogged)
+    {
+        var serverParams = new Dictionary<string, string>
+        {
+            { "synchronous_commit", "off" },
+            { "max_connections", "300" },
+            { "listen_addresses", "*" }
+        };
+        // serverParams.Add("shared_buffers", X);
+        server = new PgServer("15.3.0", port: 5433, pgServerParams: serverParams, instanceId: instanceId);
+    }
+    else
+    {
+        server = new PgServer("15.3.0", port: 5433, instanceId: instanceId);
+    }
+    waitPgSql = server.StartAsync();
+}
 
 builder.Services.AddDbContext<StockDbContext>();
 
@@ -44,20 +66,14 @@ using (var scope = app.Services.CreateScope())
 
     if (config.PostgresEmbed)
     {
-        PgServer server;
-        var instanceId = Utils.GetGuid("StockDb");
-        if (config.Unlogged)
-        {
-            var serverParams = new Dictionary<string, string>();
-            serverParams.Add("synchronous_commit", "off");
-            // serverParams.Add("shared_buffers", X);
-            server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams);
-        }
+        if (waitPgSql is not null) await waitPgSql;
         else
-        {
-            server = new PgServer("15.3.0", port: 5432, instanceId: instanceId);
-        }
-        server.Start();
+            throw new Exception("PostgreSQL was not setup correctly!");
+
+        app.Lifetime.ApplicationStopped.Register(()=> {
+            Console.WriteLine("Shutting down PostgreSQL embed");
+            server?.Stop();
+        });
     }
 
     var context = services.GetRequiredService<StockDbContext>();
@@ -74,7 +90,6 @@ using (var scope = app.Services.CreateScope())
             context.Database.ExecuteSqlRaw($"ALTER TABLE stock.{table} SET unlogged");
         }
     }
-
 }
 
 if (config.Streaming)
@@ -88,3 +103,4 @@ if (config.Streaming)
     app.MapSubscribeHandler();
 
 app.Run();
+

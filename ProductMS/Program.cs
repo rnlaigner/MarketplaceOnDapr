@@ -2,28 +2,53 @@
 using ProductMS.Infra;
 using ProductMS.Repositories;
 using ProductMS.Services;
+using MysticMind.PostgresEmbed;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDaprClient();
+builder.Services.AddOptions();
 
-// Add services to the container
+IConfigurationSection configSection = builder.Configuration.GetSection("ProductConfig");
+builder.Services.Configure<ProductConfig>(configSection);
+var config = configSection.Get<ProductConfig>();
+if (config == null)
+    Environment.Exit(1);
+
+Task? waitPgSql = null;
+PgServer? server = null;
+if (config.PostgresEmbed)
+{
+    var instanceId = Common.Utils.Utils.GetGuid("ProductDb");
+    if (config.Unlogged)
+    {
+        var serverParams = new Dictionary<string, string>
+        {
+            { "synchronous_commit", "off" },
+            { "max_connections", "300" },
+            { "listen_addresses", "*" }
+        };
+        // serverParams.Add("shared_buffers", X);
+        server = new PgServer("15.3.0", port: 5438, pgServerParams: serverParams, instanceId: instanceId);
+    }
+    else
+    {
+        server = new PgServer("15.3.0", port: 5438, instanceId: instanceId);
+    }
+    waitPgSql = server.StartAsync();
+}
+
 builder.Services.AddDbContext<ProductDbContext>();
+
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
+builder.Services.AddDaprClient();
 builder.Services.AddControllers();
 
 builder.Services.AddHealthChecks();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Add functionality to inject IOptions<T>
-builder.Services.AddOptions();
-
-// Add our Config object so it can be injected
-builder.Services.Configure<ProductConfig>(builder.Configuration.GetSection("ProductConfig"));
 
 var app = builder.Build();
 
@@ -33,21 +58,47 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCloudEvents();
-
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
+    if (config.PostgresEmbed)
+    {
+        if (waitPgSql is not null) await waitPgSql;
+        else
+            throw new Exception("PostgreSQL was not setup correctly!");
+
+        app.Lifetime.ApplicationStopped.Register(()=> {
+            Console.WriteLine("Shutting down PostgreSQL embed");
+            server?.Stop();
+        });
+    }
+
     var context = services.GetRequiredService<ProductDbContext>();
     context.Database.Migrate();
+
+    if (config.Unlogged)
+    {
+        var tableNames = context.Model.GetEntityTypes()
+                            .Select(t => t.GetTableName())
+                            .Distinct()
+                            .ToList();
+        foreach (var table in tableNames)
+        {
+            context.Database.ExecuteSqlRaw($"ALTER TABLE product.{table} SET unlogged");
+        }
+    }
 }
 
-// Configure the HTTP request pipeline.
+if (config.Streaming)
+    app.UseCloudEvents();
+
 app.MapControllers();
 
 app.MapHealthChecks("/health");
 
-app.MapSubscribeHandler();
+if (config.Streaming)
+    app.MapSubscribeHandler();
 
 app.Run();

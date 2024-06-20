@@ -27,6 +27,7 @@ namespace CartMS.Infra
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("cart");
+
             modelBuilder.Entity<CartModel>()
                  .Property(e => e.status)
                  .HasConversion<string>();

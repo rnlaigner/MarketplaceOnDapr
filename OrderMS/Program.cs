@@ -14,15 +14,18 @@ using OrderMS.Services;
 using System.Linq;
 using MysticMind.PostgresEmbed;
 using Common.Utils;
+using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add our Config object so it can be injected
 IConfigurationSection configSection = builder.Configuration.GetSection("OrderConfig");
 builder.Services.Configure<OrderConfig>(configSection);
 var config = configSection.Get<OrderConfig>();
 if(config == null)
-    System.Environment.Exit(1);
+    Environment.Exit(1);
 
+Task? waitPgSql = null;
 if (config.PostgresEmbed)
 {
     PgServer server;
@@ -30,13 +33,15 @@ if (config.PostgresEmbed)
     if (config.Unlogged)
     {
         // https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-NAMES-VALUES
-        var serverParams = new Dictionary<string, string>();
-        // switch off synchronous commit
-        serverParams.Add("synchronous_commit", "off");
-        // set max connections
-        serverParams.Add("max_connections", "300");
-        // The default value is localhost, which allows only local TCP/IP "loopback" connections to be made.
-        serverParams.Add("listen_addresses", "*");
+        var serverParams = new Dictionary<string, string>
+        {
+            // switch off synchronous commit
+            { "synchronous_commit", "off" },
+            // set max connections
+            { "max_connections", "300" },
+            // The default value is localhost, which allows only local TCP/IP "loopback" connections to be made.
+            { "listen_addresses", "*" }
+        };
         // serverParams.Add("shared_buffers", X);
         server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams, instanceId: instanceId);
     }
@@ -44,7 +49,7 @@ if (config.PostgresEmbed)
     {
         server = new PgServer("15.3.0", port: 5432, instanceId: instanceId);
     }
-    server.Start();
+    waitPgSql = server.StartAsync();
 }
 
 // scoped here because db context is scoped
@@ -60,6 +65,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddHealthChecks();
 
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -76,6 +82,14 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
+    if (config.PostgresEmbed)
+    {
+        if (waitPgSql is not null) await waitPgSql;
+        else
+            throw new Exception("PostgreSQL was not setup correctly!");
+    }
+
     var context = services.GetRequiredService<OrderDbContext>();
     try
     {

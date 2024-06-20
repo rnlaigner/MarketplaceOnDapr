@@ -1,7 +1,5 @@
 # MarketplaceDapr
 
-
-
 ## How to setup the environment
 
 Make sure you have Dapr CLI installed
@@ -108,3 +106,6 @@ https://stackoverflow.com/questions/8288823/query-a-parameter-postgresql-conf-se
 
 ### Redis
 https://stackoverflow.com/questions/28785383/how-to-disable-persistence-with-redis
+
+### Running bash script
+https://unix.stackexchange.com/questions/27054/bin-bash-no-such-file-or-directory

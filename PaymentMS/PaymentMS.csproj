@@ -27,6 +27,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
     <PackageReference Include="Dapr.AspNetCore" Version="1.11.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="MysticMind.PostgresEmbed" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -90,7 +90,7 @@ public class ShipmentService : IShipmentService
             txCtx.Commit();
 
             // enqueue shipment notification
-            if (config.ShipmentStreaming)
+            if (config.Streaming)
             {
                 ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
                 await Task.WhenAll(

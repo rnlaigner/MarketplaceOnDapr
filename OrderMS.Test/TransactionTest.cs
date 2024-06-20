@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Text;
 using Common.Entities;
 using Microsoft.EntityFrameworkCore;

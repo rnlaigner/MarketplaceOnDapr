@@ -1,9 +1,7 @@
-﻿namespace ProductMS.Infra
+﻿namespace SellerMS.Infra
 {
-	public class ProductConfig
+	public sealed class SellerConfig
 	{
-		public bool Streaming { get; set; } = false;
-
 		public bool PostgresEmbed { get; set; } = false;
 
         public bool Unlogged { get; set; } = false;

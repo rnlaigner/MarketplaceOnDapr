@@ -1,11 +1,12 @@
 ﻿using MysticMind.PostgresEmbed;
 using OrderMS.Infra;
 using Common.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace OrderMS.Test;
 
 // https://learn.microsoft.com/en-us/ef/core/testing/testing-with-the-database
-public class TestDatabaseFixture
+public class TestDatabaseFixture : IDisposable
 {
     private const string ConnectionString = "Server=localhost;Port=5432;Database=postgres;User Id=postgres;Password=test";
 
@@ -14,31 +15,24 @@ public class TestDatabaseFixture
         return context;
     }
 
-    private static readonly OrderDbContext context;
+    private readonly OrderDbContext context;
 
-    private static readonly PgServer server;
+    private readonly PgServer server;
 
-    static TestDatabaseFixture(){
+    public TestDatabaseFixture()
+    {
         // create the server instance
         var instanceId = Utils.GetGuid("OrderDb");
         server = new PgServer("15.3.0", port: 5432, instanceId: instanceId);
         // start the server
         server.Start();
         context = new(ConnectionString);
-        context.Database.EnsureCreated();
-    }
-
-    public TestDatabaseFixture()
-    {
-        
+        context.Database.Migrate();
     }
 
     public void Dispose()
     {
-        if (server != null)
-        {
-            server.Stop();
-        }
+        server?.Stop();
     }
 
 }

@@ -27,6 +27,7 @@ namespace ShipmentMS.Infra
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("shipment");
+
             modelBuilder.Entity<ShipmentModel>()
                            .Property(e => e.status)
                            .HasConversion<string>();

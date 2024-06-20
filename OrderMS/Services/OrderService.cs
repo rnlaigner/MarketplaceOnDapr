@@ -100,17 +100,19 @@ public class OrderService : IOrderService
 
                 // create product updated to test in-memory pubsub
                 TestEmbed testEmbed = new TestEmbed();
+                logger.LogWarning("Sending event...");
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TestEmbed), testEmbed);
-
             }
 
             // retrieve order in another transaction
+            /*
             using (var transaction = dbContext.Database.BeginTransaction())
             {
                 var com = dbContext.CustomerOrders.Find(1);
                 if(com != null)
                     Console.WriteLine("Expected: {0} Retrieved {1}", next_order_id, com.next_order_id);
             }
+            */
 
         }
         catch (Exception e) {

@@ -13,7 +13,6 @@ namespace StockMS.Services;
 
 public class StockService : IStockService
 {
-
     private const string PUBSUB_NAME = "pubsub";
 
     private readonly StockDbContext dbContext;
@@ -32,19 +31,58 @@ public class StockService : IStockService
         this.logger = logger;
     }
 
+    public Task CreateStockItem(StockItem stockItem)
+    {
+        var stockItemModel = new StockItemModel()
+        {
+            product_id = stockItem.product_id,
+            seller_id = stockItem.seller_id,
+            qty_available = stockItem.qty_available,
+            qty_reserved = stockItem.qty_reserved,
+            order_count = stockItem.order_count,
+            ytd = stockItem.ytd,
+            data = stockItem.data,
+            version = stockItem.version
+        };
+        using (var txCtx = dbContext.Database.BeginTransaction())
+        {
+            var existing = dbContext.StockItems.Find(stockItem.seller_id, stockItem.product_id);
+            if(existing is null)
+                dbContext.StockItems.Add(stockItemModel);
+            else
+                dbContext.StockItems.Update(stockItemModel);
+            dbContext.SaveChanges();
+            txCtx.Commit();
+        }
+        return Task.CompletedTask;
+    }
+
     public async Task ProcessProductUpdate(ProductUpdated productUpdate)
     {
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
             var stockItem = stockRepository.GetItemForUpdate(productUpdate.sellerId, productUpdate.productId);
+            if (stockItem is null)
+            {
+                throw new ApplicationException("Stock item not found "+productUpdate.sellerId +"-" + productUpdate.productId);
+            }
+
+            // logger.LogWarning("Inside the method ProcessProductUpdate..");
+
             stockItem.version = productUpdate.instanceId;
             stockRepository.Update(stockItem);
             txCtx.Commit();
             if (config.Streaming)
             {
+                // logger.LogWarning("Publishing transaction mark..");
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdate.instanceId, TransactionType.UPDATE_PRODUCT, productUpdate.sellerId, MarkStatus.SUCCESS, "stock"));
             }
-
+            /*
+            else
+            {
+                logger.LogWarning("Not Publishing transaction mark..");
+            }
+            */
         }
     }
 
@@ -192,29 +230,6 @@ public class StockService : IStockService
             this.dbContext.SaveChanges();
             txCtx.Commit();
         }
-    }
-
-    public Task CreateStockItem(StockItem stockItem)
-    {
-        var stockItemModel = new StockItemModel()
-        {
-            product_id = stockItem.product_id,
-            seller_id = stockItem.seller_id,
-            qty_available = stockItem.qty_available,
-            qty_reserved = stockItem.qty_reserved,
-            order_count = stockItem.order_count,
-            ytd = stockItem.ytd,
-            data = stockItem.data,
-            version = stockItem.version
-        };
-        using (var txCtx = dbContext.Database.BeginTransaction())
-        {
-            dbContext.StockItems.Add(stockItemModel);
-            dbContext.SaveChanges();
-            txCtx.Commit();
-        }
-
-        return Task.CompletedTask;
     }
 
     public async Task IncreaseStock(IncreaseStock increaseStock)

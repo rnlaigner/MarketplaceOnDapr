@@ -60,7 +60,7 @@ public class StockController : ControllerBase
     [HttpGet("{sellerId:int}/{productId:int}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
-    public ActionResult<Product> GetBySellerIdAndProductId(int sellerId, int productId)
+    public ActionResult<StockItem> GetBySellerIdAndProductId(int sellerId, int productId)
     {
         this.logger.LogInformation("[GetBySellerIdAndProductId] received for item id {0}", productId);
         StockItemModel? item = this.stockRepository.GetItem(sellerId, productId);

@@ -23,7 +23,7 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(TestEmbed))]
     public ActionResult ProcessTestEmbed([FromBody] TestEmbed testEmbed)
     {
-        Console.WriteLine("SUCCESS");
+        logger.LogWarning("SUCCESS");
         return Ok();
     }
 
@@ -31,6 +31,7 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(ProductUpdated))]
     public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated product)
     {
+        // logger.LogWarning("Received ProductUpdated event");
         try
         {
             await this.stockService.ProcessProductUpdate(product);

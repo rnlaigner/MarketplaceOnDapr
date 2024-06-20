@@ -76,7 +76,7 @@ public class CartService : ICartService
 
                 this.Seal(cart);
                 txCtx.Commit();
-                if (config.CartStreaming)
+                if (config.Streaming)
                 {
                     ReserveStock checkout = new ReserveStock(DateTime.UtcNow, customerCheckout, cartItems, customerCheckout.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
@@ -92,7 +92,7 @@ public class CartService : ICartService
 
     public async Task ProcessPoisonCheckout(CustomerCheckout customerCheckout, MarkStatus status)
     {
-        if (config.CartStreaming)
+        if (config.Streaming)
         {
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, checkoutStreamId, new TransactionMark(customerCheckout.instanceId, TransactionType.CUSTOMER_SESSION, customerCheckout.CustomerId, status, "cart"));
         }
@@ -128,7 +128,7 @@ public class CartService : ICartService
             this.productRepository.Update(product);
             txCtx.Commit();
         }
-        if (config.CartStreaming)
+        if (config.Streaming)
         {
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, priceUpdateStreamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.seller_id, MarkStatus.SUCCESS, "cart"));
         }

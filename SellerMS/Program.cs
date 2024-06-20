@@ -2,44 +2,95 @@
 using SellerMS.Infra;
 using SellerMS.Repositories;
 using SellerMS.Services;
+using MysticMind.PostgresEmbed;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDaprClient();
+builder.Services.AddOptions();
+
+IConfigurationSection configSection = builder.Configuration.GetSection("StockConfig");
+builder.Services.Configure<SellerConfig>(configSection);
+var config = configSection.Get<SellerConfig>();
+if (config == null)
+    Environment.Exit(1);
+
+Task? waitPgSql = null;
+if (config.PostgresEmbed)
+{
+    PgServer server;
+    var instanceId = Utils.GetGuid("SellerDb");
+    if (config.Unlogged)
+    {
+        var serverParams = new Dictionary<string, string>
+        {
+            { "synchronous_commit", "off" },
+            { "max_connections", "300" },
+            { "listen_addresses", "*" }
+        };
+        // serverParams.Add("shared_buffers", X);
+        server = new PgServer("15.3.0", port: 5436, pgServerParams: serverParams, instanceId: instanceId);
+    }
+    else
+    {
+        server = new PgServer("15.3.0", port: 5436, instanceId: instanceId);
+    }
+    waitPgSql = server.StartAsync();
+}
 
 builder.Services.AddDbContextFactory<SellerDbContext>();
+
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 builder.Services.AddScoped<ISellerService, SellerService>();
 
-// Add services to the container.
+builder.Services.AddDaprClient();
 builder.Services.AddControllers();
+
 builder.Services.AddHealthChecks();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCloudEvents();
-
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
+    if (config.PostgresEmbed)
+    {
+        if (waitPgSql is not null) await waitPgSql;
+        else
+            throw new Exception("PostgreSQL was not setup correctly!");
+    }
+
     var context = services.GetRequiredService<SellerDbContext>();
     context.Database.Migrate();
+
+    if (config.Unlogged)
+    {
+        var tableNames = context.Model.GetEntityTypes()
+                            .Select(t => t.GetTableName())
+                            .Distinct()
+                            .ToList();
+        foreach (var table in tableNames)
+        {
+            context.Database.ExecuteSqlRaw($"ALTER TABLE seller.{table} SET unlogged");
+        }
+    }
 
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSql);
     context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSqlIndex);
 }
+
+app.UseCloudEvents();
 
 app.MapControllers();
 

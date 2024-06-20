@@ -63,19 +63,25 @@ public class ProductController : ControllerBase
     [HttpGet("{sellerId:int}/{productId:int}")]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(Product), (int)HttpStatusCode.OK)]
     public ActionResult<Product> GetBySellerIdAndProductId(int sellerId, int productId)
     {
-        this.logger.LogInformation("[GetById] received for product {0}", productId);
+        this.logger.LogInformation("[GetBySellerIdAndProductId] received for product {0}", productId);
         if (productId <= 0)
         {
             return BadRequest();
         }
         var product = this.productRepository.GetProduct(sellerId, productId);
 
-        if (product is null || !product.active)
+        if (product is null)
         {
             return NotFound();
+        }
+
+        if (!product.active)
+        {
+            return NoContent();
         }
         
         this.logger.LogInformation("[GetById] returning product {0}", productId);
@@ -104,10 +110,11 @@ public class ProductController : ControllerBase
     }
 
     [HttpPut]
-    [Route("/")]
+    [Route("{sellerId:int}/{productId:int}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     public async Task<ActionResult> UpdateProduct([FromBody] Product product)
     {
+        // logger.LogWarning("UpdateProduct requested at {0}", DateTime.UtcNow);
         await this.productService.ProcessProductUpdate(product);
         return Ok();
     }
