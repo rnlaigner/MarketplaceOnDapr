@@ -20,8 +20,7 @@ namespace CartMS.Migrations
                 schema: "cart",
                 columns: table => new
                 {
-                    customer_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -40,7 +39,7 @@ namespace CartMS.Migrations
                     product_id = table.Column<int>(type: "integer", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false),
                     price = table.Column<float>(type: "real", nullable: false),
-                    version = table.Column<int>(type: "integer", nullable: false),
+                    version = table.Column<string>(type: "text", nullable: false),
                     active = table.Column<bool>(type: "boolean", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -63,19 +62,9 @@ namespace CartMS.Migrations
                     freight_value = table.Column<float>(type: "real", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),
                     voucher = table.Column<float>(type: "real", nullable: false),
-                    version = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_cart_items", x => new { x.customer_id, x.seller_id, x.product_id });
-                    table.ForeignKey(
-                        name: "FK_cart_items_carts_customer_id",
-                        column: x => x.customer_id,
-                        principalSchema: "cart",
-                        principalTable: "carts",
-                        principalColumn: "customer_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                    version = table.Column<string>(type: "text", nullable: false)
+                }
+            );
         }
 
         /// <inheritdoc />

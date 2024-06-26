@@ -99,7 +99,7 @@ public class OrderService : IOrderService
                 transaction.Commit();
 
                 // create product updated to test in-memory pubsub
-                TestEmbed testEmbed = new TestEmbed();
+                TestEmbed testEmbed = new();
                 logger.LogWarning("Sending event...");
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(TestEmbed), testEmbed);
             }

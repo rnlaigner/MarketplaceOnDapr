@@ -11,13 +11,13 @@ namespace ProductMS.Models
 
         public int product_id { get; set; }
 
-        public string name { get; set; } = "";
+        public string name { get; set; }
 
-        public string sku { get; set; } = "";
+        public string sku { get; set; }
 
-        public string category { get; set; } = "";
+        public string category { get; set; }
 
-        public string description { get; set; } = "";
+        public string description { get; set; }
 
         public float price { get; set; }
 
@@ -29,13 +29,12 @@ namespace ProductMS.Models
 
         public string status { get; set; } = "approved";
 
-        public int version { get; set; }
+        public string version { get; set; }
 
         public bool active { get; set; }
 
-        public ProductModel()
-		{
-		}
+        public ProductModel(){ }
+
 	}
 }
 

@@ -26,16 +26,13 @@ namespace StockMS.Models
 
         public DateTime updated_at { get; set; }
 
-        public string? data { get; set; }
+        public string data { get; set; }
 
-        public int version { get; set; }
+        public string version { get; set; }
 
         public bool active { get; set; }
 
-        public StockItemModel() {
-            this.created_at = DateTime.UtcNow;
-            this.updated_at = this.created_at;
-        }
+        public StockItemModel() { }
 
         public StockItemModel(int product_id, int seller_id, int qty, DateTime created_at)
 		{

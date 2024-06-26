@@ -12,7 +12,7 @@ namespace Common.Entities
 
         public IList<CartItem> items { get; set; } = new List<CartItem>();
 
-        public int instanceId { get; set; }
+        public string instanceId { get; set; }
 
         // to return
         public List<ProductStatus>? divergencies { get; set; }

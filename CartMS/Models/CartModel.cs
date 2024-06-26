@@ -16,9 +16,6 @@ namespace CartMS.Models
 
         public DateTime updated_at { get; set; }
 
-        [ForeignKey("customer_id")]
-        public ICollection<CartItemModel> items { get; } = new List<CartItemModel>();
-
         public CartModel() {
             this.created_at = DateTime.UtcNow;
             this.updated_at = this.created_at;

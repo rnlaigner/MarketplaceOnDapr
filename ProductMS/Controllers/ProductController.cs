@@ -70,18 +70,18 @@ public class ProductController : ControllerBase
         this.logger.LogInformation("[GetBySellerIdAndProductId] received for product {0}", productId);
         if (productId <= 0)
         {
-            return BadRequest();
+            return BadRequest("Product ID is not valid");
         }
         var product = this.productRepository.GetProduct(sellerId, productId);
 
         if (product is null)
         {
-            return NotFound();
+            return NotFound("Product is null");
         }
 
         if (!product.active)
         {
-            return NoContent();
+            return NotFound("Product is not active anymore");
         }
         
         this.logger.LogInformation("[GetById] returning product {0}", productId);
@@ -103,19 +103,26 @@ public class ProductController : ControllerBase
     [HttpPost]
     [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public async Task<ActionResult> AddProduct([FromBody] Product product)
+    public ActionResult AddProduct([FromBody] Product product)
     {
-        await this.productService.ProcessCreateProduct(product);
+        this.productService.ProcessCreateProduct(product);
         return StatusCode((int)HttpStatusCode.Created);
     }
 
     [HttpPut]
-    [Route("{sellerId:int}/{productId:int}")]
+    [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     public async Task<ActionResult> UpdateProduct([FromBody] Product product)
     {
-        // logger.LogWarning("UpdateProduct requested at {0}", DateTime.UtcNow);
-        await this.productService.ProcessProductUpdate(product);
+        logger.LogWarning($"UpdateProduct {product.seller_id}-{product.product_id} requested at {DateTime.UtcNow}");
+        Console.WriteLine(product.ToString());
+        try {
+            await this.productService.ProcessProductUpdate(product);
+        } catch(Exception e)
+        {
+            logger.LogError(e.ToString());
+            await this.productService.ProcessPoisonProductUpdate(product);
+        }
         return Ok();
     }
 
@@ -125,7 +132,13 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.OK)]
     public async Task<ActionResult> UpdateProductPrice([FromBody] PriceUpdate update)
     {
-        await this.productService.ProcessPriceUpdate(update);
+        try{
+            await this.productService.ProcessPriceUpdate(update);
+        } catch(Exception e)
+        {
+            logger.LogError(e.ToString());
+            await this.productService.ProcessPoisonPriceUpdate(update);
+        }
         return Accepted();
     }
 

@@ -26,15 +26,19 @@ namespace CartMS.Migrations
             modelBuilder.Entity("CartMS.Models.CartItemModel", b =>
                 {
                     b.Property<int>("customer_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("seller_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("product_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<float>("freight_value")
+                        .IsRequired()
                         .HasColumnType("real");
 
                     b.Property<string>("product_name")
@@ -42,15 +46,19 @@ namespace CartMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("quantity")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<float>("unit_price")
+                        .IsRequired()
                         .HasColumnType("real");
 
-                    b.Property<int>("version")
-                        .HasColumnType("integer");
+                    b.Property<string>("version")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<float>("voucher")
+                        .IsRequired()
                         .HasColumnType("real");
 
                     b.HasKey("customer_id", "seller_id", "product_id");
@@ -61,10 +69,8 @@ namespace CartMS.Migrations
             modelBuilder.Entity("CartMS.Models.CartModel", b =>
                 {
                     b.Property<int>("customer_id")
-                        .ValueGeneratedOnAdd()
+                        .IsRequired()
                         .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("customer_id"));
 
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
@@ -84,15 +90,19 @@ namespace CartMS.Migrations
             modelBuilder.Entity("CartMS.Models.ProductModel", b =>
                 {
                     b.Property<int>("seller_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("product_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<bool>("active")
+                        .IsRequired()
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("created_at")
+                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("name")
@@ -100,13 +110,16 @@ namespace CartMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<float>("price")
+                        .IsRequired()
                         .HasColumnType("real");
 
                     b.Property<DateTime>("updated_at")
+                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("version")
-                        .HasColumnType("integer");
+                    b.Property<string>("version")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("seller_id", "product_id");
 

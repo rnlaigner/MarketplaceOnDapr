@@ -1,13 +1,30 @@
 ﻿using Common.Entities;
 using Common.Requests;
 
-namespace Common.Events
+namespace Common.Events;
+
+public class ReserveStock
 {
-    public record ReserveStock
-    (
-        DateTime timestamp,
-        CustomerCheckout customerCheckout,
-        IList<CartItem> items,
-        int instanceId
-    );
+    public DateTime timestamp { get; set; }
+
+    public CustomerCheckout customerCheckout { get; set; }
+
+    public List<CartItem> items { get; set; }
+
+    public string instanceId { get; set; }
+
+    public ReserveStock(){ }
+
+    public ReserveStock(DateTime timestamp, CustomerCheckout customerCheckout, List<CartItem> items, string instanceId)
+    {
+        this.timestamp = timestamp;
+        this.customerCheckout = customerCheckout;
+        this.items = items;
+        this.instanceId = instanceId;
+    }
+
+    public override string ToString()
+    {
+        return string.Join(",",items);
+    }
 }

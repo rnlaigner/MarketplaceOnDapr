@@ -12,6 +12,8 @@ namespace ProductMS.Repositories
 
         ProductModel GetProduct(int sellerId, int productId);
 
+        ProductModel GetProductForUpdate(int sellerId, int productId);
+
         List<ProductModel> GetBySeller(int sellerId);
         
     }

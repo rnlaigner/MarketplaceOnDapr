@@ -21,17 +21,17 @@ public class CartService : ICartService
     private readonly CartDbContext dbContext;
 
     private readonly ICartRepository cartRepository;
-    private readonly IProductRepository productRepository;
+    private readonly IProductReplicaRepository productReplicaRepository;
 
     private readonly CartConfig config;
     private readonly ILogger<CartService> logger;
 
-    public CartService(DaprClient daprClient, CartDbContext cartDbContext, ICartRepository cartRepository, IProductRepository productRepository, IOptions<CartConfig> config, ILogger<CartService> logger)
+    public CartService(DaprClient daprClient, CartDbContext cartDbContext, ICartRepository cartRepository, IProductReplicaRepository productReplicaRepository, IOptions<CartConfig> config, ILogger<CartService> logger)
 	{
         this.daprClient = daprClient;
         this.dbContext = cartDbContext;
         this.cartRepository = cartRepository;
-        this.productRepository = productRepository;
+        this.productReplicaRepository = productReplicaRepository;
         this.config = config.Value;
         this.logger = logger;
     }
@@ -41,7 +41,7 @@ public class CartService : ICartService
         cart.status = CartStatus.OPEN;
         if (cleanItems)
         {
-            cartRepository.DeleteItems(cart.customer_id);
+            this.cartRepository.DeleteItems(cart.customer_id);
         }
         cart.updated_at = DateTime.UtcNow;
         this.cartRepository.Update(cart);   
@@ -51,18 +51,22 @@ public class CartService : ICartService
 
     static readonly string checkoutStreamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
 
-    public async Task<bool> NotifyCheckout(CustomerCheckout customerCheckout)
+    public async Task NotifyCheckout(CustomerCheckout customerCheckout)
     {
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
-            IList<CartItemModel> items = GetItemsWithoutDivergencies(customerCheckout.CustomerId);
-            if (items.Count > 0)
-            {
+            List<CartItem> cartItems;
+            if(config.ControllerChecks){
+                IList<CartItemModel> items = GetItemsWithoutDivergencies(customerCheckout.CustomerId);
+                if(items.Count() == 0)
+                {
+                    throw new ApplicationException($"Cart {customerCheckout.CustomerId} has no items");
+                }
                 var cart = this.cartRepository.GetCart(customerCheckout.CustomerId);
                 if (cart is null) throw new ApplicationException($"Cart {customerCheckout.CustomerId} not found");
                 cart.status = CartStatus.CHECKOUT_SENT;
                 this.cartRepository.Update(cart);
-                var cartItems = items.Select(i => new CartItem()
+                cartItems = items.Select(i => new CartItem()
                 {
                     SellerId = i.seller_id,
                     ProductId = i.product_id,
@@ -73,20 +77,30 @@ public class CartService : ICartService
                     Version = i.version,
                     Voucher = i.voucher
                 }).ToList();
-
                 this.Seal(cart);
-                txCtx.Commit();
-                if (config.Streaming)
-                {
-                    ReserveStock checkout = new ReserveStock(DateTime.UtcNow, customerCheckout, cartItems, customerCheckout.instanceId);
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
-                }
-                return true;
+                
+            } else {
+                IList<CartItemModel> cartItemModels = this.cartRepository.GetItems(customerCheckout.CustomerId);
+                this.cartRepository.DeleteItems(customerCheckout.CustomerId);
+                cartItems = cartItemModels.Select(i => new CartItem()
+                        {
+                            SellerId = i.seller_id,
+                            ProductId = i.product_id,
+                            ProductName = i.product_name is null ? "" : i.product_name,
+                            UnitPrice = i.unit_price,
+                            FreightValue = i.freight_value,
+                            Quantity = i.quantity,
+                            Version = i.version,
+                            Voucher = i.voucher
+                        }).ToList();
             }
 
-            await ProcessPoisonCheckout(customerCheckout, MarkStatus.NOT_ACCEPTED);
-            return false;
-
+            txCtx.Commit();
+            if (config.Streaming)
+            {
+                ReserveStock checkout = new ReserveStock(DateTime.UtcNow, customerCheckout, cartItems, customerCheckout.instanceId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
+            }
         }
     }
 
@@ -104,13 +118,13 @@ public class CartService : ICartService
         var itemsDict = items.ToDictionary(i => (i.seller_id, i.product_id));
 
         var ids = items.Select(i => (i.seller_id, i.product_id)).ToList();
-        IList<ProductModel> products = productRepository.GetProducts(ids);
+        IList<ProductReplicaModel> products = productReplicaRepository.GetProducts(ids);
 
         foreach (var product in products)
         {
             var item = itemsDict[(product.seller_id, product.product_id)];
             var currPrice = item.unit_price;
-            if (item.version == product.version && currPrice != product.price)
+            if (item.version.Equals(product.version) && currPrice != product.price)
             {
                 itemsDict.Remove((product.seller_id, product.product_id));
             }
@@ -122,10 +136,28 @@ public class CartService : ICartService
     {
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
-            ProductModel product = this.productRepository.GetProduct(priceUpdate.seller_id, priceUpdate.product_id);
-            product.version = priceUpdate.version;
-            product.price = priceUpdate.price;
-            this.productRepository.Update(product);
+            if(this.productReplicaRepository.Exists(priceUpdate.seller_id, priceUpdate.product_id))
+            {
+                 ProductReplicaModel product = this.productReplicaRepository.GetProductForUpdate(priceUpdate.seller_id, priceUpdate.product_id);
+                // if not same version, then it has arrived out of order
+                if (product.version.SequenceEqual(priceUpdate.version))
+                {
+                    product.price = priceUpdate.price;
+                    this.productReplicaRepository.Update(product);
+                }
+                else // outdated update, no longer applies...
+                {
+                    // logger.LogWarning($"Versions not not match for price update. Product {product.version} != {priceUpdate.version}");
+                }
+            }
+
+            // update all carts with such version in any case
+            var cartItems = this.cartRepository.GetItemsByProduct(priceUpdate.seller_id, priceUpdate.product_id, priceUpdate.version);
+            foreach(var item in cartItems)
+            {
+                item.unit_price = priceUpdate.price;
+                item.voucher += priceUpdate.price - item.unit_price;
+            }
             txCtx.Commit();
         }
         if (config.Streaming)
@@ -140,6 +172,29 @@ public class CartService : ICartService
     public async Task ProcessPoisonPriceUpdate(PriceUpdated productUpdate)
     {
          await this.daprClient.PublishEventAsync(PUBSUB_NAME, priceUpdateStreamId, new TransactionMark(productUpdate.instanceId, TransactionType.PRICE_UPDATE, productUpdate.seller_id, MarkStatus.ABORT, "cart"));
+    }
+
+    public void ProcessProductUpdated(ProductUpdated productUpdated)
+    {
+        ProductReplicaModel product_ = new()
+        {
+            seller_id = productUpdated.seller_id,
+            product_id = productUpdated.product_id,
+            name = productUpdated.name,
+            price = productUpdated.price,
+            version = productUpdated.version
+        };
+        if(this.productReplicaRepository.Exists(productUpdated.seller_id, productUpdated.product_id))
+        {
+            this.productReplicaRepository.Update(product_);
+        } else {
+            this.productReplicaRepository.Insert(product_);
+        }
+    }
+
+    public async Task ProcessPoisonProductUpdated(ProductUpdated productUpdate)
+    {
+         await this.daprClient.PublishEventAsync(PUBSUB_NAME, priceUpdateStreamId, new TransactionMark(productUpdate.version, TransactionType.UPDATE_PRODUCT, productUpdate.seller_id, MarkStatus.ABORT, "cart"));
     }
 
     public void Cleanup()
@@ -157,4 +212,5 @@ public class CartService : ICartService
         this.dbContext.Database.ExecuteSqlRaw("UPDATE replica_products SET active=true");
         this.dbContext.SaveChanges();
     }
+
 }

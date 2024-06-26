@@ -6,7 +6,7 @@ public interface IShipmentService
 {
     public Task ProcessShipment(PaymentConfirmed paymentResult);
 
-    public Task UpdateShipment(int instanceId);
+    public Task UpdateShipment(string instanceId);
 
     void Cleanup();
 

@@ -2,52 +2,55 @@
 {
     /**
      * A sub-type of customer.
-     * Ideally, address and credit card info may change across customer checkouts
+     * Ideally; address and credit card info may change across customer checkouts
      * Basket and Order does not need to know all internal data about customers
      */
-    public record CustomerCheckout(
+    public class CustomerCheckout {
     
-        int CustomerId,
+        public int CustomerId;
 
         /**
         * Delivery address (could be different from customer's address)
         */
-        string FirstName,
+        public string FirstName;
 
-        string LastName,
+        public string LastName;
 
-        string Street,
+        public string Street;
 
-        string Complement,
+        public string Complement;
 
-        string City,
+        public string City;
 
-        string State,
+        public string State;
 
-        string ZipCode,
+        public string ZipCode;
 
         /**
         * Payment type
         */
-        string PaymentType,
+        public string PaymentType;
 
         /**
         * Credit or debit card
         */
-        string CardNumber,
+        public string CardNumber;
 
-        string CardHolderName,
+        public string CardHolderName;
 
-        string CardExpiration,
+        public string CardExpiration;
 
-        string CardSecurityNumber,
+        public string CardSecurityNumber;
 
-        string CardBrand,
+        public string CardBrand;
 
-        // if no credit card, must be 1
-        int Installments,
+        // if no credit card; must be 1
+        public int Installments;
 
-        int instanceId
-    );
+        public string instanceId;
+
+        public CustomerCheckout(){ }
+
+    }
     
 }

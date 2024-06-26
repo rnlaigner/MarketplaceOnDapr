@@ -1,8 +1,7 @@
-﻿using CartMS.Models;
-using CartMS.Repositories;
+﻿using CartMS.Repositories;
 using CartMS.Services;
-using Common.Entities;
 using Common.Events;
+using Common.Requests;
 using Dapr;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +15,7 @@ public class EventController : ControllerBase
 
     private readonly DaprClient daprClient;
     private readonly ICartRepository cartRepository;
-    private readonly IProductRepository productRepository;
+    private readonly IProductReplicaRepository productReplicaRepository;
 
     private readonly ILogger<EventController> logger;
     private readonly ICartService cartService;
@@ -24,46 +23,46 @@ public class EventController : ControllerBase
     public EventController(DaprClient daprClient,
                             ICartService cartService,
                             ICartRepository cartRepository,
-                            IProductRepository productRepository,
+                            IProductReplicaRepository productReplicaRepository,
                             ILogger<EventController> logger)
     {
         this.daprClient = daprClient;
         this.cartRepository = cartRepository;
-        this.productRepository = productRepository;
+        this.productReplicaRepository = productReplicaRepository;
         this.logger = logger;
         this.cartService = cartService;
     }
 
-    [HttpPost("ProductStreaming")]
-    [Topic(PUBSUB_NAME, nameof(Product))]
-    public ActionResult ProcessProductStream([FromBody] Product product)
+    [HttpPost("ProcessProductUpdate")]
+    [Topic(PUBSUB_NAME, nameof(ProductUpdated))]
+    public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated productUpdated)
     {
-        var now = DateTime.UtcNow;
-        ProductModel product_ = new()
+        // logger.LogWarning("Controller: ProductUpdated event="+productUpdated.ToString());
+        try
         {
-            seller_id = product.seller_id,
-            product_id = product.product_id,
-            name = product.name,
-            price = product.price,
-            created_at = now,
-            updated_at = now,
-            version = product.version
-        };
-        this.productRepository.Insert(product_);
+            this.cartService.ProcessProductUpdated(productUpdated);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.ToString());
+            await this.cartService.ProcessPoisonProductUpdated(productUpdated);
+        }
         return Ok();
     }
 
-    [HttpPost("PriceUpdate")]
+    [HttpPost("ProcessPriceUpdate")]
     [Topic(PUBSUB_NAME, nameof(PriceUpdated))]
-    public async Task<ActionResult> ProcessPriceUpdate([FromBody] PriceUpdated update)
+    public async Task<ActionResult> ProcessPriceUpdate([FromBody] PriceUpdated priceUpdated)
     {
+        // logger.LogWarning("Controller: PriceUpdated event="+priceUpdated.ToString());
         try
         {
-            await this.cartService.ProcessPriceUpdate(update);
+            await this.cartService.ProcessPriceUpdate(priceUpdated);
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            await this.cartService.ProcessPoisonPriceUpdate(update);
+            Console.WriteLine(e.ToString());
+            await this.cartService.ProcessPoisonPriceUpdate(priceUpdated);
         }
         return Ok();
     }

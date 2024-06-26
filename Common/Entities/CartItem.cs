@@ -16,7 +16,7 @@
 
         public float Voucher { get; set; }
 
-        public int Version { get; set; }
+        public string Version { get; set; }
         
         public CartItem() { }
     }

@@ -44,6 +44,8 @@
         // additional
         public string data { get; set; } = "";
 
+        public Customer(){ }
+
     }
 }
 

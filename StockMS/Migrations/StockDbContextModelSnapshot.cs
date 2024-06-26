@@ -26,36 +26,47 @@ namespace StockMS.Migrations
             modelBuilder.Entity("StockMS.Models.StockItemModel", b =>
                 {
                     b.Property<int>("seller_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("product_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<bool>("active")
+                        .IsRequired()
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("created_at")
+                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("data")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("order_count")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("qty_available")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("qty_reserved")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("updated_at")
+                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("version")
-                        .HasColumnType("integer");
+                    b.Property<string>("version")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("ytd")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.HasKey("seller_id", "product_id");

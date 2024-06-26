@@ -25,6 +25,7 @@ namespace ProductMS.Infra
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("product");
+
             modelBuilder.Entity<ProductModel>().ToTable(t => t.HasCheckConstraint(
                 "CK_Product_Price", "price >= 0"
                 ));

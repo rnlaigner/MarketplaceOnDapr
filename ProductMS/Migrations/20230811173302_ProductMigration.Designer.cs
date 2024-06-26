@@ -29,12 +29,15 @@ namespace ProductMS.Migrations
             modelBuilder.Entity("ProductMS.Models.ProductModel", b =>
                 {
                     b.Property<int>("seller_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("product_id")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<bool>("active")
+                        .IsRequired()
                         .HasColumnType("boolean");
 
                     b.Property<string>("category")
@@ -42,6 +45,7 @@ namespace ProductMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("created_at")
+                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("description")
@@ -49,6 +53,7 @@ namespace ProductMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<float>("freight_value")
+                        .IsRequired()
                         .HasColumnType("real");
 
                     b.Property<string>("name")
@@ -56,6 +61,7 @@ namespace ProductMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<float>("price")
+                        .IsRequired()
                         .HasColumnType("real");
 
                     b.Property<string>("sku")
@@ -67,10 +73,12 @@ namespace ProductMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("updated_at")
+                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("version")
-                        .HasColumnType("integer");
+                    b.Property<string>("version")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("seller_id", "product_id");
 

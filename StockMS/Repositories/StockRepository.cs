@@ -57,12 +57,24 @@ namespace StockMS.Repositories
             return this.dbContext.StockItems.Find(sellerId, productId);
         }
 
-        private const string sqlGetItemForUpdate = "SELECT * FROM stock.stock_items s WHERE s.seller_id = {0} AND s.product_id ={0} FOR UPDATE";
+        private const string SELECT_ITEM_FOR_UPDATE = "SELECT * FROM stock.stock_items s WHERE s.seller_id = {0} AND s.product_id = {1} FOR UPDATE";
 
         public StockItemModel GetItemForUpdate(int sellerId, int productId)
         {
-            var sql = string.Format(sqlGetItemForUpdate, sellerId, productId);
-            return dbContext.StockItems.FromSqlRaw(sql).First();
+            var sql = string.Format(SELECT_ITEM_FOR_UPDATE, sellerId, productId);
+            // this will fail if the item is not found
+            // return this.dbContext.StockItems.FromSqlRaw(sql).First();
+            try
+            {
+                // return
+                var item = this.dbContext.StockItems.FromSqlRaw(sql).First();
+                logger.LogWarning($"Item {sellerId}-{productId} locked");
+                return item;
+            } catch(Exception e)
+            {
+                logger.LogCritical($"Item {sellerId}-{productId} cannot be found or locked");
+                throw new ApplicationException(e.ToString());
+            }
         }
 
         public IEnumerable<StockItemModel> GetBySellerId(int sellerId)

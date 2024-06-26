@@ -45,7 +45,7 @@ do
 
   echo "Replacing product 1/1"
 
-  curl -X PUT -H "Content-Type: application/json" -d '{"seller_id" : "1", "product_id" : "1", "name" : "productTest", "sku" : "skuTest", "category" : "categoryTest", "status" : "approved", "description" : "descriptionTest", "price" : 10, "freight_value" : 0, "version" : "'$i'"}' localhost:5008/1/1
+  curl -X PUT -H "Content-Type: application/json" -d '{"seller_id" : "1", "product_id" : "1", "name" : "productTest", "sku" : "skuTest", "category" : "categoryTest", "status" : "approved", "description" : "descriptionTest", "price" : 10, "freight_value" : 0, "version" : "'$i'"}' localhost:5008
 
   echo ""
 

@@ -70,7 +70,7 @@ public class ShipmentController : ControllerBase
     [HttpPatch]
     [Route("{instanceId}")]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<ActionResult> UpdateShipment(int instanceId)
+    public async Task<ActionResult> UpdateShipment(string instanceId)
     {
         await this.shipmentService.UpdateShipment(instanceId);
         return Accepted();

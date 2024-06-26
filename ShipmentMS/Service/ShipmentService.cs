@@ -92,7 +92,7 @@ public class ShipmentService : IShipmentService
             // enqueue shipment notification
             if (config.Streaming)
             {
-                ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId);
+                ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId, ShipmentStatus.approved);
                 await Task.WhenAll(
                     this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ShipmentNotification), shipmentNotification),
                     // publish transaction event result
@@ -111,7 +111,7 @@ public class ShipmentService : IShipmentService
     }
 
     // update delivery status of many packages
-    public async Task UpdateShipment(int instanceId)
+    public async Task UpdateShipment(string instanceId)
     {
         using (var txCtx = dbContext.Database.BeginTransaction(IsolationLevel.Serializable))
         {
@@ -134,7 +134,7 @@ public class ShipmentService : IShipmentService
         }
     }
 
-    private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, int instanceId)
+    private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, string instanceId)
     {
         int orderId = sellerPackages.ElementAt(0).order_id;
         int sellerId = sellerPackages.ElementAt(0).seller_id;

@@ -19,26 +19,19 @@ public class EventController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpPost("ProcessTestEmbed")]
-    [Topic(PUBSUB_NAME, nameof(TestEmbed))]
-    public ActionResult ProcessTestEmbed([FromBody] TestEmbed testEmbed)
-    {
-        logger.LogWarning("SUCCESS");
-        return Ok();
-    }
-
     [HttpPost("ProcessProductUpdate")]
     [Topic(PUBSUB_NAME, nameof(ProductUpdated))]
-    public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated product)
+    public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated productUpdated)
     {
-        // logger.LogWarning("Received ProductUpdated event");
+        logger.LogWarning("Controller: ProductUpdated event="+productUpdated.ToString());
         try
         {
-            await this.stockService.ProcessProductUpdate(product);
+            await this.stockService.ProcessProductUpdate(productUpdated);
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            await this.stockService.ProcessPoisonProductUpdate(product);
+            Console.WriteLine(e.ToString());
+            await this.stockService.ProcessPoisonProductUpdate(productUpdated);
         }
         return Ok();
     }

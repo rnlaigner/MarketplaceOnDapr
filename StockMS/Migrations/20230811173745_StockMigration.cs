@@ -27,8 +27,8 @@ namespace StockMS.Migrations
                     ytd = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    data = table.Column<string>(type: "text", nullable: true),
-                    version = table.Column<int>(type: "integer", nullable: false),
+                    data = table.Column<string>(type: "text", nullable: false),
+                    version = table.Column<string>(type: "text", nullable: false),
                     active = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>

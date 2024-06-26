@@ -1,16 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using Common.Entities;
+﻿using Common.Entities;
 using Common.Requests;
 
-namespace Common.Events
+namespace Common.Events;
+
+public class StockConfirmed
 {
-    public record StockConfirmed
-    (
-        DateTime timestamp,
-        CustomerCheckout customerCheckout,
-        List<CartItem> items,
-        int instanceId
-    );
+    public DateTime timestamp { get; set; }
+
+    public CustomerCheckout customerCheckout { get; set; }
+
+    public List<CartItem> items { get; set; }
+
+    public string instanceId { get; set; }
+
+    public StockConfirmed(){ }
+
+    public StockConfirmed(DateTime timestamp, CustomerCheckout customerCheckout, List<CartItem> items, string instanceId)
+    {
+        this.timestamp = timestamp;
+        this.customerCheckout = customerCheckout;
+        this.items = items;
+        this.instanceId = instanceId;
+    }
 }
 

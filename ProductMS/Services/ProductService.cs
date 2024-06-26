@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using ProductMS.Infra;
 using ProductMS.Models;
 using ProductMS.Repositories;
+using System;
 
 namespace ProductMS.Services
 {
@@ -37,60 +38,46 @@ namespace ProductMS.Services
         /*
          * Maybe use postgresql UPSERT: https://stackoverflow.com/questions/1109061/
          */
-        public async Task ProcessCreateProduct(Product product)
+        public void ProcessCreateProduct(Product product)
         {
             ProductModel input = Utils.AsProductModel(product);
             using (var txCtx = this.dbContext.Database.BeginTransaction()) {
-              
-                input.created_at = DateTime.UtcNow;
-                input.updated_at = input.created_at;
-
                 var existing = dbContext.Products.Find(product.seller_id, product.product_id);
-
                 if(existing is null)
                     this.productRepository.Insert(input);
                 else
                     this.productRepository.Update(input);
-
                 txCtx.Commit();
-                if (config.Streaming)
-                {
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(Product), Utils.AsProduct(input));
-                }
-            }   
+            }
         }
 
         public async Task ProcessPriceUpdate(PriceUpdate priceUpdate)
         {
             using (var txCtx = this.dbContext.Database.BeginTransaction())
             {
-                var product = this.productRepository.GetProduct(priceUpdate.sellerId, priceUpdate.productId);
+                var product = this.productRepository.GetProductForUpdate(priceUpdate.sellerId, priceUpdate.productId);
 
-                if (product is null)
+                // check if versions match
+                if (product.version.SequenceEqual(priceUpdate.version))
                 {
-                    // this should not happen
-                    logger.LogError("[ProcessProductUpdate] Cannot find seller {0} product {1}.", priceUpdate.sellerId, priceUpdate.productId);
-
-                    if (config.Streaming)
-                    {
-                        this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
-                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId, MarkStatus.ERROR, "product"));
-                    }
-                    return;
+                    product.price = priceUpdate.price;
+                    this.productRepository.Update(product);
+                    txCtx.Commit();
+                    // logger.LogWarning($"Versions match for price update. Product {product.version} == {priceUpdate.version}");
+                
+                } else // outdated update, no longer applies...
+                {
+                    // logger.LogWarning($"Versions not not match for price update. Product {product.version} != {priceUpdate.version}");
                 }
 
-                product.updated_at = DateTime.UtcNow;
-                product.price = priceUpdate.price;
-                this.productRepository.Update(product);
-                txCtx.Commit();
-
+                // still must send because some cart items may be old
                 if (config.Streaming)
                 {
                     PriceUpdated update = new(
                          priceUpdate.sellerId,
                          priceUpdate.productId,
                          priceUpdate.price,
-                         product.version,
+                         priceUpdate.version,
                          priceUpdate.instanceId
                     );
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PriceUpdated), update);
@@ -98,11 +85,20 @@ namespace ProductMS.Services
             }
         }
 
+        public async Task ProcessPoisonPriceUpdate(PriceUpdate priceUpdate)
+        {
+            if (config.Streaming)
+            {
+                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId, MarkStatus.ERROR, "product"));
+            }    
+        }
+
         public async Task ProcessProductUpdate(Product product)
         {
             using (var txCtx = this.dbContext.Database.BeginTransaction())
             {
-                var oldProduct = this.productRepository.GetProduct(product.seller_id, product.product_id);
+                var oldProduct = this.productRepository.GetProductForUpdate(product.seller_id, product.product_id);
                 if (oldProduct is null)
                 {
                     throw new ApplicationException("Product not found "+product.seller_id +"-" + product.product_id);
@@ -116,10 +112,20 @@ namespace ProductMS.Services
                 txCtx.Commit();
                 if (config.Streaming)
                 {
-                    logger.LogWarning("Publishing product updated...");
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdated), new ProductUpdated(input.seller_id, input.product_id, input.version));
+                    ProductUpdated productUpdated = new(input.seller_id, input.product_id, input.name, input.sku, input.category, input.description, input.price, input.freight_value, input.status, input.version);
+                    logger.LogWarning("Publishing ProductUpdated event");
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdated), productUpdated);
                 }
             }
+        }
+
+        public async Task ProcessPoisonProductUpdate(Product product)
+        {
+            if (config.Streaming)
+            {
+                this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", product.version, product.seller_id);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.version, TransactionType.PRICE_UPDATE, product.seller_id, MarkStatus.ERROR, "product"));
+            }    
         }
 
         public void Cleanup()

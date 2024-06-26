@@ -34,6 +34,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     public ActionResult AddItem(int customerId, [FromBody] CartItem item)
     {
+        /*
         if (item.Quantity <= 0)
         {
             return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
@@ -53,7 +54,7 @@ public class CartController : ControllerBase
                 customer_id = customerId,
             });
         }
-
+        */
         CartItemModel cartItemModel = new()
         {
             customer_id = customerId,
@@ -116,9 +117,8 @@ public class CartController : ControllerBase
 
         try
         {
-            if(await this.cartService.NotifyCheckout(customerCheckout))
-                return Accepted();
-            return StatusCode((int)HttpStatusCode.InternalServerError);
+            await this.cartService.NotifyCheckout(customerCheckout);
+            return Accepted();
         }
         catch (Exception e)
         {
@@ -178,17 +178,21 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public ActionResult Seal(int customerId)
     {
-        var cart = this.cartRepository.GetCart(customerId);
-        if(cart is null)
-        {
-            return NotFound();
-        }
-
-        /**
-         * Seal is a terminal state, so no need to check for concurrent operation
-         */
-        this.cartService.Seal(cart);
-        return Accepted();
+         if (config.ControllerChecks)
+         {
+            var cart = this.cartRepository.GetCart(customerId);
+            if(cart is null)
+            {
+               return NotFound();
+            }
+             
+            /**
+                * Seal is a terminal state, so no need to check for concurrent operation
+                */
+            this.cartService.Seal(cart);
+            return Accepted();
+         }
+         return BadRequest("Seal cannot work without controller checks options on");
     }
 
     [Route("/cleanup")]

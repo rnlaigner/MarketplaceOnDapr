@@ -8,6 +8,8 @@ namespace CartMS.Repositories
 
         IList<CartItemModel> GetItems(int customerId);
 
+        IList<CartItemModel> GetItemsByProduct(int sellerId, int productId, string version);
+
         CartItemModel AddItem(CartItemModel item);
 
         CartModel? Delete(int customerId);

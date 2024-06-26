@@ -8,6 +8,7 @@ using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Common.Requests;
 
 namespace StockMS.Services;
 
@@ -33,7 +34,8 @@ public class StockService : IStockService
 
     public Task CreateStockItem(StockItem stockItem)
     {
-        var stockItemModel = new StockItemModel()
+        var now = DateTime.UtcNow;
+        StockItemModel stockItemModel = new StockItemModel()
         {
             product_id = stockItem.product_id,
             seller_id = stockItem.seller_id,
@@ -42,7 +44,10 @@ public class StockService : IStockService
             order_count = stockItem.order_count,
             ytd = stockItem.ytd,
             data = stockItem.data,
-            version = stockItem.version
+            version = stockItem.version,
+            active = true,
+            created_at = now,
+            updated_at = now
         };
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
@@ -57,38 +62,33 @@ public class StockService : IStockService
         return Task.CompletedTask;
     }
 
-    public async Task ProcessProductUpdate(ProductUpdated productUpdate)
+    public async Task ProcessProductUpdate(ProductUpdated productUpdated)
     {
+        logger.LogWarning("Service: ProductUpdated event="+productUpdated.ToString());
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
-            var stockItem = stockRepository.GetItemForUpdate(productUpdate.sellerId, productUpdate.productId);
+            StockItemModel stockItem = this.stockRepository.GetItemForUpdate(productUpdated.seller_id, productUpdated.product_id);
             if (stockItem is null)
             {
-                throw new ApplicationException("Stock item not found "+productUpdate.sellerId +"-" + productUpdate.productId);
+                throw new ApplicationException("Stock item not found "+productUpdated.seller_id +"-" + productUpdated.product_id);
             }
 
-            // logger.LogWarning("Inside the method ProcessProductUpdate..");
-
-            stockItem.version = productUpdate.instanceId;
+            stockItem.version = productUpdated.version;
             stockRepository.Update(stockItem);
             txCtx.Commit();
+
             if (config.Streaming)
             {
-                // logger.LogWarning("Publishing transaction mark..");
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdate.instanceId, TransactionType.UPDATE_PRODUCT, productUpdate.sellerId, MarkStatus.SUCCESS, "stock"));
+                logger.LogWarning("Publishing TransactionMark event to stream "+streamUpdateId);
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdated.version, TransactionType.UPDATE_PRODUCT, productUpdated.seller_id, MarkStatus.SUCCESS, "stock"));
             }
-            /*
-            else
-            {
-                logger.LogWarning("Not Publishing transaction mark..");
-            }
-            */
+           
         }
     }
 
     public async Task ProcessPoisonProductUpdate(ProductUpdated productUpdate)
     {
-        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdate.instanceId, TransactionType.UPDATE_PRODUCT, productUpdate.sellerId, MarkStatus.ABORT, "stock"));
+        await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdate.version, TransactionType.UPDATE_PRODUCT, productUpdate.seller_id, MarkStatus.ABORT, "stock"));
     }
 
     static readonly string streamUpdateId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.UPDATE_PRODUCT.ToString()).ToString();

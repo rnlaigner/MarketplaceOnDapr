@@ -80,6 +80,15 @@ namespace CartMS.Repositories
             dbContext.RemoveRange(items);
             dbContext.SaveChanges();
         }
+
+        private static readonly IList<CartItemModel> EMPTY_LIST = new List<CartItemModel>();
+
+        public IList<CartItemModel> GetItemsByProduct(int sellerId, int productId, string version)
+        {
+            var items = this.dbContext.CartItems.Where(p=> p.seller_id == sellerId && p.product_id == productId && p.version.Contains(version));
+            if(items.Any()) return items.ToList();
+            return EMPTY_LIST;
+        }
     }
 }
 

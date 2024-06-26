@@ -36,6 +36,8 @@
 
         public string zip_code { get; set; } = "";
 
+        public Seller(){ }
+
     }
 }
 
