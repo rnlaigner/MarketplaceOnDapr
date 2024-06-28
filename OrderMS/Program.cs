@@ -85,42 +85,51 @@ using (var scope = app.Services.CreateScope())
 
     if (config.PostgresEmbed)
     {
-        if (waitPgSql is not null) await waitPgSql;
-        else
+        if (waitPgSql is not null) {
+            Console.WriteLine("will wait for postgresql");
+            await waitPgSql;
+        }
+        else {
             throw new Exception("PostgreSQL was not setup correctly!");
+        }
     }
 
     var context = services.GetRequiredService<OrderDbContext>();
     try
     {
-        Console.WriteLine(context.ConnectionString);
+        // Console.WriteLine(context.ConnectionString);
+        Console.WriteLine("will migrate");
         context.Database.Migrate();
+  
+        if (config.Unlogged)
+        {
+            Console.WriteLine("will set unlogged");
+            var tableNames = context.Model.GetEntityTypes()
+                                .Select(t => t.GetTableName())
+                                .Distinct()
+                                .ToList();
+            foreach (var table in tableNames)
+            {
+                context.Database.ExecuteSqlRaw($"ALTER TABLE \"order\".{table} SET unlogged");
+            }
+        }
     }
     catch (Exception ex) { 
         Console.Write(ex.Message);
         throw new ApplicationException(ex.ToString());
     }
 
-    if (config.Unlogged)
-    {
-        var tableNames = context.Model.GetEntityTypes()
-                            .Select(t => t.GetTableName())
-                            .Distinct()
-                            .ToList();
-        foreach (var table in tableNames)
-        {
-            context.Database.ExecuteSqlRaw($"ALTER TABLE \"order\".{table} SET unlogged");
-        }
-    }
-
     // set ram disk
     // https://www.dbi-services.com/blog/can-i-put-my-temporary-tablespaces-on-a-ram-disk-with-postgresql/
+    /*
     if (!config.RamDiskDir.Equals(""))
     {
         context.Database.ExecuteSqlRaw($"CREATE TABLESPACE my_tbs LOCATION '{config.RamDiskDir}'");
         context.Database.ExecuteSqlRaw($"SET default_tablespace = 'my_tbs'");
     }
+    */
 }
+Console.WriteLine("DB block is passed");
 
 if(config.Streaming)
     app.UseCloudEvents();

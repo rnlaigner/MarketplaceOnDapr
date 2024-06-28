@@ -8,7 +8,6 @@ using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Common.Requests;
 
 namespace StockMS.Services;
 
@@ -30,36 +29,6 @@ public class StockService : IStockService
         this.daprClient = daprClient;
         this.config = config.Value;
         this.logger = logger;
-    }
-
-    public Task CreateStockItem(StockItem stockItem)
-    {
-        var now = DateTime.UtcNow;
-        StockItemModel stockItemModel = new StockItemModel()
-        {
-            product_id = stockItem.product_id,
-            seller_id = stockItem.seller_id,
-            qty_available = stockItem.qty_available,
-            qty_reserved = stockItem.qty_reserved,
-            order_count = stockItem.order_count,
-            ytd = stockItem.ytd,
-            data = stockItem.data,
-            version = stockItem.version,
-            active = true,
-            created_at = now,
-            updated_at = now
-        };
-        using (var txCtx = dbContext.Database.BeginTransaction())
-        {
-            var existing = dbContext.StockItems.Find(stockItem.seller_id, stockItem.product_id);
-            if(existing is null)
-                dbContext.StockItems.Add(stockItemModel);
-            else
-                dbContext.StockItems.Update(stockItemModel);
-            dbContext.SaveChanges();
-            txCtx.Commit();
-        }
-        return Task.CompletedTask;
     }
 
     public async Task ProcessProductUpdate(ProductUpdated productUpdated)
@@ -93,22 +62,14 @@ public class StockService : IStockService
 
     static readonly string streamUpdateId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.UPDATE_PRODUCT.ToString()).ToString();
 
+    // https://stackoverflow.com/questions/31273933/setting-transaction-isolation-level-in-net-entity-framework-for-sql-server
     public async Task ReserveStockAsync(ReserveStock checkout)
-    {
-        // https://stackoverflow.com/questions/31273933/setting-transaction-isolation-level-in-net-entity-framework-for-sql-server
-
-        if (checkout.items is null || checkout.items.Count() == 0)
-        {
-            await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamReserveId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.ERROR, "stock"));
-            return;
-        }
-
+    {   
         var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
             IEnumerable<StockItemModel> items = stockRepository.GetItems(ids);
-
-            if (items.Count() == 0)
+            if (!items.Any())
             {
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.NOT_ACCEPTED, "stock"));
                 return;
@@ -122,7 +83,6 @@ public class StockService : IStockService
             var now = DateTime.UtcNow;
             foreach (var item in checkout.items)
             {
-
                 if (!stockItems.ContainsKey((item.SellerId, item.ProductId)) || stockItems[(item.SellerId, item.ProductId)].version != item.Version)
                 {
                     unavailableItems.Add(new ProductStatus(item.ProductId, ItemStatus.UNAVAILABLE));
@@ -155,18 +115,21 @@ public class StockService : IStockService
                 if (cartItemsReserved.Count() > 0)
                 {
                     // send to order
-                    StockConfirmed checkoutRequest = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
+                    StockConfirmed stockConfirmed = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
                         cartItemsReserved,
                         checkout.instanceId);
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), checkoutRequest);
+                    Console.WriteLine("StockConfirmed is being generated: "+stockConfirmed.instanceId);
+                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), stockConfirmed);
                 }
 
                 if (unavailableItems.Count() > 0)
                 {
                     // notify customer
-                    ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
-                        unavailableItems, checkout.instanceId);
-                    await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
+                    if(config.RaiseStockFailed){
+                        ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
+                            unavailableItems, checkout.instanceId);
+                        await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);
+                    }
 
                     // corner case: no items reserved
                     if (cartItemsReserved.Count() == 0)
@@ -262,6 +225,36 @@ public class StockService : IStockService
                 });
             }
         }
+    }
+
+    public Task CreateStockItem(StockItem stockItem)
+    {
+        var now = DateTime.UtcNow;
+        StockItemModel stockItemModel = new StockItemModel()
+        {
+            product_id = stockItem.product_id,
+            seller_id = stockItem.seller_id,
+            qty_available = stockItem.qty_available,
+            qty_reserved = stockItem.qty_reserved,
+            order_count = stockItem.order_count,
+            ytd = stockItem.ytd,
+            data = stockItem.data,
+            version = stockItem.version,
+            active = true,
+            created_at = now,
+            updated_at = now
+        };
+        using (var txCtx = dbContext.Database.BeginTransaction())
+        {
+            var existing = dbContext.StockItems.Find(stockItem.seller_id, stockItem.product_id);
+            if(existing is null)
+                dbContext.StockItems.Add(stockItemModel);
+            else
+                dbContext.StockItems.Update(stockItemModel);
+            dbContext.SaveChanges();
+            txCtx.Commit();
+        }
+        return Task.CompletedTask;
     }
 
     public void Cleanup()

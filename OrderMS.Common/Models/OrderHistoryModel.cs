@@ -11,11 +11,16 @@ namespace OrderMS.Common.Models
     {
         public int id { get; set; }
 
+        public int customer_id { get; set; }
+
         public int order_id { get; set; }
 
         public DateTime created_at { get; set; }
 
         public OrderStatus status { get; set; }
+        
+        [ForeignKey("customer_id, order_id")]
+        public virtual OrderModel order { get; set; }
 
         public OrderHistoryModel() { }
 

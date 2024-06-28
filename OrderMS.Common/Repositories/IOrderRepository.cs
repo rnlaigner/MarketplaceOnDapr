@@ -1,5 +1,4 @@
-﻿using System;
-using OrderMS.Common.Models;
+﻿using OrderMS.Common.Models;
 
 namespace OrderMS.Common.Repositories
 {
@@ -7,7 +6,7 @@ namespace OrderMS.Common.Repositories
 	{
         public IEnumerable<OrderModel> GetAll();
         public IEnumerable<OrderModel> GetByCustomerId(int customerId);
-        public OrderModel? GetOrder(int orderId);
+        public OrderModel? GetOrder(int customerId, int orderId);
     }
 }
 

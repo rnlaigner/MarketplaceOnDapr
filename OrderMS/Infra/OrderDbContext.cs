@@ -42,13 +42,6 @@ namespace OrderMS.Infra
         {
             modelBuilder.HasDefaultSchema("order");
 
-            modelBuilder.HasSequence<int>("OrderNumbers").IncrementsBy(1).StartsAt(1);
-
-            modelBuilder.Entity<OrderModel>()
-                .Property(o => o.id)
-                .UseIdentityAlwaysColumn() // use ALWAYS db generated identity
-                .HasDefaultValueSql("nextval('\"OrderNumbers\"')");
-
             modelBuilder.HasSequence<int>("OrderHistoryNumbers").IncrementsBy(1).StartsAt(1);
 
             modelBuilder.Entity<OrderHistoryModel>()

@@ -25,12 +25,14 @@
     <None Remove="Infra\" />
     <None Remove="Services\" />
     <None Remove="Models\" />
+    <None Remove="Migrations\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Repositories\" />
     <Folder Include="Infra\" />
     <Folder Include="Services\" />
     <Folder Include="Models\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

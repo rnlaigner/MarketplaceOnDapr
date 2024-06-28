@@ -25,8 +25,6 @@ namespace OrderMS.Migrations
 
             modelBuilder.HasSequence<int>("OrderHistoryNumbers");
 
-            modelBuilder.HasSequence<int>("OrderNumbers");
-
             modelBuilder.Entity("OrderMS.Common.Models.CustomerOrderModel", b =>
                 {
                     b.Property<int>("customer_id")
@@ -55,6 +53,9 @@ namespace OrderMS.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("order_id")
                         .HasColumnType("integer");
 
@@ -64,13 +65,16 @@ namespace OrderMS.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("order_id");
+                    b.HasIndex("customer_id", "order_id");
 
                     b.ToTable("order_history", "order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderItemModel", b =>
                 {
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("order_id")
                         .HasColumnType("integer");
 
@@ -105,28 +109,24 @@ namespace OrderMS.Migrations
                     b.Property<float>("unit_price")
                         .HasColumnType("real");
 
-                    b.HasKey("order_id", "order_item_id");
+                    b.HasKey("customer_id", "order_id", "order_item_id");
 
                     b.ToTable("order_items", "order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderModel", b =>
                 {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValueSql("nextval('\"OrderNumbers\"')");
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("id"));
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
                     b.Property<int>("count_items")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("customer_id")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("delivered_carrier_date")
                         .HasColumnType("timestamp with time zone");
@@ -169,7 +169,7 @@ namespace OrderMS.Migrations
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("id");
+                    b.HasKey("customer_id", "order_id");
 
                     b.HasIndex("customer_id");
 
@@ -178,20 +178,24 @@ namespace OrderMS.Migrations
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderHistoryModel", b =>
                 {
-                    b.HasOne("OrderMS.Common.Models.OrderModel", null)
+                    b.HasOne("OrderMS.Common.Models.OrderModel", "order")
                         .WithMany("history")
-                        .HasForeignKey("order_id")
+                        .HasForeignKey("customer_id", "order_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderItemModel", b =>
                 {
-                    b.HasOne("OrderMS.Common.Models.OrderModel", null)
+                    b.HasOne("OrderMS.Common.Models.OrderModel", "order")
                         .WithMany("items")
-                        .HasForeignKey("order_id")
+                        .HasForeignKey("customer_id", "order_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("order");
                 });
 
             modelBuilder.Entity("OrderMS.Common.Models.OrderModel", b =>

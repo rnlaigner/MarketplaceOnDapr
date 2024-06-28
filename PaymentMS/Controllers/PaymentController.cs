@@ -11,7 +11,6 @@ namespace PaymentMS.Controllers;
 [ApiController]
 public class PaymentController : ControllerBase
 {
-
     private const string PUBSUB_NAME = "pubsub";
 
     private readonly IPaymentService paymentService;
@@ -27,15 +26,17 @@ public class PaymentController : ControllerBase
 
     [HttpPost("ProcessPayment")]
     [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
-    public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued invoice)
+    public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued invoiceIssued)
     {
+        logger.LogWarning("InvoiceIssued received: "+invoiceIssued.instanceId);
         try
         {
-            await this.paymentService.ProcessPayment(invoice);
+            await this.paymentService.ProcessPayment(invoiceIssued);
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            await this.paymentService.ProcessPoisonPayment(invoice);
+            logger.LogCritical(e.ToString());
+            await this.paymentService.ProcessPoisonPayment(invoiceIssued);
         }
         return Ok();
     }

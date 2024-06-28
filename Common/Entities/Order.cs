@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 namespace Common.Entities
 {
     /*
@@ -9,11 +9,11 @@ namespace Common.Entities
      */
     public class Order
 	{
-        // PK
-        public int id { get; set; }
-
-        // FK
+        // PK/FK
         public int customer_id { get; set; }
+
+        // PK
+        public int order_id { get; set; }
 
         public OrderStatus status { get; set; }
 

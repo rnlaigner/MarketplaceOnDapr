@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -20,9 +19,8 @@ namespace ShipmentMS.Migrations
                 schema: "shipment",
                 columns: table => new
                 {
-                    order_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     customer_id = table.Column<int>(type: "integer", nullable: false),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
                     package_count = table.Column<int>(type: "integer", nullable: false),
                     total_freight_value = table.Column<float>(type: "real", nullable: false),
                     request_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -37,7 +35,7 @@ namespace ShipmentMS.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_shipments", x => x.order_id);
+                    table.PrimaryKey("PK_shipments", x => new { x.customer_id, x.order_id });
                 });
 
             migrationBuilder.CreateTable(
@@ -45,6 +43,7 @@ namespace ShipmentMS.Migrations
                 schema: "shipment",
                 columns: table => new
                 {
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     order_id = table.Column<int>(type: "integer", nullable: false),
                     package_id = table.Column<int>(type: "integer", nullable: false),
                     seller_id = table.Column<int>(type: "integer", nullable: false),
@@ -58,13 +57,13 @@ namespace ShipmentMS.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_packages", x => new { x.order_id, x.package_id });
+                    table.PrimaryKey("PK_packages", x => new { x.customer_id, x.order_id, x.package_id });
                     table.ForeignKey(
-                        name: "FK_packages_shipments_order_id",
-                        column: x => x.order_id,
+                        name: "FK_packages_shipments_customer_id_order_id",
+                        columns: x => new { x.customer_id, x.order_id },
                         principalSchema: "shipment",
                         principalTable: "shipments",
-                        principalColumn: "order_id",
+                        principalColumns: new[] { "customer_id", "order_id" },
                         onDelete: ReferentialAction.Cascade);
                 });
         }

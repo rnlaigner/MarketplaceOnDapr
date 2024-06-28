@@ -25,6 +25,32 @@ public class ShipmentController : ControllerBase
         this.logger = logger;
     }
 
+    [HttpPost("ProcessShipment")]
+    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
+    public async Task<ActionResult> ProcessShipment([FromBody] PaymentConfirmed paymentConfirmed)
+    {
+        logger.LogWarning("PaymentConfirmed received: "+paymentConfirmed.instanceId);
+        try
+        {
+            await this.shipmentService.ProcessShipment(paymentConfirmed);
+        }
+        catch (Exception e)
+        {
+            logger.LogCritical(e.ToString());
+            await this.shipmentService.ProcessPoisonShipment(paymentConfirmed);
+        }
+        return Ok();
+    }
+
+    [HttpPatch]
+    [Route("{instanceId}")]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public async Task<ActionResult> UpdateShipment(string instanceId)
+    {
+        await this.shipmentService.UpdateShipment(instanceId);
+        return Accepted();
+    }
+
     [HttpGet]
     [Route("{orderId}")]
     [ProducesResponseType(typeof(Shipment), (int)HttpStatusCode.OK)]
@@ -50,30 +76,6 @@ public class ShipmentController : ControllerBase
                 state = shipment.state
             });
         return NotFound();
-    }
-
-    [HttpPost("ProcessShipment")]
-    [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
-    public async Task<ActionResult> ProcessShipment([FromBody] PaymentConfirmed paymentRequest)
-    {
-        try
-        {
-            await this.shipmentService.ProcessShipment(paymentRequest);
-        }
-        catch (Exception)
-        {
-            await this.shipmentService.ProcessPoisonShipment(paymentRequest);
-        }
-        return Ok();
-    }
-
-    [HttpPatch]
-    [Route("{instanceId}")]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    public async Task<ActionResult> UpdateShipment(string instanceId)
-    {
-        await this.shipmentService.UpdateShipment(instanceId);
-        return Accepted();
     }
 
     [Route("/cleanup")]

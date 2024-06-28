@@ -19,10 +19,6 @@ namespace OrderMS.Migrations
                 name: "OrderHistoryNumbers",
                 schema: "order");
 
-            migrationBuilder.CreateSequence<int>(
-                name: "OrderNumbers",
-                schema: "order");
-
             migrationBuilder.CreateTable(
                 name: "customer_orders",
                 schema: "order",
@@ -42,10 +38,9 @@ namespace OrderMS.Migrations
                 schema: "order",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('\"OrderNumbers\"')")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
-                    invoice_number = table.Column<string>(type: "text", nullable: false),
                     customer_id = table.Column<int>(type: "integer", nullable: false),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
+                    invoice_number = table.Column<string>(type: "text", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     purchase_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     payment_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -63,7 +58,7 @@ namespace OrderMS.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_orders", x => x.id);
+                    table.PrimaryKey("PK_orders", x => new { x.customer_id, x.order_id });
                 });
 
             migrationBuilder.CreateTable(
@@ -73,6 +68,7 @@ namespace OrderMS.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('\"OrderHistoryNumbers\"')")
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     order_id = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false)
@@ -81,11 +77,11 @@ namespace OrderMS.Migrations
                 {
                     table.PrimaryKey("PK_order_history", x => x.id);
                     table.ForeignKey(
-                        name: "FK_order_history_orders_order_id",
-                        column: x => x.order_id,
+                        name: "FK_order_history_orders_customer_id_order_id",
+                        columns: x => new { x.customer_id, x.order_id },
                         principalSchema: "order",
                         principalTable: "orders",
-                        principalColumn: "id",
+                        principalColumns: new[] { "customer_id", "order_id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -94,6 +90,7 @@ namespace OrderMS.Migrations
                 schema: "order",
                 columns: table => new
                 {
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     order_id = table.Column<int>(type: "integer", nullable: false),
                     order_item_id = table.Column<int>(type: "integer", nullable: false),
                     product_id = table.Column<int>(type: "integer", nullable: false),
@@ -108,21 +105,21 @@ namespace OrderMS.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_order_items", x => new { x.order_id, x.order_item_id });
+                    table.PrimaryKey("PK_order_items", x => new { x.customer_id, x.order_id, x.order_item_id });
                     table.ForeignKey(
-                        name: "FK_order_items_orders_order_id",
-                        column: x => x.order_id,
+                        name: "FK_order_items_orders_customer_id_order_id",
+                        columns: x => new { x.customer_id, x.order_id },
                         principalSchema: "order",
                         principalTable: "orders",
-                        principalColumn: "id",
+                        principalColumns: new[] { "customer_id", "order_id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_order_history_order_id",
+                name: "IX_order_history_customer_id_order_id",
                 schema: "order",
                 table: "order_history",
-                column: "order_id");
+                columns: new[] { "customer_id", "order_id" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_orders_customer_id",
@@ -152,10 +149,6 @@ namespace OrderMS.Migrations
 
             migrationBuilder.DropSequence(
                 name: "OrderHistoryNumbers",
-                schema: "order");
-
-            migrationBuilder.DropSequence(
-                name: "OrderNumbers",
                 schema: "order");
         }
     }

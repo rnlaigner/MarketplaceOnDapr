@@ -95,7 +95,8 @@ public class ProductController : ControllerBase
             description = product.description,
             price = product.price,
             freight_value = product.freight_value,
-            status = product.status
+            status = product.status,
+            version = product.version
         });
         
     }
@@ -114,8 +115,6 @@ public class ProductController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.OK)]
     public async Task<ActionResult> UpdateProduct([FromBody] Product product)
     {
-        logger.LogWarning($"UpdateProduct {product.seller_id}-{product.product_id} requested at {DateTime.UtcNow}");
-        Console.WriteLine(product.ToString());
         try {
             await this.productService.ProcessProductUpdate(product);
         } catch(Exception e)

@@ -12,7 +12,7 @@ using ShipmentMS.Infra;
 namespace ShipmentMS.Migrations
 {
     [DbContext(typeof(ShipmentDbContext))]
-    [Migration("20230801100359_ShipmentMigration")]
+    [Migration("20240628144544_ShipmentMigration")]
     partial class ShipmentMigration
     {
         /// <inheritdoc />
@@ -28,6 +28,9 @@ namespace ShipmentMS.Migrations
 
             modelBuilder.Entity("ShipmentMS.Models.PackageModel", b =>
                 {
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("order_id")
                         .HasColumnType("integer");
 
@@ -60,18 +63,18 @@ namespace ShipmentMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("order_id", "package_id");
+                    b.HasKey("customer_id", "order_id", "package_id");
 
                     b.ToTable("packages", "shipment");
                 });
 
             modelBuilder.Entity("ShipmentMS.Models.ShipmentModel", b =>
                 {
-                    b.Property<int>("order_id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("customer_id")
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("order_id"));
+                    b.Property<int>("order_id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("city")
                         .IsRequired()
@@ -80,9 +83,6 @@ namespace ShipmentMS.Migrations
                     b.Property<string>("complement")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("customer_id")
-                        .HasColumnType("integer");
 
                     b.Property<string>("first_name")
                         .IsRequired()
@@ -117,7 +117,7 @@ namespace ShipmentMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("order_id");
+                    b.HasKey("customer_id", "order_id");
 
                     b.ToTable("shipments", "shipment");
                 });
@@ -126,7 +126,7 @@ namespace ShipmentMS.Migrations
                 {
                     b.HasOne("ShipmentMS.Models.ShipmentModel", null)
                         .WithMany("packages")
-                        .HasForeignKey("order_id")
+                        .HasForeignKey("customer_id", "order_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

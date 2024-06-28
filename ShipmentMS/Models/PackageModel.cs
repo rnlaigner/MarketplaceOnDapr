@@ -5,11 +5,11 @@ using Common.Entities;
 namespace ShipmentMS.Models
 {
     [Table("packages", Schema = "shipment")]
-    [PrimaryKey(nameof(order_id), nameof(package_id))]
+    [PrimaryKey(nameof(customer_id), nameof(order_id), nameof(package_id))]
     public class PackageModel
     {
+        public int customer_id { get; set; }
         public int order_id { get; set; }
-
         public int package_id { get; set; }
 
         public int seller_id { get; set; }

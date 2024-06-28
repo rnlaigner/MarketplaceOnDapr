@@ -5,11 +5,11 @@ using Common.Entities;
 namespace ShipmentMS.Models
 {
     [Table("shipments", Schema = "shipment")]
-    [PrimaryKey(nameof(order_id))]
+    [PrimaryKey(nameof(customer_id), nameof(order_id))]
     public class ShipmentModel
 	{
-        public int order_id { get; set; }
         public int customer_id { get; set; }
+        public int order_id { get; set; }
 
         public int package_count { get; set; }
         public float total_freight_value { get; set; }
@@ -33,7 +33,7 @@ namespace ShipmentMS.Models
 
         public string state { get; set; } = "";
 
-        [ForeignKey("order_id")]
+        [ForeignKey("customer_id, order_id")]
         public ICollection<PackageModel> packages { get; } = new List<PackageModel>();
 
         public ShipmentModel()

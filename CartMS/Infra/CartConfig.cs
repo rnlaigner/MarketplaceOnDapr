@@ -16,8 +16,5 @@
 
         public string RamDiskDir { get; set; } = "";
 
-        public bool CheckPriceUpdateOnCheckout { get; set; }
-
-        public bool CheckIfProductExistsOnCheckout { get; set; }
     }
 }

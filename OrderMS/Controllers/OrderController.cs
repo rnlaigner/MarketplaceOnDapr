@@ -30,17 +30,6 @@ public class OrderController : ControllerBase
         return Ok(this.orderRepository.GetByCustomerId(customerId));
     }
 
-    [Route("/testEmbed")]
-    [HttpPost]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public ActionResult TestEmbed()
-    {
-        logger.LogWarning("TestEmbed requested at {0}", DateTime.UtcNow);
-        this.orderService.CreateOrderSimple();
-        return Ok();
-    }
-
     [Route("/cleanup")]
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.Accepted)]

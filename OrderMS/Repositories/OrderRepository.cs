@@ -33,9 +33,9 @@ namespace OrderMS.Repositories
             return this.dbContext.Orders.Where(o => o.customer_id == customerId);
         }
 
-        public OrderModel? GetOrder(int orderId)
+        public OrderModel? GetOrder(int customerId, int orderId)
         {
-            return this.dbContext.Orders.Find(orderId);
+            return this.dbContext.Orders.Find(customerId, orderId);
         }
     }
 

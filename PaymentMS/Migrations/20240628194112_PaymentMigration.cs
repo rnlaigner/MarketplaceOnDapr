@@ -19,17 +19,18 @@ namespace PaymentMS.Migrations
                 schema: "payment",
                 columns: table => new
                 {
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     order_id = table.Column<int>(type: "integer", nullable: false),
                     sequential = table.Column<int>(type: "integer", nullable: false),
                     type = table.Column<string>(type: "text", nullable: false),
                     installments = table.Column<int>(type: "integer", nullable: false),
                     value = table.Column<float>(type: "real", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    status = table.Column<string>(type: "text", nullable: true)
+                    status = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_order_payments", x => new { x.order_id, x.sequential });
+                    table.PrimaryKey("PK_order_payments", x => new { x.customer_id, x.order_id, x.sequential });
                     table.CheckConstraint("CK_OrderPayment_Value", "value >= 0");
                 });
 
@@ -38,8 +39,9 @@ namespace PaymentMS.Migrations
                 schema: "payment",
                 columns: table => new
                 {
+                    customer_id = table.Column<int>(type: "integer", nullable: false),
                     order_id = table.Column<int>(type: "integer", nullable: false),
-                    payment_sequential = table.Column<int>(type: "integer", nullable: false),
+                    sequential = table.Column<int>(type: "integer", nullable: false),
                     card_number = table.Column<string>(type: "text", nullable: false),
                     card_holder_name = table.Column<string>(type: "text", nullable: false),
                     card_expiration = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -47,13 +49,14 @@ namespace PaymentMS.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_order_payment_cards", x => new { x.order_id, x.payment_sequential });
+                    table.PrimaryKey("PK_order_payment_cards", x => new { x.customer_id, x.order_id, x.sequential });
                     table.ForeignKey(
-                        name: "FK_order_payment_cards_order_payments_order_id_payment_sequent~",
-                        columns: x => new { x.order_id, x.payment_sequential },
+                        name: "FK_order_payment_cards_order_payments_customer_id_order_id_seq~",
+                        columns: x => new { x.customer_id, x.order_id, x.sequential },
                         principalSchema: "payment",
                         principalTable: "order_payments",
-                        principalColumns: new[] { "order_id", "sequential" });
+                        principalColumns: new[] { "customer_id", "order_id", "sequential" },
+                        onDelete: ReferentialAction.Cascade);
                 });
         }
 

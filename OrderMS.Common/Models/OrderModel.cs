@@ -5,21 +5,16 @@ using Microsoft.EntityFrameworkCore;
 namespace OrderMS.Common.Models
 {
     [Table("orders", Schema = "order")]
-    [PrimaryKey(nameof(id))]
+    [PrimaryKey(nameof(customer_id), nameof(order_id))]
     [Index(nameof(customer_id), IsUnique = false)]
     public class OrderModel
 	{
+        public int customer_id { get; set; }
 
-        /*
-         * Sequence does not block concurrent txs in PostgreSQL
-         * but may leave holes if tx fails
-         */
-        public int id { get; set; }
+        public int order_id { get; set; }
 
         // https://finom.co/en-fr/blog/invoice-number/
         public string invoice_number { get; set; } = "";
-
-        public int customer_id { get; set; }
 
         public OrderStatus status { get; set; } = OrderStatus.CREATED;
 
@@ -45,12 +40,9 @@ namespace OrderMS.Common.Models
         public float total_invoice { get; set; } = 0;
         public float total_items { get; set; } = 0;
 
-        // only way to make migrations pick the relationship from the order item side?...
-        [ForeignKey("order_id")]
-        public ICollection<OrderItemModel> items { get; } = new List<OrderItemModel>();
+        public virtual ICollection<OrderItemModel> items { get; } = new List<OrderItemModel>();
 
-        [ForeignKey("order_id")]
-        public ICollection<OrderHistoryModel> history { get; } = new List<OrderHistoryModel>();
+        public virtual ICollection<OrderHistoryModel> history { get; } = new List<OrderHistoryModel>();
 
         public OrderModel() { }
 

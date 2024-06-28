@@ -94,7 +94,6 @@ public class CartService : ICartService
                             Voucher = i.voucher
                         }).ToList();
             }
-
             txCtx.Commit();
             if (config.Streaming)
             {

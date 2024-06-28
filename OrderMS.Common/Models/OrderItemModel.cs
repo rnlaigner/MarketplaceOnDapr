@@ -8,15 +8,11 @@ using Microsoft.EntityFrameworkCore;
 namespace OrderMS.Common.Models
 {
     [Table("order_items", Schema = "order")]
-    [PrimaryKey(nameof(order_id), nameof(order_item_id))]
+    [PrimaryKey(nameof(customer_id), nameof(order_id), nameof(order_item_id))]
     public class OrderItemModel
 	{
+        public int customer_id { get; set; }
 
-        /* another way (must remove the foreign key in ordermodel):
-        [ForeignKey("order")]
-        public int order_id { get; set; }
-        public OrderModel order { get; set; }
-        */
         public int order_id { get; set; }
 
         public int order_item_id { get; set; }
@@ -46,6 +42,9 @@ namespace OrderMS.Common.Models
         // incentive of item is not of concern to the order
         // the seller must compute 
         // public float total_incentive { get; set; }
+
+        [ForeignKey("customer_id, order_id")]
+        public virtual OrderModel order { get; set; }
 
         public OrderItemModel() { }
 

@@ -16,11 +16,32 @@ namespace CartMS.Migrations
                 name: "cart");
 
             migrationBuilder.CreateTable(
-                name: "carts",
+                name: "cart_items",
                 schema: "cart",
                 columns: table => new
                 {
                     customer_id = table.Column<int>(type: "integer", nullable: false),
+                    seller_id = table.Column<int>(type: "integer", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: false),
+                    product_name = table.Column<string>(type: "text", nullable: false),
+                    unit_price = table.Column<float>(type: "real", nullable: false),
+                    freight_value = table.Column<float>(type: "real", nullable: false),
+                    quantity = table.Column<int>(type: "integer", nullable: false),
+                    voucher = table.Column<float>(type: "real", nullable: false),
+                    version = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_cart_items", x => new { x.customer_id, x.seller_id, x.product_id });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "carts",
+                schema: "cart",
+                columns: table => new
+                {
+                    customer_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     status = table.Column<string>(type: "text", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -48,23 +69,6 @@ namespace CartMS.Migrations
                 {
                     table.PrimaryKey("PK_replica_products", x => new { x.seller_id, x.product_id });
                 });
-
-            migrationBuilder.CreateTable(
-                name: "cart_items",
-                schema: "cart",
-                columns: table => new
-                {
-                    customer_id = table.Column<int>(type: "integer", nullable: false),
-                    seller_id = table.Column<int>(type: "integer", nullable: false),
-                    product_id = table.Column<int>(type: "integer", nullable: false),
-                    product_name = table.Column<string>(type: "text", nullable: false),
-                    unit_price = table.Column<float>(type: "real", nullable: false),
-                    freight_value = table.Column<float>(type: "real", nullable: false),
-                    quantity = table.Column<int>(type: "integer", nullable: false),
-                    voucher = table.Column<float>(type: "real", nullable: false),
-                    version = table.Column<string>(type: "text", nullable: false)
-                }
-            );
         }
 
         /// <inheritdoc />
@@ -75,11 +79,11 @@ namespace CartMS.Migrations
                 schema: "cart");
 
             migrationBuilder.DropTable(
-                name: "replica_products",
+                name: "carts",
                 schema: "cart");
 
             migrationBuilder.DropTable(
-                name: "carts",
+                name: "replica_products",
                 schema: "cart");
         }
     }

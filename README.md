@@ -72,6 +72,9 @@ cmhmod 775 deploy_macos.sh
 
 ## Useful links
 
+### Killing Postgres instances
+https://github.com/PostgresApp/PostgresApp/issues/96#issuecomment-24462678
+
 ### Killing Dapr process
 https://stackoverflow.com/questions/11583562/how-to-kill-a-process-running-on-particular-port-in-linux
 

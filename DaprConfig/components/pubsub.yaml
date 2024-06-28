@@ -12,3 +12,5 @@ spec:
     value: ""
   - name: enableTLS
     value: "false"
+  - name: queueDepth
+    value: 10000

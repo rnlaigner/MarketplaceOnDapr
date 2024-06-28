@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartMS.Migrations
 {
     [DbContext(typeof(CartDbContext))]
-    [Migration("20230811180435_CartMigration")]
+    [Migration("20240628141854_CartMigration")]
     partial class CartMigration
     {
         /// <inheritdoc />
@@ -29,19 +29,15 @@ namespace CartMS.Migrations
             modelBuilder.Entity("CartMS.Models.CartItemModel", b =>
                 {
                     b.Property<int>("customer_id")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("seller_id")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("product_id")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<float>("freight_value")
-                        .IsRequired()
                         .HasColumnType("real");
 
                     b.Property<string>("product_name")
@@ -49,11 +45,9 @@ namespace CartMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("quantity")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<float>("unit_price")
-                        .IsRequired()
                         .HasColumnType("real");
 
                     b.Property<string>("version")
@@ -61,7 +55,6 @@ namespace CartMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<float>("voucher")
-                        .IsRequired()
                         .HasColumnType("real");
 
                     b.HasKey("customer_id", "seller_id", "product_id");
@@ -72,11 +65,12 @@ namespace CartMS.Migrations
             modelBuilder.Entity("CartMS.Models.CartModel", b =>
                 {
                     b.Property<int>("customer_id")
-                        .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("customer_id"));
+
                     b.Property<DateTime>("created_at")
-                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("status")
@@ -84,7 +78,6 @@ namespace CartMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("updated_at")
-                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("customer_id");
@@ -92,22 +85,18 @@ namespace CartMS.Migrations
                     b.ToTable("carts", "cart");
                 });
 
-            modelBuilder.Entity("CartMS.Models.ProductModel", b =>
+            modelBuilder.Entity("CartMS.Models.ProductReplicaModel", b =>
                 {
                     b.Property<int>("seller_id")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("product_id")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<bool>("active")
-                        .IsRequired()
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("created_at")
-                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("name")
@@ -115,11 +104,9 @@ namespace CartMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<float>("price")
-                        .IsRequired()
                         .HasColumnType("real");
 
                     b.Property<DateTime>("updated_at")
-                        .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("version")
@@ -130,7 +117,6 @@ namespace CartMS.Migrations
 
                     b.ToTable("replica_products", "cart");
                 });
-
 #pragma warning restore 612, 618
         }
     }

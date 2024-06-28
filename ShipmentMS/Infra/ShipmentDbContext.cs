@@ -5,7 +5,6 @@ namespace ShipmentMS.Infra
 {
 	public class ShipmentDbContext : DbContext
 	{
-
         public DbSet<ShipmentModel> Shipments => Set<ShipmentModel>();
         public DbSet<PackageModel> Packages => Set<PackageModel>();
 

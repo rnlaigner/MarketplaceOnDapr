@@ -12,7 +12,7 @@ using PaymentMS.Infra;
 namespace PaymentMS.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20230801100359_PaymentMigration")]
+    [Migration("20240628194112_PaymentMigration")]
     partial class PaymentMigration
     {
         /// <inheritdoc />
@@ -28,10 +28,13 @@ namespace PaymentMS.Migrations
 
             modelBuilder.Entity("PaymentMS.Models.OrderPaymentCardModel", b =>
                 {
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("order_id")
                         .HasColumnType("integer");
 
-                    b.Property<int>("payment_sequential")
+                    b.Property<int>("sequential")
                         .HasColumnType("integer");
 
                     b.Property<string>("card_brand")
@@ -49,13 +52,16 @@ namespace PaymentMS.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("order_id", "payment_sequential");
+                    b.HasKey("customer_id", "order_id", "sequential");
 
                     b.ToTable("order_payment_cards", "payment");
                 });
 
             modelBuilder.Entity("PaymentMS.Models.OrderPaymentModel", b =>
                 {
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("order_id")
                         .HasColumnType("integer");
 
@@ -78,7 +84,7 @@ namespace PaymentMS.Migrations
                     b.Property<float>("value")
                         .HasColumnType("real");
 
-                    b.HasKey("order_id", "sequential");
+                    b.HasKey("customer_id", "order_id", "sequential");
 
                     b.ToTable("order_payments", "payment", t =>
                         {
@@ -90,7 +96,9 @@ namespace PaymentMS.Migrations
                 {
                     b.HasOne("PaymentMS.Models.OrderPaymentModel", "orderPayment")
                         .WithOne("orderPaymentCard")
-                        .HasForeignKey("PaymentMS.Models.OrderPaymentCardModel", "order_id", "payment_sequential");
+                        .HasForeignKey("PaymentMS.Models.OrderPaymentCardModel", "customer_id", "order_id", "sequential")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("orderPayment");
                 });

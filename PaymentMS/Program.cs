@@ -85,7 +85,7 @@ using (var scope = app.Services.CreateScope())
                             .ToList();
         foreach (var table in tableNames)
         {
-            context.Database.ExecuteSqlRaw($"ALTER TABLE product.{table} SET unlogged");
+            context.Database.ExecuteSqlRaw($"ALTER TABLE payment.{table} SET unlogged");
         }
     }
 }

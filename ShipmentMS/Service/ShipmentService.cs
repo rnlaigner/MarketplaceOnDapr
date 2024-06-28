@@ -34,27 +34,19 @@ public class ShipmentService : IShipmentService
     }
 
     /*
-        * https://twitter.com/hnasr/status/1657569218609684480
-        */
+     * https://twitter.com/hnasr/status/1657569218609684480
+     */
     public async Task ProcessShipment(PaymentConfirmed paymentConfirmed)
     {
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
-            int package_id = 1;
-
-            var items = paymentConfirmed.items
-                        .GroupBy(x => x.seller_id)
-                        .OrderByDescending(g => g.Count())
-                        .SelectMany(x => x).ToList();
-
             DateTime now = DateTime.UtcNow;
-
             ShipmentModel shipment = new()
             {
                 order_id = paymentConfirmed.orderId,
                 customer_id = paymentConfirmed.customer.CustomerId,
-                package_count = items.Count,
-                total_freight_value = items.Sum(i => i.freight_value),
+                package_count = paymentConfirmed.items.Count,
+                total_freight_value = paymentConfirmed.items.Sum(i => i.freight_value),
                 request_date = now,
                 status = ShipmentStatus.approved,
                 first_name = paymentConfirmed.customer.FirstName,
@@ -67,11 +59,13 @@ public class ShipmentService : IShipmentService
             };
 
             this.shipmentRepository.Insert(shipment);
-
-            foreach (var item in items)
+            int package_id = 1;
+            List<PackageModel> packageModels = new();
+            foreach (var item in paymentConfirmed.items)
             {
                 PackageModel package = new()
                 {
+                    customer_id = paymentConfirmed.customer.CustomerId,
                     order_id = paymentConfirmed.orderId,
                     package_id = package_id,
                     status = PackageStatus.shipped,
@@ -82,11 +76,12 @@ public class ShipmentService : IShipmentService
                     product_name = item.product_name,
                     quantity = item.quantity
                 };
-                this.packageRepository.Insert(package);
+                packageModels.Add(package);
                 package_id++;
             }
 
-            dbContext.SaveChanges();
+            this.dbContext.AddRange(packageModels);
+            this.dbContext.SaveChanges();
             txCtx.Commit();
 
             // enqueue shipment notification
@@ -99,7 +94,6 @@ public class ShipmentService : IShipmentService
                     this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(paymentConfirmed.instanceId, TransactionType.CUSTOMER_SESSION, paymentConfirmed.customer.CustomerId, MarkStatus.SUCCESS, "shipment"))
                 );
             }
-
         }
     }
 

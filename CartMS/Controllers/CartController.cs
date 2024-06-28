@@ -34,27 +34,27 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     public ActionResult AddItem(int customerId, [FromBody] CartItem item)
     {
-        /*
-        if (item.Quantity <= 0)
-        {
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
-        }
-
-        // check if it is already on the way to checkout.... if so, cannot add product
-        var cart = this.cartRepository.GetCart(customerId);
-        if (cart != null && cart.status == CartStatus.CHECKOUT_SENT)
-        {
-            this.logger.LogWarning("Cart for customer {0} already sent for checkout.", customerId);
-            return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart for customer " + cart.customer_id + " already sent for checkout.");
-        }
-
-        if (cart is null) {
-            _ = cartRepository.Insert(new()
+        if(config.ControllerChecks){
+            if (item.Quantity <= 0)
             {
-                customer_id = customerId,
-            });
+                return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
+            }
+
+            // check if it is already on the way to checkout.... if so, cannot add product
+            var cart = this.cartRepository.GetCart(customerId);
+            if (cart != null && cart.status == CartStatus.CHECKOUT_SENT)
+            {
+                this.logger.LogWarning("Cart for customer {0} already sent for checkout.", customerId);
+                return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Cart for customer " + cart.customer_id + " already sent for checkout.");
+            }
+
+            if (cart is null) {
+                _ = cartRepository.Insert(new()
+                {
+                    customer_id = customerId,
+                });
+            }
         }
-        */
         CartItemModel cartItemModel = new()
         {
             customer_id = customerId,
@@ -107,14 +107,13 @@ public class CartController : ControllerBase
             }
 
             var items = this.cartRepository.GetItems(customerCheckout.CustomerId);
-            if (items is null || items.Count() == 0)
+            if (items is null || items.Count == 0)
             {
                 res = StatusCode((int)HttpStatusCode.MethodNotAllowed, "Customer " + customerCheckout.CustomerId + " cart has no items to be submitted for checkout");
                 await this.cartService.ProcessPoisonCheckout(customerCheckout, Common.Driver.MarkStatus.NOT_ACCEPTED);
                 return res;
             }
         }
-
         try
         {
             await this.cartService.NotifyCheckout(customerCheckout);
@@ -125,7 +124,6 @@ public class CartController : ControllerBase
             await this.cartService.ProcessPoisonCheckout(customerCheckout, Common.Driver.MarkStatus.ABORT);
             return StatusCode((int)HttpStatusCode.InternalServerError, e.Message);
         }
-        
     }
 
     [HttpGet("{customerId}")]

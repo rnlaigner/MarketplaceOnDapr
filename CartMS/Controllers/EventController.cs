@@ -1,7 +1,6 @@
 ﻿using CartMS.Repositories;
 using CartMS.Services;
 using Common.Events;
-using Common.Requests;
 using Dapr;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
@@ -37,14 +36,13 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(ProductUpdated))]
     public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated productUpdated)
     {
-        // logger.LogWarning("Controller: ProductUpdated event="+productUpdated.ToString());
         try
         {
             this.cartService.ProcessProductUpdated(productUpdated);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.ToString());
+            logger.LogCritical(e.ToString());
             await this.cartService.ProcessPoisonProductUpdated(productUpdated);
         }
         return Ok();
@@ -54,14 +52,13 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(PriceUpdated))]
     public async Task<ActionResult> ProcessPriceUpdate([FromBody] PriceUpdated priceUpdated)
     {
-        // logger.LogWarning("Controller: PriceUpdated event="+priceUpdated.ToString());
         try
         {
             await this.cartService.ProcessPriceUpdate(priceUpdated);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.ToString());
+            logger.LogCritical(e.ToString());
             await this.cartService.ProcessPoisonPriceUpdate(priceUpdated);
         }
         return Ok();

@@ -23,14 +23,13 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(ProductUpdated))]
     public async Task<ActionResult> ProcessProductUpdate([FromBody] ProductUpdated productUpdated)
     {
-        logger.LogWarning("Controller: ProductUpdated event="+productUpdated.ToString());
         try
         {
             await this.stockService.ProcessProductUpdate(productUpdated);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.ToString());
+            logger.LogCritical(e.ToString());
             await this.stockService.ProcessPoisonProductUpdate(productUpdated);
         }
         return Ok();
@@ -44,8 +43,9 @@ public class EventController : ControllerBase
         {
             await this.stockService.ReserveStockAsync(reserveStock);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            logger.LogCritical(e.ToString());
             await this.stockService.ProcessPoisonReserveStock(reserveStock);
         }
         return Ok();

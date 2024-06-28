@@ -25,9 +25,9 @@ namespace ProductMS.Repositories
             return this.dbContext.Products.Where(p => p.seller_id == sellerId).ToList();
         }
 
-        public ProductModel GetProduct(int sellerId, int productId)
+        public ProductModel? GetProduct(int sellerId, int productId)
         {
-            return this.dbContext.Products.Where(f=> f.seller_id == sellerId && f.product_id == productId).First();
+            return this.dbContext.Products.Find(sellerId, productId);
         }
 
         private const string SELECT_PRODUCT_FOR_UPDATE = "SELECT * FROM product.products s WHERE s.seller_id = {0} AND s.product_id = {1} FOR UPDATE";

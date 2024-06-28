@@ -27,6 +27,7 @@ namespace PaymentMS.Infra
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("payment");
+
             modelBuilder.Entity<OrderPaymentModel>().ToTable(t => t.HasCheckConstraint(
                 "CK_OrderPayment_Value", "value >= 0"
                 ));
@@ -38,12 +39,6 @@ namespace PaymentMS.Infra
             modelBuilder.Entity<OrderPaymentModel>()
                        .Property(e => e.status)
                        .HasConversion<string>();
-
-            modelBuilder.Entity<OrderPaymentModel>()
-                .HasOne(e => e.orderPaymentCard)
-                .WithOne(c => c.orderPayment)
-                .HasForeignKey<OrderPaymentCardModel>(e => new { e.order_id, e.payment_sequential })
-                .IsRequired(false);
         }
 
     }

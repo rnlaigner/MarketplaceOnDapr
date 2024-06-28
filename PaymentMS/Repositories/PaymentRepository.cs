@@ -1,12 +1,11 @@
-﻿using System;
-using PaymentMS.Infra;
+﻿using PaymentMS.Infra;
 using PaymentMS.Models;
 
 namespace PaymentMS.Repositories
 {
 	public class PaymentRepository : IPaymentRepository
 	{
-        private PaymentDbContext dbContext;
+        private readonly PaymentDbContext dbContext;
 
         public PaymentRepository(PaymentDbContext paymentDbContext)
 		{
@@ -15,7 +14,7 @@ namespace PaymentMS.Repositories
 
         public IEnumerable<OrderPaymentModel> GetByOrderId(int orderId)
         {
-            return dbContext.OrderPayments.Where(o=>o.order_id == orderId);
+            return this.dbContext.OrderPayments.Where(o=>o.order_id == orderId);
         }
     }
 }

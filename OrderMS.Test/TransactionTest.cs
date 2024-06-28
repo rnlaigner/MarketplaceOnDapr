@@ -17,7 +17,6 @@ namespace OrderMS.Test
         [Fact]
         public void TestOrderCriticalPath()
         {
-
             int tasks = 100;
             CountdownEvent ctd = new CountdownEvent(tasks);
 
@@ -29,7 +28,6 @@ namespace OrderMS.Test
             ctd.Wait();
             stopwatch.Stop();
             Console.WriteLine("Time elapsed: {0}", stopwatch.ElapsedMilliseconds);
-
         }
 
         private void CreateOrder(CountdownEvent ctd)
@@ -73,7 +71,7 @@ namespace OrderMS.Test
 
                     dbContext.OrderHistory.Add(new OrderHistoryModel()
                     {
-                        order_id = orderPersisted.Entity.id,
+                        order_id = com.next_order_id,
                         created_at = orderPersisted.Entity.created_at,
                         status = OrderStatus.INVOICED
                     });
@@ -125,10 +123,10 @@ namespace OrderMS.Test
                 using var dbContext = Fixture.GetContext();
                 using (var transaction = dbContext.Database.BeginTransaction(IsolationLevel.Serializable))
                 {
-                    var order = new OrderModel() { purchase_date = DateTime.UtcNow, customer_id = 1, count_items = 0, created_at = DateTime.UtcNow, updated_at = DateTime.UtcNow };
+                    var order = new OrderModel() { order_id = 1, purchase_date = DateTime.UtcNow, customer_id = 1, count_items = 0, created_at = DateTime.UtcNow, updated_at = DateTime.UtcNow };
                     var tracking = dbContext.Orders.Add(order);
                     dbContext.SaveChanges();
-                    id = order.id;
+                    id = order.order_id;
                     Console.WriteLine("ID returned: {0}", id);
                     transaction.Commit();
                 }
@@ -136,7 +134,7 @@ namespace OrderMS.Test
                 using (var transaction = dbContext.Database.BeginTransaction())
                 {
                     var orderRes = dbContext.Orders.First();
-                    Console.WriteLine("Expected: {0} Retrieved {1}", 1, orderRes.id);
+                    Console.WriteLine("Expected: {0} Retrieved {1}", 1, orderRes.order_id);
                 }
 
             }

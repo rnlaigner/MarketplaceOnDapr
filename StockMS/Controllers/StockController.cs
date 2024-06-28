@@ -11,7 +11,6 @@ namespace StockMS.Controllers;
 [ApiController]
 public class StockController : ControllerBase
 {
-
     private readonly IStockService stockService;
 
     private readonly IStockRepository stockRepository;
@@ -62,10 +61,8 @@ public class StockController : ControllerBase
     [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
     public ActionResult<StockItem> GetBySellerIdAndProductId(int sellerId, int productId)
     {
-        this.logger.LogInformation("[GetBySellerIdAndProductId] received for item id {0}", productId);
         StockItemModel? item = this.stockRepository.GetItem(sellerId, productId);
-        this.logger.LogInformation("[GetBySellerIdAndProductId] completed for item id {0}.", productId);
-        if (item is not null)
+        if (item is not null){
             return Ok(new StockItem()
             {
                 seller_id = item.seller_id,
@@ -74,9 +71,10 @@ public class StockController : ControllerBase
                 qty_reserved = item.qty_reserved,
                 order_count = item.order_count,
                 ytd = item.ytd,
-                data = item.data
+                data = item.data,
+                version = item.version
             });
-        
+        }
         return NotFound();
     }
 

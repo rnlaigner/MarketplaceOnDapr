@@ -9,33 +9,33 @@
      */
     public class Product
 	{
-        public int seller_id { get; set; } = 0;
+        public int seller_id { get; set; }
 
-        public int product_id { get; set; } = 0;
+        public int product_id { get; set; }
 
-        public string name { get; set; } = "";
+        public string name { get; set; }
 
-        public string sku { get; set; } = "";
+        public string sku { get; set; }
 
-        public string category { get; set; } = "";
+        public string category { get; set; }
 
-        public string description { get; set; } = "";
+        public string description { get; set; }
 
-        public float price { get; set; } = 0;
+        public float price { get; set; }
 
-        public float freight_value { get; set; } = 0;
+        public float freight_value { get; set; }
 
         // https://dev.olist.com/docs/products
         // approved by default
-        public string status { get; set; } = "";
+        public string status { get; set; }
 
-        public string version { get; set; } = "";
+        public string version { get; set; }
 
         public Product() { }
 
         public override string? ToString()
         {
-            return $" seller_id: {seller_id}, product_id: {product_id}, name: {name}";
+            return $" seller_id: {seller_id}, product_id: {product_id}, version: {version}";
         }
     }
 }
