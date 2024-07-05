@@ -1,6 +1,19 @@
-﻿dotnet ef migrations add SellerMigration -c SellerDbContext
+﻿# SellerMS
 
-dapr run --app-port 5006 --app-id payment --app-protocol http --dapr-http-port 3506 -- dotnet run --project SellerMS.csproj
+## How to run a migration
+dotnet ef migrations add SellerMigration -c SellerDbContext
+
+## How to setup the environment
+
+### with metrics
+dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 --metrics-port 9096 -- dotnet run --project SellerMS.csproj
+
+### without metrics
+dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 -- dotnet run --project SellerMS.csproj
+
+dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 -- dotnet run --project SellerMS/SellerMS.csproj
+
+## Discussion
 
 In a marketplace it is usually the case sellers have a kind of dashboard (usually after login) to get info about their sales.
 For instance, a dashboard presents important information about the operation of a given seller, such as the revenue aggregated

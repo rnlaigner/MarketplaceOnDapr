@@ -1,4 +1,7 @@
-﻿arch -arm64 brew install dapr/tap/dapr-cli
+﻿# CartMS
+
+## How to setup dapr
+arch -arm64 brew install dapr/tap/dapr-cli
 dapr init
 dapr run --app-id basket --app-port 5001 dotnet run Basket.API.csproj
 
@@ -7,10 +10,12 @@ docker run -d --name redis -p 6379:6379 redis:alpine
 
 daprd:1.8.4 for .net 6.0
 
-to run cart migration:
+## How to run a migration
 dotnet ef migrations add CartMigration -c CartDbContext
 
-to run cart microservice:
+## How to setup the environment
+
+### without metrics
 dapr run --app-port 5001 --app-id cart --app-protocol http --dapr-http-port 3501 --metrics-port 9091 -- dotnet run --project CartMS.csproj
 
 "In self-hosted mode, running the Dapr CLI run command launches the daprd executable

@@ -19,6 +19,23 @@ public class EventController : ControllerBase
         this.logger = logger;
     }
 
+    [HttpPost("ProcessNewInvoice")]
+    [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
+    public ActionResult ProcessNewInvoice([FromBody] InvoiceIssued invoiceIssued)
+    {
+        this.logger.LogInformation("[InvoiceIssued] received for order ID {0}.", invoiceIssued.orderId);
+        try{
+            this.sellerService.ProcessInvoiceIssued(invoiceIssued);
+            return Ok();
+        } catch(Exception e)
+        {
+            this.logger.LogCritical(e.ToString());
+            this.logger.LogCritical($"Invoice items: {invoiceIssued}");
+            return BadRequest(e.ToString());
+        }
+    }
+
+    /*
     [HttpPost("ProcessPaymentConfirmed")]
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
     public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
@@ -27,6 +44,7 @@ public class EventController : ControllerBase
         this.sellerService.ProcessPaymentConfirmed(paymentConfirmed);
         return Ok();
     }
+    */
 
     [HttpPost("ProcessPaymentFailed")]
     [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
@@ -37,38 +55,21 @@ public class EventController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("ProcessNewInvoice")]
-    [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
-    public ActionResult ProcessNewInvoice([FromBody] InvoiceIssued invoiceIssued)
-    {
-        this.logger.LogInformation("[InvoiceIssued] received for order ID {0}.", invoiceIssued.orderId);
-        this.sellerService.ProcessNewInvoice(invoiceIssued);
-        return Ok();
-    }
-
-    //[HttpPost("ProcessProductUpdate")]
-    //[Topic(PUBSUB_NAME, nameof(Product))]
-    //public void ProcessProductUpdate([FromBody] Product product)
-    //{
-    //    this.sellerService.ProcessProductUpdate(product);
-    //}
-
-    //[HttpPost("ProcessStockItem")]
-    //[Topic(PUBSUB_NAME, nameof(StockItem))]
-    //public ActionResult ProcessStockItem([FromBody] StockItem stockItem)
-    //{
-    //    this.logger.LogInformation("[StockItem] received for item ID {0}.", stockItem.product_id);
-    //    this.sellerService.ProcessStockItem(stockItem);
-    //    return Ok();
-    //}
-
     [HttpPost("ProcessShipmentNotification")]
     [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
     public ActionResult ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
     {
         this.logger.LogInformation("[ShipmentNotification] received for order ID {0}.", shipmentNotification.orderId);
-        this.sellerService.ProcessShipmentNotification(shipmentNotification);
-        return Ok();
+        try {
+            this.sellerService.ProcessShipmentNotification(shipmentNotification);
+            return Ok();
+        } catch(Exception e)
+        {
+            // this.logger.LogCritical(e.ToString());
+            // concurrency issues are raised if two entities with the same key are tracked by ef core
+            // no way to tell dapr to synchronize both events 
+            return Ok(e.ToString());
+        }
     }
 
     [HttpPost("ProcessDeliveryNotification")]

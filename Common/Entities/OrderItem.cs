@@ -2,8 +2,6 @@
 {
 	public class OrderItem
 	{
-        public int customer_id { get; set; }
-
         public int order_id { get; set; }
 
         public int order_item_id { get; set; }
@@ -30,9 +28,15 @@
         // without freight value
         public float total_amount { get; set; }
 
-        //
-        public float voucher { get; set; }
+        // voucher
+        public float total_incentive { get; set; }
 
+        public OrderItem(){ }
+
+        public override string ToString()
+        {
+            return $"order_id: {order_id}, seller_id: {seller_id}, product_id: {product_id}";
+        }
     }
 }
 

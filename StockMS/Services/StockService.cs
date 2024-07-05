@@ -3,10 +3,10 @@ using Common.Driver;
 using Common.Entities;
 using Common.Events;
 using Dapr.Client;
-using Microsoft.Extensions.Options;
 using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
+using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
 namespace StockMS.Services;
@@ -33,7 +33,7 @@ public class StockService : IStockService
 
     public async Task ProcessProductUpdate(ProductUpdated productUpdated)
     {
-        logger.LogWarning("Service: ProductUpdated event="+productUpdated.ToString());
+        this.logger.LogWarning("Service: ProductUpdated event="+productUpdated.ToString());
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
             StockItemModel stockItem = this.stockRepository.GetItemForUpdate(productUpdated.seller_id, productUpdated.product_id);
@@ -43,12 +43,12 @@ public class StockService : IStockService
             }
 
             stockItem.version = productUpdated.version;
-            stockRepository.Update(stockItem);
+            this.stockRepository.Update(stockItem);
             txCtx.Commit();
 
             if (config.Streaming)
             {
-                logger.LogWarning("Publishing TransactionMark event to stream "+streamUpdateId);
+                this.logger.LogWarning("Publishing TransactionMark event to stream "+streamUpdateId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdated.version, TransactionType.UPDATE_PRODUCT, productUpdated.seller_id, MarkStatus.SUCCESS, "stock"));
             }
            
@@ -68,7 +68,7 @@ public class StockService : IStockService
         var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
-            IEnumerable<StockItemModel> items = stockRepository.GetItems(ids);
+            IEnumerable<StockItemModel> items = this.stockRepository.GetItems(ids);
             if (!items.Any())
             {
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.NOT_ACCEPTED, "stock"));
@@ -110,7 +110,7 @@ public class StockService : IStockService
                 txCtx.Commit();
             }
 
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 if (cartItemsReserved.Count() > 0)
                 {
@@ -125,7 +125,7 @@ public class StockService : IStockService
                 if (unavailableItems.Count() > 0)
                 {
                     // notify customer
-                    if(config.RaiseStockFailed){
+                    if(this.config.RaiseStockFailed){
                         ReserveStockFailed reserveFailed = new ReserveStockFailed(checkout.timestamp, checkout.customerCheckout,
                             unavailableItems, checkout.instanceId);
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStockFailed), reserveFailed);

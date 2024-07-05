@@ -18,7 +18,7 @@ namespace CartMS.Infra
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseNpgsql(configuration.GetConnectionString("Database"))
+            options.UseNpgsql(this.configuration.GetConnectionString("Database"))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);

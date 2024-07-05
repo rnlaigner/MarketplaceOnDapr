@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOptions();
 
-IConfigurationSection configSection = builder.Configuration.GetSection("StockConfig");
+IConfigurationSection configSection = builder.Configuration.GetSection("SellerConfig");
 builder.Services.Configure<SellerConfig>(configSection);
 var config = configSection.Get<SellerConfig>();
 if (config == null)
@@ -82,12 +82,13 @@ using (var scope = app.Services.CreateScope())
                             .ToList();
         foreach (var table in tableNames)
         {
+            if(table is null || table.SequenceEqual("")) continue;
             context.Database.ExecuteSqlRaw($"ALTER TABLE seller.{table} SET unlogged");
         }
     }
 
-    context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSql);
-    context.Database.ExecuteSqlRaw(SellerDbContext.OrderSellerViewSqlIndex);
+    context.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_SQL);
+    context.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_SQL_INDEX);
 }
 
 app.UseCloudEvents();

@@ -1,5 +1,6 @@
-﻿# PaymentMS README
+﻿# PaymentMS
 
+## How to run a migration
 dotnet ef migrations add PaymentMigration -c PaymentDbContext
 
 ## with metrics

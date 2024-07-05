@@ -24,27 +24,34 @@ public class SellerController : ControllerBase
     [HttpPost]
     [Route("/")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public ActionResult AddSeller([FromBody] Seller seller)
     {
         this.logger.LogInformation("[AddSeller] received for seller {0}", seller.id);
-        this.sellerRepository.Insert(new()
+        try{
+            this.sellerRepository.Insert(new()
+            {
+                id = seller.id,
+                name = seller.name,
+                company_name = seller.company_name,
+                email = seller.email,
+                phone = seller.phone,
+                mobile_phone = seller.mobile_phone,
+                cpf = seller.cpf,
+                cnpj = seller.cnpj,
+                address = seller.address,
+                complement = seller.complement,
+                city = seller.city,
+                state = seller.state,
+                zip_code = seller.zip_code,
+            });
+            this.logger.LogInformation("[AddSeller] completed for seller {0}.", seller.id);
+            return StatusCode((int)HttpStatusCode.Created);
+        } catch(Exception e)
         {
-            id = seller.id,
-            name = seller.name,
-            company_name = seller.company_name,
-            email = seller.email,
-            phone = seller.phone,
-            mobile_phone = seller.mobile_phone,
-            cpf = seller.cpf,
-            cnpj = seller.cnpj,
-            address = seller.address,
-            complement = seller.complement,
-            city = seller.city,
-            state = seller.state,
-            zip_code = seller.zip_code,
-        });
-        this.logger.LogInformation("[AddSeller] completed for seller {0}.", seller.id);
-        return StatusCode((int)HttpStatusCode.Created);
+            this.logger.LogCritical(e.ToString());
+            return StatusCode((int)HttpStatusCode.InternalServerError);
+        }
     }
 
     [HttpGet]
@@ -78,10 +85,18 @@ public class SellerController : ControllerBase
     [HttpGet]
     [Route("/dashboard/{sellerId}")]
     [ProducesResponseType(typeof(SellerDashboard),(int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public ActionResult<SellerDashboard> GetDashboard(int sellerId)
     {
-        var dash = this.sellerService.QueryDashboard(sellerId);
-        return Ok(dash);
+        try {
+            var dash = this.sellerService.QueryDashboard(sellerId);
+            return Ok(dash);
+        }
+        catch(Exception e)
+        {
+            this.logger.LogCritical(e.ToString());
+            return StatusCode((int)HttpStatusCode.InternalServerError);
+        }
     }
 
     [Route("/reset")]

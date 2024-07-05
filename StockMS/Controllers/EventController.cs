@@ -29,7 +29,7 @@ public class EventController : ControllerBase
         }
         catch (Exception e)
         {
-            logger.LogCritical(e.ToString());
+            this.logger.LogCritical(e.ToString());
             await this.stockService.ProcessPoisonProductUpdate(productUpdated);
         }
         return Ok();
@@ -45,7 +45,7 @@ public class EventController : ControllerBase
         }
         catch (Exception e)
         {
-            logger.LogCritical(e.ToString());
+            this.logger.LogCritical(e.ToString());
             await this.stockService.ProcessPoisonReserveStock(reserveStock);
         }
         return Ok();
@@ -55,7 +55,14 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
     public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
     {
-        this.stockService.ConfirmReservation(paymentConfirmed);
+        try
+        {
+            this.stockService.ConfirmReservation(paymentConfirmed);
+        }
+        catch (Exception e)
+        {
+            this.logger.LogCritical(e.ToString());
+        }
         return Ok();
     }
 
@@ -63,7 +70,14 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
     public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
     {
-        this.stockService.CancelReservation(paymentFailed);
+         try
+         {
+            this.stockService.CancelReservation(paymentFailed);
+         }
+         catch (Exception e)
+         {
+            this.logger.LogCritical(e.ToString());
+         }
         return Ok();
     }
 

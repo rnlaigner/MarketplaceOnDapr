@@ -1,23 +1,21 @@
-﻿using Common.Entities;
-using Common.Events;
+﻿using Common.Events;
 using SellerMS.DTO;
 
-namespace SellerMS.Services
+namespace SellerMS.Services;
+
+public interface ISellerService
 {
-    public interface ISellerService
-    {
-        void ProcessDeliveryNotification(DeliveryNotification deliveryNotification);
-        void ProcessNewInvoice(InvoiceIssued invoiceIssued);
-        void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
-        void ProcessPaymentFailed(PaymentFailed paymentFailed);
-        void ProcessProductUpdate(Product product);
-        void ProcessShipmentNotification(ShipmentNotification shipmentNotification);
-        void ProcessStockItem(StockItem stockItem);
+    void ProcessInvoiceIssued(InvoiceIssued invoiceIssued);
 
-        SellerDashboard QueryDashboard(int sellerId);
+    void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed);
+    void ProcessPaymentFailed(PaymentFailed paymentFailed);
+        
+    void ProcessShipmentNotification(ShipmentNotification shipmentNotification);
+    void ProcessDeliveryNotification(DeliveryNotification deliveryNotification);
 
-        void Cleanup();
-        void Reset();
-    }
+    SellerDashboard QueryDashboard(int sellerId);
+
+    void Cleanup();
+    void Reset();
 }
 

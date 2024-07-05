@@ -28,7 +28,6 @@ public class PaymentController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
     public async Task<ActionResult> ProcessPayment([FromBody] InvoiceIssued invoiceIssued)
     {
-        logger.LogWarning("InvoiceIssued received: "+invoiceIssued.instanceId);
         try
         {
             await this.paymentService.ProcessPayment(invoiceIssued);

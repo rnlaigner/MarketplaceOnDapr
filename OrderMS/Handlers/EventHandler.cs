@@ -27,14 +27,13 @@ public class EventHandler : ControllerBase
     [Topic(PUBSUB_NAME, nameof(StockConfirmed))]
     public async Task<ActionResult> ProcessStockConfirmed([FromBody] StockConfirmed stockConfirmed)
     {
-        logger.LogWarning("StockConfirmed received: "+stockConfirmed.instanceId);
         try
         {
             await this.orderService.ProcessStockConfirmed(stockConfirmed);
         }
         catch (Exception e)
         {
-            logger.LogCritical(e.ToString());
+            this.logger.LogCritical(e.ToString());
             await this.orderService.ProcessPoisonStockConfirmed(stockConfirmed);
         }
         return Ok();
@@ -50,7 +49,7 @@ public class EventHandler : ControllerBase
          }
          catch (Exception e)
          {
-             logger.LogCritical(e.ToString());
+             this.logger.LogCritical(e.ToString());
          }
         return Ok();
     }
@@ -67,7 +66,13 @@ public class EventHandler : ControllerBase
     [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
     public ActionResult ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
     {
-        this.orderService.ProcessShipmentNotification(shipmentNotification);
+        try {
+            this.orderService.ProcessShipmentNotification(shipmentNotification);
+        }
+        catch (Exception e)
+        {
+            this.logger.LogCritical(e.ToString());
+        }
         return Ok();
     }
 

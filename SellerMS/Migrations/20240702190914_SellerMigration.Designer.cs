@@ -12,7 +12,7 @@ using SellerMS.Infra;
 namespace SellerMS.Migrations
 {
     [DbContext(typeof(SellerDbContext))]
-    [Migration("20230801110327_SellerMigration")]
+    [Migration("20240702190914_SellerMigration")]
     partial class SellerMigration
     {
         /// <inheritdoc />
@@ -28,7 +28,13 @@ namespace SellerMS.Migrations
 
             modelBuilder.Entity("SellerMS.Models.OrderEntry", b =>
                 {
+                    b.Property<int>("customer_id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("order_id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("seller_id")
                         .HasColumnType("integer");
 
                     b.Property<int>("product_id")
@@ -42,6 +48,10 @@ namespace SellerMS.Migrations
 
                     b.Property<float>("freight_value")
                         .HasColumnType("real");
+
+                    b.Property<string>("natural_key")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("order_status")
                         .IsRequired()
@@ -59,9 +69,6 @@ namespace SellerMS.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("seller_id")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("shipment_date")
@@ -82,7 +89,7 @@ namespace SellerMS.Migrations
                     b.Property<float>("unit_price")
                         .HasColumnType("real");
 
-                    b.HasKey("order_id", "product_id");
+                    b.HasKey("customer_id", "order_id", "seller_id", "product_id");
 
                     b.HasIndex("seller_id");
 
@@ -92,76 +99,12 @@ namespace SellerMS.Migrations
                     b.ToTable("order_entries", "seller");
                 });
 
-            modelBuilder.Entity("SellerMS.Models.OrderEntryDetails", b =>
-                {
-                    b.Property<int>("order_id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("order_id"));
-
-                    b.Property<string>("card_brand")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("city")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("complement")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("customer_id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("first_name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("installments")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("last_name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("order_date")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("state")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("street")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("zip_code")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("order_id");
-
-                    b.ToTable("order_entry_details", "seller", t =>
-                        {
-                            t.HasTrigger("LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS");
-
-                            t.HasTrigger("LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS");
-                        });
-
-                    b
-                        .HasAnnotation("LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS", "CREATE FUNCTION \"seller\".\"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS AFTER INSERT\r\nON \"seller\".\"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"seller\".\"LC_TRIGGER_AFTER_INSERT_ORDERENTRYDETAILS\"();")
-                        .HasAnnotation("LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS", "CREATE FUNCTION \"seller\".\"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"() RETURNS trigger as $LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$\r\nBEGIN\r\n  REFRESH MATERIALIZED VIEW CONCURRENTLY OrderSellerView;\r\nRETURN NEW;\r\nEND;\r\n$LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS$ LANGUAGE plpgsql;\r\nCREATE TRIGGER LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS AFTER UPDATE\r\nON \"seller\".\"order_entry_details\"\r\nFOR EACH ROW EXECUTE PROCEDURE \"seller\".\"LC_TRIGGER_AFTER_UPDATE_ORDERENTRYDETAILS\"();");
-                });
-
             modelBuilder.Entity("SellerMS.Models.OrderSellerView", b =>
                 {
                     b.Property<int>("count_items")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("count_orders")
                         .HasColumnType("integer");
 
                     b.Property<int>("seller_id")
@@ -246,17 +189,6 @@ namespace SellerMS.Migrations
                     b.HasKey("id");
 
                     b.ToTable("sellers", "seller");
-                });
-
-            modelBuilder.Entity("SellerMS.Models.OrderEntry", b =>
-                {
-                    b.HasOne("SellerMS.Models.OrderEntryDetails", "details")
-                        .WithMany()
-                        .HasForeignKey("order_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("details");
                 });
 #pragma warning restore 612, 618
         }

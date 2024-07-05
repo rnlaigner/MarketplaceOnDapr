@@ -29,7 +29,6 @@ public class ShipmentController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
     public async Task<ActionResult> ProcessShipment([FromBody] PaymentConfirmed paymentConfirmed)
     {
-        logger.LogWarning("PaymentConfirmed received: "+paymentConfirmed.instanceId);
         try
         {
             await this.shipmentService.ProcessShipment(paymentConfirmed);

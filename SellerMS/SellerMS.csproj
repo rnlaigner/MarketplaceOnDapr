@@ -31,6 +31,7 @@
     <None Remove="Repositories\" />
     <None Remove="Infra\" />
     <None Remove="DTO\" />
+    <None Remove="Migrations\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
@@ -38,5 +39,6 @@
     <Folder Include="Repositories\" />
     <Folder Include="Infra\" />
     <Folder Include="DTO\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 </Project>
