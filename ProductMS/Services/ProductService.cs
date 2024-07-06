@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using ProductMS.Infra;
 using ProductMS.Models;
 using ProductMS.Repositories;
-using System;
 
 namespace ProductMS.Services
 {
@@ -63,15 +62,10 @@ namespace ProductMS.Services
                     product.price = priceUpdate.price;
                     this.productRepository.Update(product);
                     txCtx.Commit();
-                    // logger.LogWarning($"Versions match for price update. Product {product.version} == {priceUpdate.version}");
-                
-                } else // outdated update, no longer applies...
-                {
-                    // logger.LogWarning($"Versions not not match for price update. Product {product.version} != {priceUpdate.version}");
                 }
 
-                // still must send because some cart items may be old
-                if (config.Streaming)
+                // must send because some cart items may be old
+                if (this.config.Streaming)
                 {
                     PriceUpdated update = new(
                          priceUpdate.sellerId,
@@ -87,7 +81,7 @@ namespace ProductMS.Services
 
         public async Task ProcessPoisonPriceUpdate(PriceUpdate priceUpdate)
         {
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", priceUpdate.instanceId, priceUpdate.sellerId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.sellerId, MarkStatus.ERROR, "product"));
@@ -110,10 +104,9 @@ namespace ProductMS.Services
                 this.productRepository.Update(input);
 
                 txCtx.Commit();
-                if (config.Streaming)
+                if (this.config.Streaming)
                 {
                     ProductUpdated productUpdated = new(input.seller_id, input.product_id, input.name, input.sku, input.category, input.description, input.price, input.freight_value, input.status, input.version);
-                    logger.LogWarning("Publishing ProductUpdated event");
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ProductUpdated), productUpdated);
                 }
             }
@@ -121,7 +114,7 @@ namespace ProductMS.Services
 
         public async Task ProcessPoisonProductUpdate(Product product)
         {
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 this.logger.LogInformation("Publishing transaction mark {0} to seller {1}", product.version, product.seller_id);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(product.version, TransactionType.PRICE_UPDATE, product.seller_id, MarkStatus.ERROR, "product"));
@@ -136,7 +129,7 @@ namespace ProductMS.Services
 
         public void Reset()
         {
-            this.dbContext.Database.ExecuteSqlRaw("UPDATE products SET active=true");
+            this.dbContext.Database.ExecuteSqlRaw("UPDATE product.products SET active=true, version='0'");
             this.dbContext.SaveChanges();
         }
 

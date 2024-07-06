@@ -66,10 +66,9 @@ namespace StockMS.Repositories
             // return this.dbContext.StockItems.FromSqlRaw(sql).First();
             try
             {
-                // return
-                var item = this.dbContext.StockItems.FromSqlRaw(sql).First();
-                logger.LogWarning($"Item {sellerId}-{productId} locked");
-                return item;
+                return this.dbContext.StockItems.FromSqlRaw(sql).First();
+                // this.logger.LogWarning($"Item {sellerId}-{productId} locked");
+                // return item;
             } catch(Exception e)
             {
                 logger.LogCritical($"Item {sellerId}-{productId} cannot be found or locked");

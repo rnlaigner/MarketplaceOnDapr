@@ -17,7 +17,7 @@ namespace ProductMS.Repositories
         public void Delete(ProductModel product)
         {
             product.active = false;
-            Update(product);
+            this.Update(product);
         }
 
         public List<ProductModel> GetBySeller(int sellerId)

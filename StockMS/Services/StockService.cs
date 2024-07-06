@@ -48,7 +48,7 @@ public class StockService : IStockService
 
             if (config.Streaming)
             {
-                this.logger.LogWarning("Publishing TransactionMark event to stream "+streamUpdateId);
+                // this.logger.LogWarning("Publishing TransactionMark event to stream "+streamUpdateId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdated.version, TransactionType.UPDATE_PRODUCT, productUpdated.seller_id, MarkStatus.SUCCESS, "stock"));
             }
            
@@ -266,7 +266,7 @@ public class StockService : IStockService
 
     public void Reset()
     {
-        this.dbContext.Database.ExecuteSqlRaw(string.Format("UPDATE stock_items SET active=true, qty_reserved=0, qty_available={0}",config.DefaultInventory));
+        this.dbContext.Database.ExecuteSqlRaw(string.Format("UPDATE stock_items SET active=true, version='0', qty_reserved=0, qty_available={0}",this.config.DefaultInventory));
         this.dbContext.SaveChanges();
     }
 
