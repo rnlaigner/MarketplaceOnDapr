@@ -35,7 +35,7 @@ public class ShipmentController : ControllerBase
         }
         catch (Exception e)
         {
-            logger.LogCritical(e.ToString());
+            this.logger.LogCritical(e.ToString());
             await this.shipmentService.ProcessPoisonShipment(paymentConfirmed);
         }
         return Ok();
@@ -82,7 +82,7 @@ public class ShipmentController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
-        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
+        this.logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.shipmentService.Cleanup();
         return Ok();
     }

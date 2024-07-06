@@ -13,7 +13,6 @@ namespace CartMS.Controllers;
 [ApiController]
 public class CartController : ControllerBase
 {
-
     private readonly ILogger<CartController> logger;
     private readonly ICartService cartService;
     private readonly ICartRepository cartRepository;
@@ -34,7 +33,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     public ActionResult AddItem(int customerId, [FromBody] CartItem item)
     {
-        if(config.ControllerChecks){
+        if(this.config.ControllerChecks){
             if (item.Quantity <= 0)
             {
                 return StatusCode((int)HttpStatusCode.MethodNotAllowed, "Item " + item.ProductId + " shows no positive quantity.");
@@ -79,7 +78,7 @@ public class CartController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> NotifyCheckout(int customerId, [FromBody] CustomerCheckout customerCheckout)
     {
-        if (config.ControllerChecks)
+        if (this.config.ControllerChecks)
         {
             ObjectResult? res = null;
             if (customerId != customerCheckout.CustomerId)
@@ -117,6 +116,7 @@ public class CartController : ControllerBase
         try
         {
             await this.cartService.NotifyCheckout(customerCheckout);
+            // this.logger.LogWarning("Checkout requested for customer "+customerCheckout.CustomerId);
             return Accepted();
         }
         catch (Exception e)

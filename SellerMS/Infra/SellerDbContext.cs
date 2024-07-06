@@ -22,7 +22,8 @@ namespace SellerMS.Infra
 
         public static readonly string SELLER_VIEW_NAME = nameof(Models.OrderSellerView).ToLower();
 
-        public static readonly string ORDER_SELLER_VIEW_UPDATE_SQL = $"REFRESH MATERIALIZED VIEW CONCURRENTLY seller.{SELLER_VIEW_NAME}";
+        // "To use CONCURRENTLY, it must not include a WHERE clause."
+        public static readonly string ORDER_SELLER_VIEW_UPDATE_SQL = $"REFRESH MATERIALIZED VIEW seller.{SELLER_VIEW_NAME}";
 
         // the amount being transacted at the moment
         public static readonly string ORDER_SELLER_VIEW_SQL = $"CREATE MATERIALIZED VIEW IF NOT EXISTS seller.{SELLER_VIEW_NAME} " +
@@ -34,9 +35,9 @@ namespace SellerMS.Infra
 
         public static readonly string ORDER_SELLER_VIEW_SQL_INDEX = $"CREATE UNIQUE INDEX IF NOT EXISTS order_seller_index ON seller.{SELLER_VIEW_NAME} (seller_id)";
 
+        // https://github.com/win7user10/Laraue.EfCoreTriggers#laraueefcoretriggerspostgresql
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            // https://github.com/win7user10/Laraue.EfCoreTriggers#laraueefcoretriggerspostgresql
             options
                 .UseNpgsql(this.configuration.GetConnectionString("Database"))
                 .UsePostgreSqlTriggers()

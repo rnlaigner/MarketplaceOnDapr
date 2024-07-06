@@ -39,6 +39,7 @@ public class EventHandler : ControllerBase
         return Ok();
     }
 
+    /*
     [HttpPost("ProcessPaymentConfirmed")]
     [Topic(PUBSUB_NAME, nameof(PaymentConfirmed))]
     public ActionResult ProcessPaymentConfirmed([FromBody] PaymentConfirmed paymentConfirmed)
@@ -75,6 +76,6 @@ public class EventHandler : ControllerBase
         }
         return Ok();
     }
-
+    */
 }
 

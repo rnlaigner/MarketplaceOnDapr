@@ -19,19 +19,19 @@ namespace ShipmentMS.Models
         public ShipmentStatus status { get; set; }
 
         // customer
-        public string first_name { get; set; } = "";
+        public string first_name { get; set; }
 
-        public string last_name { get; set; } = "";
+        public string last_name { get; set; }
 
-        public string street { get; set; } = "";
+        public string street { get; set; }
 
-        public string complement { get; set; } = "";
+        public string complement { get; set; }
 
-        public string zip_code { get; set; } = "";
+        public string zip_code { get; set; }
 
-        public string city { get; set; } = "";
+        public string city { get; set; }
 
-        public string state { get; set; } = "";
+        public string state { get; set; }
 
         [ForeignKey("customer_id, order_id")]
         public ICollection<PackageModel> packages { get; } = new List<PackageModel>();

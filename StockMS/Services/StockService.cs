@@ -115,10 +115,11 @@ public class StockService : IStockService
                 if (cartItemsReserved.Count() > 0)
                 {
                     // send to order
-                    StockConfirmed stockConfirmed = new StockConfirmed(checkout.timestamp, checkout.customerCheckout,
+                    StockConfirmed stockConfirmed = new StockConfirmed(
+                        checkout.timestamp,
+                        checkout.customerCheckout,
                         cartItemsReserved,
                         checkout.instanceId);
-                    Console.WriteLine("StockConfirmed is being generated: "+stockConfirmed.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockConfirmed), stockConfirmed);
                 }
 

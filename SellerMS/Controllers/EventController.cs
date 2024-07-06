@@ -23,14 +23,13 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(InvoiceIssued))]
     public ActionResult ProcessNewInvoice([FromBody] InvoiceIssued invoiceIssued)
     {
-        this.logger.LogInformation("[InvoiceIssued] received for order ID {0}.", invoiceIssued.orderId);
         try{
             this.sellerService.ProcessInvoiceIssued(invoiceIssued);
             return Ok();
         } catch(Exception e)
         {
             this.logger.LogCritical(e.ToString());
-            this.logger.LogCritical($"Invoice items: {invoiceIssued}");
+            this.logger.LogWarning($"Invoice items: {invoiceIssued}");
             return BadRequest(e.ToString());
         }
     }
@@ -50,7 +49,6 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(PaymentFailed))]
     public ActionResult ProcessPaymentFailed([FromBody] PaymentFailed paymentFailed)
     {
-        this.logger.LogInformation("[PaymentFailed] received for order ID {0}.", paymentFailed.orderId);
         this.sellerService.ProcessPaymentFailed(paymentFailed);
         return Ok();
     }
@@ -59,13 +57,12 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(ShipmentNotification))]
     public ActionResult ProcessShipmentNotification([FromBody] ShipmentNotification shipmentNotification)
     {
-        this.logger.LogInformation("[ShipmentNotification] received for order ID {0}.", shipmentNotification.orderId);
         try {
             this.sellerService.ProcessShipmentNotification(shipmentNotification);
             return Ok();
         } catch(Exception e)
         {
-            // this.logger.LogCritical(e.ToString());
+            this.logger.LogCritical(e.ToString());
             // concurrency issues are raised if two entities with the same key are tracked by ef core
             // no way to tell dapr to synchronize both events 
             return Ok(e.ToString());
@@ -76,7 +73,6 @@ public class EventController : ControllerBase
     [Topic(PUBSUB_NAME, nameof(DeliveryNotification))]
     public ActionResult ProcessDeliveryNotification([FromBody] DeliveryNotification deliveryNotification)
     {
-        this.logger.LogInformation("[DeliveryNotification] received for order ID {0}.", deliveryNotification.orderId);
         this.sellerService.ProcessDeliveryNotification(deliveryNotification);
         return Ok();
     }

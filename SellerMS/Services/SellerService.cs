@@ -21,6 +21,19 @@ public class SellerService : ISellerService
         this.logger = logger;
     }
 
+    private static int LOCKED = 0;
+
+    // this method allows a natural accumulation of concurrent requests
+    // thus decreasing overall cost of updating seller view
+    public void RefreshSellerViewSafely()
+    {
+        if (0 == Interlocked.CompareExchange(ref LOCKED, 1, 0))
+        {
+            this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
+            Interlocked.Exchange(ref LOCKED, 0);
+        }
+    }
+
     /**
      * An order entry per seller in an order is created
      */
@@ -58,7 +71,7 @@ public class SellerService : ISellerService
             this.dbContext.SaveChanges();
             txCtx.Commit();
         }
-        this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
+        this.RefreshSellerViewSafely();
     }
 
     public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
@@ -95,7 +108,7 @@ public class SellerService : ISellerService
             this.dbContext.SaveChanges();
             txCtx.Commit();
         }
-        this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
+        this.RefreshSellerViewSafely();
     }
 
     /**
@@ -132,7 +145,6 @@ public class SellerService : ISellerService
             this.dbContext.SaveChanges();
             txCtx.Commit();  
         }
-
     }
 
     public void ProcessPaymentFailed(PaymentFailed paymentFailed)
@@ -151,7 +163,6 @@ public class SellerService : ISellerService
             this.dbContext.SaveChanges();
             txCtx.Commit();
         }
-
     }
 
     public SellerDashboard QueryDashboard(int sellerId)
@@ -172,7 +183,7 @@ public class SellerService : ISellerService
         this.dbContext.Sellers.ExecuteDelete();
         this.dbContext.OrderEntries.ExecuteDelete();
         this.dbContext.SaveChanges();
-        this.dbContext.Database.ExecuteSqlRaw($"REFRESH MATERIALIZED VIEW CONCURRENTLY {SellerDbContext.SELLER_VIEW_NAME};");
+        this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
     }
 
     // reset maintains seller records
@@ -180,7 +191,7 @@ public class SellerService : ISellerService
     {
         this.dbContext.OrderEntries.ExecuteDelete();
         this.dbContext.SaveChanges();
-        this.dbContext.Database.ExecuteSqlRaw($"REFRESH MATERIALIZED VIEW CONCURRENTLY {SellerDbContext.SELLER_VIEW_NAME};");
+        this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
     }
 
 }
