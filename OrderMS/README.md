@@ -25,9 +25,8 @@ docker run --name orderdb -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres
 
 ### without metrics
 
-#### run in root folder
-dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 3502 -- dotnet run --project OrderMS/OrderMS.csproj
-
 #### run in the OrderMS folder
-dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 3502 -- dotnet run --project OrderMS.csproj
+dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 3502 -- dotnet run --urls "http://*:5002" --project OrderMS.csproj
 
+#### run in root folder
+dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 3502 -- dotnet run --urls "http://*:5002" --project OrderMS/OrderMS.csproj

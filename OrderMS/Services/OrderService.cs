@@ -138,7 +138,7 @@ public class OrderService : IOrderService
                 created_at = now,
                 updated_at = now
             };
-            var orderPersisted = dbContext.Orders.Add(newOrder).Entity;
+            var orderPersisted = this.dbContext.Orders.Add(newOrder).Entity;
 
             // save to ensure FK
             this.dbContext.SaveChanges();
@@ -159,7 +159,7 @@ public class OrderService : IOrderService
                     unit_price = item.UnitPrice,
                     quantity = item.Quantity,
                     total_items = item.UnitPrice * item.Quantity,
-                    total_amount = totalPerItem[(item.SellerId,item.ProductId)],
+                    total_amount = totalPerItem[(item.SellerId, item.ProductId)],
                     freight_value = item.FreightValue,
                     shipping_limit_date = now.AddDays(3)
                 };
@@ -179,8 +179,7 @@ public class OrderService : IOrderService
                 order_id = orderPersisted.order_id,
                 created_at = newOrder.created_at,
                 status = OrderStatus.INVOICED,
-                order = orderPersisted // not sure why it is necessary to attach this object in order history and not in order item, but guess it is the id generated in order history
-                // data = JsonSerializer.Serialize(checkout.customerCheckout)
+                order = orderPersisted // not sure why it is necessary to attach this object in order history and not in order item, but guess it is the id generated in order history. the id generation happens in the database level
             });
 
             this.dbContext.SaveChanges();
@@ -188,7 +187,7 @@ public class OrderService : IOrderService
 
             // if the event is published and the transaction fails to commit (e.g., concurrency exception)
             // the dapr will retry the event processing and the invoiceIssued event will be duplicated in the system
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 InvoiceIssued invoice = new InvoiceIssued(checkout.customerCheckout, customerOrder.next_order_id, newOrder.invoice_number, now, newOrder.total_invoice, orderItems, checkout.instanceId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(InvoiceIssued), invoice);

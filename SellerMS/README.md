@@ -6,12 +6,15 @@ dotnet ef migrations add SellerMigration -c SellerDbContext
 ## How to setup the environment
 
 ### with metrics
-dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 --metrics-port 9096 -- dotnet run --project SellerMS.csproj
+dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 --metrics-port 9096 -- dotnet run --urls "http://*:5006" --project SellerMS.csproj
 
 ### without metrics
-dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 -- dotnet run --project SellerMS.csproj
 
-dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 -- dotnet run --project SellerMS/SellerMS.csproj
+#### Inside SellerMS folder
+dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 -- dotnet run --urls "http://*:5006" --project SellerMS.csproj
+
+#### on root folder
+dapr run --app-port 5006 --app-id seller --app-protocol http --dapr-http-port 3506 -- dotnet run --urls "http://*:5006" --project SellerMS/SellerMS.csproj
 
 ## Discussion
 

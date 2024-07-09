@@ -59,14 +59,13 @@ public class EventController : ControllerBase
     {
         try {
             this.sellerService.ProcessShipmentNotification(shipmentNotification);
-            return Ok();
         } catch(Exception e)
         {
-            this.logger.LogCritical(e.ToString());
+            this.logger.LogCritical(e.Message);
             // concurrency issues are raised if two entities with the same key are tracked by ef core
             // no way to tell dapr to synchronize both events 
-            return Ok(e.ToString());
         }
+        return Ok();
     }
 
     [HttpPost("ProcessDeliveryNotification")]

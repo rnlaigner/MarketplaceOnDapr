@@ -24,7 +24,7 @@ if (config.PostgresEmbed)
         var serverParams = new Dictionary<string, string>
         {
             { "synchronous_commit", "off" },
-            { "max_connections", "300" },
+            { "max_connections", "10000" },
             { "listen_addresses", "*" }
         };
         // serverParams.Add("shared_buffers", X);

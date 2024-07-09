@@ -33,7 +33,6 @@ public class StockService : IStockService
 
     public async Task ProcessProductUpdate(ProductUpdated productUpdated)
     {
-        this.logger.LogWarning("Service: ProductUpdated event="+productUpdated.ToString());
         using (var txCtx = dbContext.Database.BeginTransaction())
         {
             StockItemModel stockItem = this.stockRepository.GetItemForUpdate(productUpdated.seller_id, productUpdated.product_id);
@@ -48,7 +47,6 @@ public class StockService : IStockService
 
             if (config.Streaming)
             {
-                // this.logger.LogWarning("Publishing TransactionMark event to stream "+streamUpdateId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdated.version, TransactionType.UPDATE_PRODUCT, productUpdated.seller_id, MarkStatus.SUCCESS, "stock"));
             }
            

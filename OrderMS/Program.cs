@@ -38,7 +38,7 @@ if (config.PostgresEmbed)
             // switch off synchronous commit
             { "synchronous_commit", "off" },
             // set max connections
-            { "max_connections", "300" },
+            { "max_connections", "10000" },
             // The default value is localhost, which allows only local TCP/IP "loopback" connections to be made.
             { "listen_addresses", "*" }
         };
