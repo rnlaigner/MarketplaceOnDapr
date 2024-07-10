@@ -22,7 +22,7 @@ namespace ShipmentMS.Repositories
 
         public void Save()
         {
-            context.SaveChanges();
+            this.context.SaveChanges();
         }
 
         public virtual IEnumerable<TEntity> Get(
@@ -55,12 +55,12 @@ namespace ShipmentMS.Repositories
 
         public virtual TEntity? GetById(PK id)
         {
-            return dbSet.Find(id);
+            return this.dbSet.Find(id);
         }
 
         public virtual void Insert(TEntity entity)
         {
-            dbSet.Add(entity);
+            this.dbSet.Add(entity);
         }
 
         public virtual void Delete(PK id)

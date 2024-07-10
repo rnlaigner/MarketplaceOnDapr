@@ -33,7 +33,7 @@ public class StockService : IStockService
 
     public async Task ProcessProductUpdate(ProductUpdated productUpdated)
     {
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.dbContext.Database.BeginTransaction())
         {
             StockItemModel stockItem = this.stockRepository.GetItemForUpdate(productUpdated.seller_id, productUpdated.product_id);
             if (stockItem is null)
@@ -45,7 +45,7 @@ public class StockService : IStockService
             this.stockRepository.Update(stockItem);
             txCtx.Commit();
 
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(productUpdated.version, TransactionType.UPDATE_PRODUCT, productUpdated.seller_id, MarkStatus.SUCCESS, "stock"));
             }
@@ -64,7 +64,7 @@ public class StockService : IStockService
     public async Task ReserveStockAsync(ReserveStock checkout)
     {   
         var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.dbContext.Database.BeginTransaction())
         {
             IEnumerable<StockItemModel> items = this.stockRepository.GetItems(ids);
             if (!items.Any())
@@ -154,7 +154,7 @@ public class StockService : IStockService
     {
         var now = DateTime.UtcNow;
         var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.dbContext.Database.BeginTransaction())
         {
             var items = stockRepository.GetItems(ids);
             var stockItems = items.ToDictionary(p => (p.seller_id, p.product_id), c => c);
@@ -196,7 +196,7 @@ public class StockService : IStockService
 
     public async Task IncreaseStock(IncreaseStock increaseStock)
     {
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.dbContext.Database.BeginTransaction())
         {
 
             var item = dbContext.StockItems.Find(increaseStock.seller_id, increaseStock.product_id);
@@ -210,7 +210,7 @@ public class StockService : IStockService
             stockRepository.Update(item);
             txCtx.Commit();
 
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(StockItem), new StockItem()
                 {

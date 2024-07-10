@@ -1,11 +1,5 @@
-﻿using System;
-using Common.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using SellerMS.Controllers;
-using SellerMS.Infra;
+﻿using SellerMS.Infra;
 using SellerMS.Models;
-using SellerMS.Services;
 
 namespace SellerMS.Repositories
 {
@@ -24,8 +18,8 @@ namespace SellerMS.Repositories
 
         public SellerModel Insert(SellerModel seller)
         {
-            var entity = dbContext.Sellers.Add(seller).Entity;
-            dbContext.SaveChanges();
+            var entity = this.dbContext.Sellers.Add(seller).Entity;
+            this.dbContext.SaveChanges();
             return entity;
         }
 

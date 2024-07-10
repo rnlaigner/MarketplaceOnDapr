@@ -53,7 +53,7 @@ public class CartService : ICartService
 
     public async Task NotifyCheckout(CustomerCheckout customerCheckout)
     {
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.dbContext.Database.BeginTransaction())
         {
             List<CartItem> cartItems;
             if(config.ControllerChecks){
@@ -95,7 +95,7 @@ public class CartService : ICartService
                         }).ToList();
             }
             txCtx.Commit();
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 ReserveStock checkout = new ReserveStock(DateTime.UtcNow, customerCheckout, cartItems, customerCheckout.instanceId);
                 await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(ReserveStock), checkout);
@@ -105,7 +105,7 @@ public class CartService : ICartService
 
     public async Task ProcessPoisonCheckout(CustomerCheckout customerCheckout, MarkStatus status)
     {
-        if (config.Streaming)
+        if (this.config.Streaming)
         {
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, checkoutStreamId, new TransactionMark(customerCheckout.instanceId, TransactionType.CUSTOMER_SESSION, customerCheckout.CustomerId, status, "cart"));
         }
@@ -133,7 +133,7 @@ public class CartService : ICartService
 
     public async Task ProcessPriceUpdate(PriceUpdated priceUpdate)
     {
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.dbContext.Database.BeginTransaction())
         {
             if(this.productReplicaRepository.Exists(priceUpdate.seller_id, priceUpdate.product_id))
             {
@@ -159,7 +159,7 @@ public class CartService : ICartService
             }
             txCtx.Commit();
         }
-        if (config.Streaming)
+        if (this.config.Streaming)
         {
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, priceUpdateStreamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.seller_id, MarkStatus.SUCCESS, "cart"));
         }

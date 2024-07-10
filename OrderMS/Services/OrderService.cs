@@ -7,11 +7,9 @@ using System.Globalization;
 using Common.Entities;
 using Common.Events;
 using Common.Driver;
-using Microsoft.EntityFrameworkCore;
 using OrderMS.Common.Models;
 using OrderMS.Common.Repositories;
 using OrderMS.Services;
-using OrderMS.Infra;
 using OrderMS.Common.Infra;
 using Dapr.Client;
 using Microsoft.Extensions.Logging;
@@ -32,7 +30,6 @@ public class OrderService : IOrderService
 
     private const string PUBSUB_NAME = "pubsub";
 
-    private readonly OrderDbContext dbContext;
     private readonly IOrderRepository orderRepository;
     private readonly DaprClient daprClient;
     private readonly OrderConfig config;
@@ -40,10 +37,9 @@ public class OrderService : IOrderService
 
     private static readonly float[] emptyArray = Array.Empty<float>();
 
-    public OrderService(OrderDbContext dbContext, IOrderRepository orderRepository, DaprClient daprClient,
+    public OrderService(IOrderRepository orderRepository, DaprClient daprClient,
             IOptions<OrderConfig> config, ILogger<OrderService> logger)
     {
-        this.dbContext = dbContext;
         this.orderRepository = orderRepository;
         this.daprClient = daprClient;
         this.config = config.Value;
@@ -53,7 +49,7 @@ public class OrderService : IOrderService
     public async Task ProcessStockConfirmed(StockConfirmed checkout)
 	{
         // https://learn.microsoft.com/en-us/ef/ef6/saving/transactions?redirectedfrom=MSDN
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.orderRepository.BeginTransaction())
         {
             var now = DateTime.UtcNow;
 
@@ -90,7 +86,7 @@ public class OrderService : IOrderService
                     total_item = 0;
                 }
                     
-                totalPerItem.Add((item.SellerId,item.ProductId), total_item);
+                totalPerItem.Add((item.SellerId, item.ProductId), total_item);
             }
 
             // https://finom.co/en-fr/blog/invoice-number/
@@ -99,7 +95,7 @@ public class OrderService : IOrderService
             // the invoice. the format <customer_id>-<int_date>-total_orders+1 can be represented like:
             // 50-20220928-001
             // it is inefficient to get count(*) on customer orders. better to have a table like tpc-c does for next_order_id
-            var customerOrder = this.dbContext.CustomerOrders.Find(checkout.customerCheckout.CustomerId);
+            var customerOrder = this.orderRepository.GetCustomerOrderByCustomerId(checkout.customerCheckout.CustomerId);
             if (customerOrder is null)
             {
                 customerOrder = new()
@@ -107,12 +103,12 @@ public class OrderService : IOrderService
                     customer_id = checkout.customerCheckout.CustomerId,
                     next_order_id = 1
                 };
-                customerOrder = this.dbContext.CustomerOrders.Add(customerOrder).Entity;
+                customerOrder = this.orderRepository.InsertCustomerOrder(customerOrder);
             }
             else
             {
                 customerOrder.next_order_id += 1;
-                this.dbContext.CustomerOrders.Update(customerOrder);
+                customerOrder = this.orderRepository.UpdateCustomerOrder(customerOrder);
             }
 
             StringBuilder stringBuilder = new StringBuilder().Append(checkout.customerCheckout.CustomerId)
@@ -138,10 +134,10 @@ public class OrderService : IOrderService
                 created_at = now,
                 updated_at = now
             };
-            var orderPersisted = this.dbContext.Orders.Add(newOrder).Entity;
+            var orderPersisted = this.orderRepository.InsertOrder(newOrder);
 
             // save to ensure FK
-            this.dbContext.SaveChanges();
+            this.orderRepository.FlushUpdates();
 
             List<OrderItem> orderItems = new(checkout.items.Count);
 
@@ -164,7 +160,7 @@ public class OrderService : IOrderService
                     shipping_limit_date = now.AddDays(3)
                 };
 
-                this.dbContext.OrderItems.Add(oim);
+                this.orderRepository.InsertOrderItem(oim);
 
                 // vouchers so payment can process
                 orderItems.Add(AsOrderItem(oim, item.Voucher));
@@ -173,7 +169,7 @@ public class OrderService : IOrderService
             }
 
             // initialize order history
-            this.dbContext.OrderHistory.Add(new OrderHistoryModel()
+             this.orderRepository.InsertOrderHistory(new OrderHistoryModel()
             {
                 customer_id = orderPersisted.customer_id,
                 order_id = orderPersisted.order_id,
@@ -182,7 +178,7 @@ public class OrderService : IOrderService
                 order = orderPersisted // not sure why it is necessary to attach this object in order history and not in order item, but guess it is the id generated in order history. the id generation happens in the database level
             });
 
-            this.dbContext.SaveChanges();
+            this.orderRepository.FlushUpdates();
             txCtx.Commit();
 
             // if the event is published and the transaction fails to commit (e.g., concurrency exception)
@@ -243,9 +239,9 @@ public class OrderService : IOrderService
     public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
     {
         var now = DateTime.UtcNow;
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.orderRepository.BeginTransaction())
         {
-            OrderModel? order = orderRepository.GetOrder(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId);
+            OrderModel? order = this.orderRepository.GetOrder(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId);
             if(order is null)
             {
                 throw new Exception($"Cannot find order {paymentConfirmed.customer.CustomerId}-{paymentConfirmed.orderId}");
@@ -254,9 +250,9 @@ public class OrderService : IOrderService
             order.payment_date = paymentConfirmed.date;
             order.updated_at = now;
 
-            dbContext.Orders.Update(order);
+            this.orderRepository.UpdateOrder(order);
 
-            dbContext.OrderHistory.Add(new OrderHistoryModel()
+            this.orderRepository.InsertOrderHistory(new OrderHistoryModel()
             {
                 order_id = paymentConfirmed.orderId,
                 created_at = now,
@@ -264,7 +260,7 @@ public class OrderService : IOrderService
                 order = order
             });
 
-            dbContext.SaveChanges();
+            this.orderRepository.FlushUpdates();
             txCtx.Commit();
         }
     }
@@ -272,9 +268,9 @@ public class OrderService : IOrderService
     public void ProcessPaymentFailed(PaymentFailed paymentFailed)
     {
         var now = DateTime.UtcNow;
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.orderRepository.BeginTransaction())
         {
-            OrderModel? order = orderRepository.GetOrder(paymentFailed.customer.CustomerId, paymentFailed.orderId);
+            OrderModel? order = this.orderRepository.GetOrder(paymentFailed.customer.CustomerId, paymentFailed.orderId);
             if (order is null)
             {
                 throw new Exception($"Cannot find order {paymentFailed.customer.CustomerId}-{paymentFailed.orderId}");
@@ -283,9 +279,9 @@ public class OrderService : IOrderService
             order.status = OrderStatus.PAYMENT_FAILED;
             order.updated_at = now;
 
-            dbContext.Orders.Update(order);
+            this.orderRepository.UpdateOrder(order);
 
-            dbContext.OrderHistory.Add(new OrderHistoryModel()
+            this.orderRepository.InsertOrderHistory(new OrderHistoryModel()
             {
                 order_id = paymentFailed.orderId,
                 created_at = now,
@@ -293,16 +289,16 @@ public class OrderService : IOrderService
                 order = order
             });
 
-            dbContext.SaveChanges();
+            this.orderRepository.FlushUpdates();
             txCtx.Commit();
         }
     }
 
     public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
     {
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.orderRepository.BeginTransaction())
         {
-            OrderModel? order = orderRepository.GetOrder(shipmentNotification.customerId, shipmentNotification.orderId);
+            OrderModel? order = this.orderRepository.GetOrder(shipmentNotification.customerId, shipmentNotification.orderId);
             if (order is null)
             {
                 throw new Exception($"Cannot find order {shipmentNotification.customerId}-{shipmentNotification.orderId}");
@@ -330,21 +326,17 @@ public class OrderService : IOrderService
                 order.delivered_customer_date = shipmentNotification.eventDate;
             }
 
-            dbContext.Orders.Update(order);
-            dbContext.OrderHistory.Add(orderHistory);
+            this.orderRepository.UpdateOrder(order);
+            this.orderRepository.InsertOrderHistory(orderHistory);
 
-            this.dbContext.SaveChanges();
+            this.orderRepository.FlushUpdates();
             txCtx.Commit();
         }
     }
 
     public void Cleanup()
     {
-        this.dbContext.OrderItems.ExecuteDelete();
-        this.dbContext.Orders.ExecuteDelete();
-        this.dbContext.OrderHistory.ExecuteDelete();
-        this.dbContext.CustomerOrders.ExecuteDelete();
-        this.dbContext.SaveChanges();
+        this.orderRepository.Cleanup();
     }
 
 }

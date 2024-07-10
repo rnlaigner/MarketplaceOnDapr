@@ -76,7 +76,7 @@ public class PaymentService : IPaymentService
         }
 
         var now = DateTime.UtcNow;
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.dbContext.Database.BeginTransaction())
         {
             int seq = 1;
             var cc = invoiceIssued.customer.PaymentType.Equals(PaymentType.CREDIT_CARD.ToString());
@@ -95,8 +95,8 @@ public class PaymentService : IPaymentService
                     created_at = now
                 };
 
-                var entity = dbContext.OrderPayments.Add(cardPaymentLine).Entity;
-                dbContext.SaveChanges();
+                var entity = this.dbContext.OrderPayments.Add(cardPaymentLine).Entity;
+                this.dbContext.SaveChanges();
 
                 // create an entity for credit card payment details with FK to order payment
                 OrderPaymentCardModel card = new()
@@ -111,7 +111,7 @@ public class PaymentService : IPaymentService
                     orderPayment = entity
                 };
 
-                dbContext.OrderPaymentCards.Add(card);
+                this.dbContext.OrderPaymentCards.Add(card);
                 seq++;
             }
 
@@ -157,16 +157,15 @@ public class PaymentService : IPaymentService
             }
 
             if (paymentLines.Count() > 0)
-                dbContext.OrderPayments.AddRange(paymentLines);
-            dbContext.SaveChanges();
+                this.dbContext.OrderPayments.AddRange(paymentLines);
+            this.dbContext.SaveChanges();
             txCtx.Commit();
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 if (status == PaymentStatus.succeeded)
                 {
                     var paymentRes = new PaymentConfirmed(invoiceIssued.customer, invoiceIssued.orderId,
                         invoiceIssued.totalInvoice, invoiceIssued.items, now, invoiceIssued.instanceId);
-                    // Console.WriteLine("PaymentConfirmed "+invoiceIssued.instanceId);
                     await this.daprClient.PublishEventAsync(PUBSUB_NAME, nameof(PaymentConfirmed), paymentRes);
                 }
                 else

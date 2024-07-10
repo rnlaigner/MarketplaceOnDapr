@@ -30,3 +30,4 @@ dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 350
 
 #### run in root folder
 dapr run --app-id order --app-port 5002 --app-protocol http --dapr-http-port 3502 -- dotnet run --urls "http://*:5002" --project OrderMS/OrderMS.csproj
+

@@ -52,12 +52,17 @@ if (config.PostgresEmbed)
     waitPgSql = server.StartAsync();
 }
 
-// scoped here because db context is scoped
-builder.Services.AddDbContext<OrderDbContext>();
-// https://learn.microsoft.com/en-us/ef/core/performance/advanced-performance-topics?tabs=with-di%2Cexpression-api-with-constant#dbcontext-pooling
-// builder.Services.AddDbContextPool<OrderDbContext>(o=>o.UseNpgsql);
-
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+if (config.InMemoryDb)
+{
+    // setting in memory db
+    builder.Services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
+} else {
+    // scoped here because db context is scoped
+    builder.Services.AddDbContext<OrderDbContext>();
+    // https://learn.microsoft.com/en-us/ef/core/performance/advanced-performance-topics?tabs=with-di%2Cexpression-api-with-constant#dbcontext-pooling
+    // builder.Services.AddDbContextPool<OrderDbContext>(o=>o.UseNpgsql);
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+}
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddDaprClient();
@@ -94,31 +99,32 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    var context = services.GetRequiredService<OrderDbContext>();
-    try
-    {
-        // Console.WriteLine(context.ConnectionString);
-        Console.WriteLine("will migrate");
-        context.Database.Migrate();
-  
-        if (config.Unlogged)
+    if(!config.InMemoryDb){
+        var context = services.GetRequiredService<OrderDbContext>();
+        try
         {
-            Console.WriteLine("will set unlogged");
-            var tableNames = context.Model.GetEntityTypes()
-                                .Select(t => t.GetTableName())
-                                .Distinct()
-                                .ToList();
-            foreach (var table in tableNames)
+            // Console.WriteLine(context.ConnectionString);
+            Console.WriteLine("will migrate");
+            context.Database.Migrate();
+  
+            if (config.Unlogged)
             {
-                context.Database.ExecuteSqlRaw($"ALTER TABLE \"order\".{table} SET unlogged");
+                Console.WriteLine("will set unlogged");
+                var tableNames = context.Model.GetEntityTypes()
+                                    .Select(t => t.GetTableName())
+                                    .Distinct()
+                                    .ToList();
+                foreach (var table in tableNames)
+                {
+                    context.Database.ExecuteSqlRaw($"ALTER TABLE \"order\".{table} SET unlogged");
+                }
             }
         }
+        catch (Exception ex) { 
+            Console.Write(ex.Message);
+            throw new ApplicationException(ex.ToString());
+        }
     }
-    catch (Exception ex) { 
-        Console.Write(ex.Message);
-        throw new ApplicationException(ex.ToString());
-    }
-
     // set ram disk
     // https://www.dbi-services.com/blog/can-i-put-my-temporary-tablespaces-on-a-ram-disk-with-postgresql/
     /*
@@ -128,8 +134,8 @@ using (var scope = app.Services.CreateScope())
         context.Database.ExecuteSqlRaw($"SET default_tablespace = 'my_tbs'");
     }
     */
+    Console.WriteLine("DB block is passed");
 }
-Console.WriteLine("DB block is passed");
 
 if(config.Streaming)
     app.UseCloudEvents();
