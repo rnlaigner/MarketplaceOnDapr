@@ -5,11 +5,9 @@ namespace StockMS.Repositories;
 
 public interface IStockRepository
 {
-    StockItemModel Insert(StockItemModel product);
+    StockItemModel Insert(StockItemModel item);
 
-    void Delete(StockItemModel product);
-
-    void Update(StockItemModel product);
+    void Update(StockItemModel item);
 
     StockItemModel? Find(int sellerId, int productId);
 

@@ -4,7 +4,6 @@ using Common.Entities;
 using Common.Events;
 using Common.Requests;
 using Dapr.Client;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ProductMS.Infra;
 using ProductMS.Models;
@@ -16,16 +15,13 @@ namespace ProductMS.Services
 	{
         private const string PUBSUB_NAME = "pubsub";
 
-        private readonly ProductDbContext dbContext;
         private readonly IProductRepository productRepository;
         private readonly DaprClient daprClient;
         private readonly ProductConfig config;
         private readonly ILogger<ProductService> logger;
 
-        public ProductService(ProductDbContext dbContext, IProductRepository productRepository, DaprClient daprClient,
-                              IOptions<ProductConfig> config, ILogger<ProductService> logger)
+        public ProductService(IProductRepository productRepository, DaprClient daprClient, IOptions<ProductConfig> config, ILogger<ProductService> logger)
         {
-            this.dbContext = dbContext;
             this.productRepository = productRepository;
             this.daprClient = daprClient;
             this.config = config.Value;
@@ -40,8 +36,8 @@ namespace ProductMS.Services
         public void ProcessCreateProduct(Product product)
         {
             ProductModel input = Utils.AsProductModel(product);
-            using (var txCtx = this.dbContext.Database.BeginTransaction()) {
-                var existing = dbContext.Products.Find(product.seller_id, product.product_id);
+            using (var txCtx = this.productRepository.BeginTransaction()) {
+                var existing = this.productRepository.GetProductForUpdate(product.seller_id, product.product_id);
                 if(existing is null)
                     this.productRepository.Insert(input);
                 else
@@ -52,7 +48,7 @@ namespace ProductMS.Services
 
         public async Task ProcessPriceUpdate(PriceUpdate priceUpdate)
         {
-            using (var txCtx = this.dbContext.Database.BeginTransaction())
+            using (var txCtx = this.productRepository.BeginTransaction())
             {
                 var product = this.productRepository.GetProductForUpdate(priceUpdate.sellerId, priceUpdate.productId);
 
@@ -90,7 +86,7 @@ namespace ProductMS.Services
 
         public async Task ProcessProductUpdate(Product product)
         {
-            using (var txCtx = this.dbContext.Database.BeginTransaction())
+            using (var txCtx = this.productRepository.BeginTransaction())
             {
                 var oldProduct = this.productRepository.GetProductForUpdate(product.seller_id, product.product_id);
                 if (oldProduct is null)
@@ -123,14 +119,12 @@ namespace ProductMS.Services
 
         public void Cleanup()
         {
-            this.dbContext.Products.ExecuteDelete();
-            this.dbContext.SaveChanges();
+            this.productRepository.Cleanup();
         }
 
         public void Reset()
         {
-            this.dbContext.Database.ExecuteSqlRaw("UPDATE product.products SET active=true, version='0'");
-            this.dbContext.SaveChanges();
+            this.productRepository.Reset();
         }
 
     }

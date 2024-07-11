@@ -20,13 +20,6 @@ public class InMemoryStockRepository : IStockRepository
         return DEFAULT_DB_TX;
     }
 
-    public void Delete(StockItemModel product)
-    {
-        var item = this.Find(product.seller_id, product.product_id);
-        if(item is not null) item.active = false;
-        else throw new ApplicationException($"Cannot find stock item {product.seller_id}-{product.product_id}");
-    }
-
     public StockItemModel? Find(int sellerId, int productId)
     {
         if (this.stockItems.ContainsKey((sellerId, productId)))
@@ -68,15 +61,16 @@ public class InMemoryStockRepository : IStockRepository
         return list;
     }
 
-    public StockItemModel Insert(StockItemModel product)
+    public StockItemModel Insert(StockItemModel item)
     {
-        this.stockItems.TryAdd((product.seller_id, product.product_id), product);
-        return product;
+        this.stockItems.TryAdd((item.seller_id, item.product_id), item);
+        return item;
     }
 
-    public void Update(StockItemModel product)
+    public void Update(StockItemModel item)
     {
-         this.stockItems[(product.seller_id, product.product_id)] = product;
+         item.updated_at = DateTime.UtcNow;
+         this.stockItems[(item.seller_id, item.product_id)] = item;
     }
 
     public void UpdateRange(List<StockItemModel> stockItemsReserved)
@@ -136,7 +130,6 @@ public class InMemoryStockRepository : IStockRepository
             throw new NotImplementedException();
         }
     }
-
 
 }
 

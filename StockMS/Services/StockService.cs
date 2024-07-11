@@ -234,10 +234,7 @@ public class StockService : IStockService
             order_count = stockItem.order_count,
             ytd = stockItem.ytd,
             data = stockItem.data,
-            version = stockItem.version,
-            active = true,
-            created_at = now,
-            updated_at = now
+            version = stockItem.version
         };
         using (var txCtx = this.stockRepository.BeginTransaction())
         {

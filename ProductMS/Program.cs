@@ -37,9 +37,15 @@ if (config.PostgresEmbed)
     waitPgSql = server.StartAsync();
 }
 
-builder.Services.AddDbContext<ProductDbContext>();
+if (config.InMemoryDb)
+{
+     builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>();
+} else
+{
+    builder.Services.AddDbContext<ProductDbContext>();
+    builder.Services.AddScoped<IProductRepository, ProductRepository>();
+}
 
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddDaprClient();
@@ -75,18 +81,20 @@ using (var scope = app.Services.CreateScope())
         });
     }
 
-    var context = services.GetRequiredService<ProductDbContext>();
-    context.Database.Migrate();
+    if (!config.InMemoryDb){
+        var context = services.GetRequiredService<ProductDbContext>();
+        context.Database.Migrate();
 
-    if (config.Unlogged)
-    {
-        var tableNames = context.Model.GetEntityTypes()
-                            .Select(t => t.GetTableName())
-                            .Distinct()
-                            .ToList();
-        foreach (var table in tableNames)
+        if (config.Unlogged)
         {
-            context.Database.ExecuteSqlRaw($"ALTER TABLE product.{table} SET unlogged");
+            var tableNames = context.Model.GetEntityTypes()
+                                .Select(t => t.GetTableName())
+                                .Distinct()
+                                .ToList();
+            foreach (var table in tableNames)
+            {
+                context.Database.ExecuteSqlRaw($"ALTER TABLE product.{table} SET unlogged");
+            }
         }
     }
 }
