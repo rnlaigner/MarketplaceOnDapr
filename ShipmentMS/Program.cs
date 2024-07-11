@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShipmentMS.Infra;
 using ShipmentMS.Repositories;
+using ShipmentMS.Repositories.Impl;
 using ShipmentMS.Service;
 using MysticMind.PostgresEmbed;
 using Common.Utils;
@@ -38,10 +39,15 @@ if (config.PostgresEmbed)
     waitPgSql = server.StartAsync();
 }
 
-builder.Services.AddDbContext<ShipmentDbContext>();
-
-builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
-builder.Services.AddScoped<IPackageRepository, PackageRepository>();
+if (config.InMemoryDb)
+{
+    builder.Services.AddSingleton<IShipmentRepository, InMemoryShipmentRepository>();
+    builder.Services.AddSingleton<IPackageRepository, InMemoryPackageRepository>();
+} else {
+    builder.Services.AddDbContext<ShipmentDbContext>();
+    builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
+    builder.Services.AddScoped<IPackageRepository, PackageRepository>();
+}
 
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
 
@@ -73,18 +79,20 @@ using (var scope = app.Services.CreateScope())
             throw new Exception("PostgreSQL was not setup correctly!");
     }
 
-    var context = services.GetRequiredService<ShipmentDbContext>();
-    context.Database.Migrate();
+    if(!config.InMemoryDb){
+        var context = services.GetRequiredService<ShipmentDbContext>();
+        context.Database.Migrate();
 
-    if (config.Unlogged)
-    {
-        var tableNames = context.Model.GetEntityTypes()
-                            .Select(t => t.GetTableName())
-                            .Distinct()
-                            .ToList();
-        foreach (var table in tableNames)
+        if (config.Unlogged)
         {
-            context.Database.ExecuteSqlRaw($"ALTER TABLE shipment.{table} SET unlogged");
+            var tableNames = context.Model.GetEntityTypes()
+                                .Select(t => t.GetTableName())
+                                .Distinct()
+                                .ToList();
+            foreach (var table in tableNames)
+            {
+                context.Database.ExecuteSqlRaw($"ALTER TABLE shipment.{table} SET unlogged");
+            }
         }
     }
 }

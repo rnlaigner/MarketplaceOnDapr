@@ -51,12 +51,12 @@ public class ShipmentController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{orderId}")]
+    [Route("{customerId}/{orderId}")]
     [ProducesResponseType(typeof(Shipment), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<Shipment> GetShipment(int orderId)
+    public ActionResult<Shipment> GetShipment(int customerId, int orderId)
     {
-        ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
+        ShipmentModel? shipment = this.shipmentRepository.GetById((customerId, orderId));
         if (shipment is not null)
             return Ok(new Shipment()
             {

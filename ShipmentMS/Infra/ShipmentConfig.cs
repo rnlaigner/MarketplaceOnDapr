@@ -1,14 +1,15 @@
-﻿namespace ShipmentMS.Infra
+﻿namespace ShipmentMS.Infra;
+
+public class ShipmentConfig
 {
-	public class ShipmentConfig
-	{
-		public bool Streaming { get; set; }
+	public bool Streaming { get; set; }
 
-		public bool PostgresEmbed { get; set; } = false;
+	public bool InMemoryDb { get; set; } = false;
 
-        public bool Unlogged { get; set; } = false;
+	public bool PostgresEmbed { get; set; } = false;
 
-        public string RamDiskDir { get; set; } = "";
-	}
+    public bool Unlogged { get; set; } = false;
+
+    public string RamDiskDir { get; set; } = "";
 }
 

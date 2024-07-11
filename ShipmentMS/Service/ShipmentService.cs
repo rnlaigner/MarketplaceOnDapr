@@ -16,16 +16,14 @@ public class ShipmentService : IShipmentService
 {
     private const string PUBSUB_NAME = "pubsub";
 
-    private readonly ShipmentDbContext dbContext;
     private readonly IShipmentRepository shipmentRepository;
     private readonly IPackageRepository packageRepository;
     private readonly ShipmentConfig config;
     private readonly DaprClient daprClient;
     private readonly ILogger<ShipmentService> logger;
 
-    public ShipmentService(ShipmentDbContext dbContext, IShipmentRepository shipmentRepository, IPackageRepository packageRepository, IOptions<ShipmentConfig> config, DaprClient daprClient, ILogger<ShipmentService> logger)
+    public ShipmentService(IShipmentRepository shipmentRepository, IPackageRepository packageRepository, IOptions<ShipmentConfig> config, DaprClient daprClient, ILogger<ShipmentService> logger)
     {
-        this.dbContext = dbContext;
         this.shipmentRepository = shipmentRepository;
         this.packageRepository = packageRepository;
         this.config = config.Value;
@@ -38,7 +36,7 @@ public class ShipmentService : IShipmentService
      */
     public async Task ProcessShipment(PaymentConfirmed paymentConfirmed)
     {
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.shipmentRepository.BeginTransaction())
         {
             DateTime now = DateTime.UtcNow;
             ShipmentModel shipment = new()
@@ -59,6 +57,7 @@ public class ShipmentService : IShipmentService
             };
 
             this.shipmentRepository.Insert(shipment);
+
             int package_id = 1;
             List<PackageModel> packageModels = new();
             foreach (var item in paymentConfirmed.items)
@@ -80,12 +79,13 @@ public class ShipmentService : IShipmentService
                 package_id++;
             }
 
-            this.dbContext.AddRange(packageModels);
-            this.dbContext.SaveChanges();
+            this.packageRepository.InsertAll(packageModels);
+            // both repositories are part of the same context, so either call works
+            this.packageRepository.Save();
             txCtx.Commit();
 
             // enqueue shipment notification
-            if (config.Streaming)
+            if (this.config.Streaming)
             {
                 ShipmentNotification shipmentNotification = new ShipmentNotification(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId, now, paymentConfirmed.instanceId, ShipmentStatus.approved);
                 await Task.WhenAll(
@@ -107,18 +107,17 @@ public class ShipmentService : IShipmentService
     // update delivery status of many packages
     public async Task UpdateShipment(string instanceId)
     {
-        using (var txCtx = dbContext.Database.BeginTransaction(IsolationLevel.Serializable))
+        using (var txCtx = this.shipmentRepository.BeginTransaction(IsolationLevel.Serializable))
         {
             // perform a sql query to query the objects. write lock...
             var q = packageRepository.GetOldestOpenShipmentPerSeller();
 
             foreach (var kv in q)
             {
-                // logger.LogWarning("Seller ID {0}", kv.Key);
-                var packages_ = this.packageRepository.GetShippedPackagesByOrderAndSeller(kv.Value, kv.Key).ToList();
+                var packages_ = this.packageRepository.GetShippedPackagesByOrderAndSeller(int.Parse( kv.Value[0] ), int.Parse(kv.Value[1]), kv.Key).ToList();
                 if (packages_.Count() == 0)
                 {
-                    logger.LogWarning("No packages retrieved from the DB for seller {0}", kv.Key);
+                    this.logger.LogWarning("No packages retrieved from the DB for seller {0}", kv.Key);
                     continue;
                 }
                 await UpdatePackageDelivery(packages_, instanceId);
@@ -130,12 +129,11 @@ public class ShipmentService : IShipmentService
 
     private async Task UpdatePackageDelivery(List<PackageModel> sellerPackages, string instanceId)
     {
+        int customerId = sellerPackages.ElementAt(0).customer_id;
         int orderId = sellerPackages.ElementAt(0).order_id;
-        int sellerId = sellerPackages.ElementAt(0).seller_id;
-
-        ShipmentModel? shipment = this.shipmentRepository.GetById(orderId);
-        if (shipment is null) throw new Exception("Shipment ID " + orderId + " cannot be found in the database!");
-        List<Task> tasks = new(sellerPackages.Count() + 1);
+        var id = (customerId,orderId);
+        ShipmentModel? shipment = this.shipmentRepository.GetById(id) ?? throw new Exception("Shipment ID " + id + " cannot be found in the database!");
+        List<Task> tasks = new(sellerPackages.Count + 1);
         var now = DateTime.UtcNow;
         if (shipment.status == ShipmentStatus.approved)
         {
@@ -148,10 +146,10 @@ public class ShipmentService : IShipmentService
         }
 
         // aggregate operation
-        int countDelivered = this.packageRepository.GetTotalDeliveredPackagesForOrder(orderId);
+        int countDelivered = this.packageRepository.GetTotalDeliveredPackagesForOrder(shipment.customer_id, shipment.order_id);
 
-        this.logger.LogDebug("Count delivery for shipment id {1}: {2} total of {3}",
-                shipment.order_id, countDelivered, shipment.package_count);
+        this.logger.LogDebug("Count delivery for shipment id {0}-{1}: {2} total of {3}",
+                shipment.customer_id, shipment.order_id, countDelivered, shipment.package_count);
 
         foreach (var package in sellerPackages)
         {
@@ -187,9 +185,8 @@ public class ShipmentService : IShipmentService
 
     public void Cleanup()
     {
-        this.dbContext.Packages.ExecuteDelete();
-        this.dbContext.Shipments.ExecuteDelete();
-        this.dbContext.SaveChanges();
+        this.shipmentRepository.Cleanup();
+        this.shipmentRepository.Cleanup();
     }
 
 }

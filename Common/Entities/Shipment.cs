@@ -2,9 +2,9 @@
 {
 	public class Shipment
 	{
-        public int order_id;
         public int customer_id;
-
+        public int order_id;
+        
 		// materialized values from packages
 		public int package_count;
 		public float total_freight_value;

@@ -1,10 +1,8 @@
-﻿using System;
-using ShipmentMS.Models;
+﻿using ShipmentMS.Models;
 
-namespace ShipmentMS.Repositories
+namespace ShipmentMS.Repositories;
+
+public interface IShipmentRepository : IRepository<(int,int), ShipmentModel>
 {
-	public interface IShipmentRepository : IRepository<int, ShipmentModel>
-	{
-	}
+    void Cleanup();
 }
-

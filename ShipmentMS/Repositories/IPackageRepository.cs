@@ -1,16 +1,15 @@
-﻿using System;
-using ShipmentMS.Models;
+﻿using ShipmentMS.Models;
 
-namespace ShipmentMS.Repositories
+namespace ShipmentMS.Repositories;
+
+public interface IPackageRepository : IRepository<(int,int,int), PackageModel>
 {
-	public interface IPackageRepository : IRepository<(int,int), PackageModel>
-	{
-        IDictionary<int, int> GetOldestOpenShipmentPerSeller();
+    IDictionary<int, string[]> GetOldestOpenShipmentPerSeller();
 
-        IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(int orderId, int sellerId);
+    IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(int customerId, int orderId, int sellerId);
 
-        int GetTotalDeliveredPackagesForOrder(int orderId);
+    int GetTotalDeliveredPackagesForOrder(int customerId, int orderId);
 
-    }
+    void Cleanup();
 }
 
