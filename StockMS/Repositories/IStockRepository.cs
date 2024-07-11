@@ -1,21 +1,30 @@
-﻿using StockMS.Models;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using StockMS.Models;
 
-namespace StockMS.Repositories
+namespace StockMS.Repositories;
+
+public interface IStockRepository
 {
-	public interface IStockRepository
-	{
-        void Delete(StockItemModel product);
+    StockItemModel Insert(StockItemModel product);
 
-        void Update(StockItemModel product);
+    void Delete(StockItemModel product);
 
-        StockItemModel? GetItem(int sellerId, int productId);
+    void Update(StockItemModel product);
 
-        IEnumerable<StockItemModel> GetAll();
+    StockItemModel? Find(int sellerId, int productId);
 
-        IEnumerable<StockItemModel> GetItems(List<(int SellerId, int ProductId)> ids);
-        IEnumerable<StockItemModel> GetBySellerId(int sellerId);
+    IEnumerable<StockItemModel> GetAll();
 
-        StockItemModel GetItemForUpdate(int seller_id, int product_id);
-    }
+    IEnumerable<StockItemModel> GetItems(List<(int SellerId, int ProductId)> ids);
+    IEnumerable<StockItemModel> GetBySellerId(int sellerId);
+
+    StockItemModel FindForUpdate(int seller_id, int product_id);
+
+    // APIs for StockService
+    IDbContextTransaction BeginTransaction();
+    void FlushUpdates();
+    void UpdateRange(List<StockItemModel> stockItemsReserved);
+    void Reset(int qty);
+    void Cleanup();
 }
 

@@ -1,26 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using OrderMS.Common.Models;
 
-namespace OrderMS.Common.Repositories
+namespace OrderMS.Common.Repositories;
+
+public interface IOrderRepository
 {
-	public interface IOrderRepository
-	{
-        public IEnumerable<OrderModel> GetAll();
-        public IEnumerable<OrderModel> GetByCustomerId(int customerId);
-        public OrderModel? GetOrder(int customerId, int orderId);
-        public OrderModel InsertOrder(OrderModel order);
-        public OrderModel UpdateOrder(OrderModel order);
+    IEnumerable<OrderModel> GetAll();
+    IEnumerable<OrderModel> GetByCustomerId(int customerId);
+    OrderModel? GetOrder(int customerId, int orderId);
+    OrderModel InsertOrder(OrderModel order);
+    OrderModel UpdateOrder(OrderModel order);
 
-        // APIs for OrderService
-        public IDbContextTransaction BeginTransaction();
-        public CustomerOrderModel? GetCustomerOrderByCustomerId(int customerId);
-        public CustomerOrderModel InsertCustomerOrder(CustomerOrderModel customerOrder);
-        public CustomerOrderModel UpdateCustomerOrder(CustomerOrderModel customerOrder);
-        public OrderItemModel InsertOrderItem(OrderItemModel orderItem);
-        public OrderHistoryModel InsertOrderHistory(OrderHistoryModel orderHistory);
-        public void FlushUpdates();
-        public void Cleanup();
+    // APIs for OrderService
+    IDbContextTransaction BeginTransaction();
+    CustomerOrderModel? GetCustomerOrderByCustomerId(int customerId);
+    CustomerOrderModel InsertCustomerOrder(CustomerOrderModel customerOrder);
+    CustomerOrderModel UpdateCustomerOrder(CustomerOrderModel customerOrder);
+    OrderItemModel InsertOrderItem(OrderItemModel orderItem);
+    OrderHistoryModel InsertOrderHistory(OrderHistoryModel orderHistory);
+    void FlushUpdates();
+    void Cleanup();
 
-    }
 }
+
 

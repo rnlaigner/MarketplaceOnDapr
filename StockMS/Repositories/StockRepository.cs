@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using StockMS.Infra;
 using StockMS.Models;
 
@@ -17,10 +18,15 @@ namespace StockMS.Repositories
             this.logger = logger;
 		}
 
+        public StockItemModel Insert(StockItemModel product)
+        {
+            return this.dbContext.StockItems.Add(product).Entity;
+        }
+
         public void Delete(StockItemModel product)
         {
             product.active = false;
-            Update(product);
+            this.Update(product);
         }
 
         public void Update(StockItemModel item)
@@ -28,6 +34,11 @@ namespace StockMS.Repositories
             item.updated_at = DateTime.UtcNow;
             this.dbContext.StockItems.Update(item);
             this.dbContext.SaveChanges();
+        }
+
+        public void UpdateRange(List<StockItemModel> stockItemsReserved)
+        {
+            this.dbContext.StockItems.UpdateRange(stockItemsReserved);
         }
 
         public IEnumerable<StockItemModel> GetAll()
@@ -52,14 +63,14 @@ namespace StockMS.Repositories
             return dbContext.StockItems.FromSqlRaw(sql);
         }
 
-        public StockItemModel? GetItem(int sellerId, int productId)
+        public StockItemModel? Find(int sellerId, int productId)
         {
             return this.dbContext.StockItems.Find(sellerId, productId);
         }
 
         private const string SELECT_ITEM_FOR_UPDATE = "SELECT * FROM stock.stock_items s WHERE s.seller_id = {0} AND s.product_id = {1} FOR UPDATE";
 
-        public StockItemModel GetItemForUpdate(int sellerId, int productId)
+        public StockItemModel FindForUpdate(int sellerId, int productId)
         {
             var sql = string.Format(SELECT_ITEM_FOR_UPDATE, sellerId, productId);
             // this will fail if the item is not found
@@ -80,6 +91,29 @@ namespace StockMS.Repositories
         {
             return this.dbContext.StockItems.Where(p => p.seller_id == sellerId);
         }
+
+        public IDbContextTransaction BeginTransaction()
+        {
+            return this.dbContext.Database.BeginTransaction();
+        }
+
+        public void FlushUpdates()
+        {
+            this.dbContext.SaveChanges();
+        }
+
+        public void Cleanup()
+        {
+            this.dbContext.StockItems.ExecuteDelete();
+            this.dbContext.SaveChanges();
+        }
+
+        public void Reset(int qty)
+        {
+            this.dbContext.Database.ExecuteSqlRaw(string.Format("UPDATE stock_items SET active=true, version='0', qty_reserved=0, qty_available={0}",qty));
+            this.dbContext.SaveChanges();
+        }
+
 
     }
 }

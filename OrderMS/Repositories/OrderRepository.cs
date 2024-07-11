@@ -91,7 +91,6 @@ public class OrderRepository : IOrderRepository
         this.dbContext.OrderItems.ExecuteDelete();
         this.dbContext.OrderHistory.ExecuteDelete();
         this.dbContext.Orders.ExecuteDelete();
-     
         this.dbContext.CustomerOrders.ExecuteDelete();
         this.dbContext.SaveChanges();
     }

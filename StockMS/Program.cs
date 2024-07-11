@@ -38,9 +38,14 @@ if (config.PostgresEmbed)
     waitPgSql = server.StartAsync();
 }
 
-builder.Services.AddDbContext<StockDbContext>();
+if (config.InMemoryDb)
+{
+    builder.Services.AddSingleton<IStockRepository, InMemoryStockRepository>();
+} else {
+    builder.Services.AddDbContext<StockDbContext>();
+    builder.Services.AddScoped<IStockRepository, StockRepository>();
+}
 
-builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
 
 builder.Services.AddDaprClient();
@@ -76,19 +81,21 @@ using (var scope = app.Services.CreateScope())
         });
     }
 
-    var context = services.GetRequiredService<StockDbContext>();
-    context.Database.Migrate();
+    if(!config.InMemoryDb){
+        var context = services.GetRequiredService<StockDbContext>();
+        context.Database.Migrate();
 
-    if (config.Unlogged)
-    {
-        var tableNames = context.Model.GetEntityTypes()
-                            .Select(t => t.GetTableName())
-                            .Distinct()
-                            .ToList();
-        foreach (var table in tableNames)
+        if (config.Unlogged)
         {
-            context.Database.ExecuteSqlRaw($"ALTER TABLE stock.{table} SET unlogged");
-        }
+            var tableNames = context.Model.GetEntityTypes()
+                                .Select(t => t.GetTableName())
+                                .Distinct()
+                                .ToList();
+            foreach (var table in tableNames)
+            {
+                context.Database.ExecuteSqlRaw($"ALTER TABLE stock.{table} SET unlogged");
+            }
+    }
     }
 }
 
@@ -103,4 +110,3 @@ if (config.Streaming)
     app.MapSubscribeHandler();
 
 app.Run();
-

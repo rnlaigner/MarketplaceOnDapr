@@ -30,7 +30,7 @@ public class StockController : ControllerBase
     public async Task<ActionResult> IncreaseStock([FromBody] IncreaseStock increaseStock)
     {
         this.logger.LogInformation("[IncreaseStock] received for item id {0}", increaseStock.product_id);
-        var item = this.stockRepository.GetItem(increaseStock.seller_id, increaseStock.product_id);
+        var item = this.stockRepository.Find(increaseStock.seller_id, increaseStock.product_id);
         if (item is null)
         {
             this.logger.LogInformation("[IncreaseStock] completed for item id {0}.", increaseStock.product_id);
@@ -61,7 +61,7 @@ public class StockController : ControllerBase
     [ProducesResponseType(typeof(StockItem), (int)HttpStatusCode.OK)]
     public ActionResult<StockItem> GetBySellerIdAndProductId(int sellerId, int productId)
     {
-        StockItemModel? item = this.stockRepository.GetItem(sellerId, productId);
+        StockItemModel? item = this.stockRepository.Find(sellerId, productId);
         if (item is not null){
             return Ok(new StockItem()
             {

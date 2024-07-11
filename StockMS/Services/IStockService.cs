@@ -18,12 +18,11 @@ namespace StockMS.Services
         Task IncreaseStock(IncreaseStock increaseStock);
 
         void Cleanup();
-
         void Reset();
 
         Task ProcessPoisonReserveStock(ReserveStock reserveStock);
         Task ProcessPoisonProductUpdate(ProductUpdated productUpdate);
-     
+
     }
 }
 

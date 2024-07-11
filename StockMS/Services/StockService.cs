@@ -7,7 +7,6 @@ using StockMS.Infra;
 using StockMS.Models;
 using StockMS.Repositories;
 using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
 
 namespace StockMS.Services;
 
@@ -15,16 +14,13 @@ public class StockService : IStockService
 {
     private const string PUBSUB_NAME = "pubsub";
 
-    private readonly StockDbContext dbContext;
     private readonly IStockRepository stockRepository;
     private readonly DaprClient daprClient;
     private readonly StockConfig config;
     private readonly ILogger<StockService> logger;
 
-    public StockService(StockDbContext dbContext, IStockRepository stockRepository, DaprClient daprClient,
-        IOptions<StockConfig> config, ILogger<StockService> logger)
+    public StockService(IStockRepository stockRepository, DaprClient daprClient, IOptions<StockConfig> config, ILogger<StockService> logger)
     {
-        this.dbContext = dbContext;
         this.stockRepository = stockRepository;
         this.daprClient = daprClient;
         this.config = config.Value;
@@ -33,9 +29,9 @@ public class StockService : IStockService
 
     public async Task ProcessProductUpdate(ProductUpdated productUpdated)
     {
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.stockRepository.BeginTransaction())
         {
-            StockItemModel stockItem = this.stockRepository.GetItemForUpdate(productUpdated.seller_id, productUpdated.product_id);
+            StockItemModel stockItem = this.stockRepository.FindForUpdate(productUpdated.seller_id, productUpdated.product_id);
             if (stockItem is null)
             {
                 throw new ApplicationException("Stock item not found "+productUpdated.seller_id +"-" + productUpdated.product_id);
@@ -64,7 +60,7 @@ public class StockService : IStockService
     public async Task ReserveStockAsync(ReserveStock checkout)
     {   
         var ids = checkout.items.Select(c => (c.SellerId, c.ProductId)).ToList();
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.stockRepository.BeginTransaction())
         {
             IEnumerable<StockItemModel> items = this.stockRepository.GetItems(ids);
             if (!items.Any())
@@ -103,8 +99,8 @@ public class StockService : IStockService
 
             if (cartItemsReserved.Count() > 0)
             {
-                this.dbContext.UpdateRange(stockItemsReserved);
-                int entriesWritten = this.dbContext.SaveChanges();
+                this.stockRepository.UpdateRange(stockItemsReserved);
+                this.stockRepository.FlushUpdates();
                 txCtx.Commit();
             }
 
@@ -154,7 +150,7 @@ public class StockService : IStockService
     {
         var now = DateTime.UtcNow;
         var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.stockRepository.BeginTransaction())
         {
             var items = stockRepository.GetItems(ids);
             var stockItems = items.ToDictionary(p => (p.seller_id, p.product_id), c => c);
@@ -164,9 +160,9 @@ public class StockService : IStockService
                 var stockItem = stockItems[(item.seller_id,item.product_id)];
                 stockItem.qty_reserved -= item.quantity;
                 stockItem.updated_at = now;
-                this.dbContext.Update(stockItem);
+                this.stockRepository.Update(stockItem);
             }
-            this.dbContext.SaveChanges();
+            this.stockRepository.FlushUpdates();
             txCtx.Commit();
         }
     }
@@ -175,7 +171,7 @@ public class StockService : IStockService
     {
         var now = DateTime.UtcNow;
         var ids = payment.items.Select(p => (p.seller_id, p.product_id)).ToList();
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.stockRepository.BeginTransaction())
         {
             IEnumerable<StockItemModel> items = stockRepository.GetItems(ids);
             var stockItems = items.ToDictionary(p => (p.seller_id, p.product_id), c => c);
@@ -187,19 +183,19 @@ public class StockService : IStockService
                 stockItem.qty_reserved -= item.quantity;
                 stockItem.order_count++;
                 stockItem.updated_at = now;
-                this.dbContext.Update(stockItem);
+                this.stockRepository.Update(stockItem);
             }
-            this.dbContext.SaveChanges();
+            this.stockRepository.FlushUpdates();
             txCtx.Commit();
         }
     }
 
     public async Task IncreaseStock(IncreaseStock increaseStock)
     {
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.stockRepository.BeginTransaction())
         {
 
-            var item = dbContext.StockItems.Find(increaseStock.seller_id, increaseStock.product_id);
+            var item = this.stockRepository.Find(increaseStock.seller_id, increaseStock.product_id);
             if (item is null)
             {
                 this.logger.LogWarning("Attempt to lock item {0},{1} has not succeeded", increaseStock.seller_id, increaseStock.product_id);
@@ -207,7 +203,7 @@ public class StockService : IStockService
             }
 
             item.qty_available += increaseStock.quantity;
-            stockRepository.Update(item);
+            this.stockRepository.Update(item);
             txCtx.Commit();
 
             if (this.config.Streaming)
@@ -243,14 +239,14 @@ public class StockService : IStockService
             created_at = now,
             updated_at = now
         };
-        using (var txCtx = dbContext.Database.BeginTransaction())
+        using (var txCtx = this.stockRepository.BeginTransaction())
         {
-            var existing = dbContext.StockItems.Find(stockItem.seller_id, stockItem.product_id);
+            var existing = this.stockRepository.Find(stockItem.seller_id, stockItem.product_id);
             if(existing is null)
-                dbContext.StockItems.Add(stockItemModel);
+                this.stockRepository.Insert(stockItemModel);
             else
-                dbContext.StockItems.Update(stockItemModel);
-            dbContext.SaveChanges();
+                this.stockRepository.Update(stockItemModel);
+            this.stockRepository.FlushUpdates();
             txCtx.Commit();
         }
         return Task.CompletedTask;
@@ -258,14 +254,12 @@ public class StockService : IStockService
 
     public void Cleanup()
     {
-        this.dbContext.StockItems.ExecuteDelete();
-        this.dbContext.SaveChanges();
+        this.stockRepository.Cleanup();
     }
 
     public void Reset()
     {
-        this.dbContext.Database.ExecuteSqlRaw(string.Format("UPDATE stock_items SET active=true, version='0', qty_reserved=0, qty_available={0}",this.config.DefaultInventory));
-        this.dbContext.SaveChanges();
+        this.stockRepository.Reset(this.config.DefaultInventory);
     }
 
 }
