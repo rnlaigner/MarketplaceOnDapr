@@ -34,19 +34,19 @@ public class PaymentController : ControllerBase
         }
         catch (Exception e)
         {
-            logger.LogCritical(e.ToString());
+            this.logger.LogCritical(e.ToString());
             await this.paymentService.ProcessPoisonPayment(invoiceIssued);
         }
         return Ok();
     }
 
     [HttpGet]
-    [Route("{orderId}")]
+    [Route("{customerId}/{orderId}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult<IEnumerable<OrderPaymentModel>> GetPaymentByOrderId(int orderId)
+    public ActionResult<IEnumerable<OrderPaymentModel>> GetPaymentByOrderId(int customerId, int orderId)
     {
-        var res = this.paymentRepository.GetByOrderId(orderId);
+        var res = this.paymentRepository.GetByOrderId(customerId, orderId);
         return res is not null ? Ok( res ) : NotFound();
     }
 
@@ -55,7 +55,7 @@ public class PaymentController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Accepted)]
     public ActionResult Cleanup()
     {
-        logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
+        this.logger.LogWarning("Cleanup requested at {0}", DateTime.UtcNow);
         this.paymentService.Cleanup();
         return Ok();
     }

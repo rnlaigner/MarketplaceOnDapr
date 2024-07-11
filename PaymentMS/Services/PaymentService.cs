@@ -6,9 +6,9 @@ using PaymentMS.Infra;
 using Common.Integration;
 using PaymentMS.Models;
 using System.Globalization;
-using Microsoft.EntityFrameworkCore;
 using Common.Driver;
 using System.Text;
+using PaymentMS.Repositories;
 
 namespace PaymentMS.Services;
 
@@ -16,16 +16,16 @@ public class PaymentService : IPaymentService
 {
     private const string PUBSUB_NAME = "pubsub";
 
-    private readonly PaymentDbContext dbContext;
+    private readonly IPaymentRepository paymentRepository;
     private readonly DaprClient daprClient;
     private readonly PaymentConfig config;
     private readonly IExternalProvider externalProvider;
     private readonly ILogger<PaymentService> logger;
 
-    public PaymentService(PaymentDbContext dbContext, DaprClient daprClient, IOptions<PaymentConfig> config,
+    public PaymentService(IPaymentRepository paymentRepository, DaprClient daprClient, IOptions<PaymentConfig> config,
         IExternalProvider externalProvider, ILogger<PaymentService> logger)
 	{
-        this.dbContext = dbContext;
+        this.paymentRepository = paymentRepository;
         this.daprClient = daprClient;
         this.config = config.Value;
         this.externalProvider = externalProvider;
@@ -76,7 +76,7 @@ public class PaymentService : IPaymentService
         }
 
         var now = DateTime.UtcNow;
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.paymentRepository.BeginTransaction())
         {
             int seq = 1;
             var cc = invoiceIssued.customer.PaymentType.Equals(PaymentType.CREDIT_CARD.ToString());
@@ -95,8 +95,8 @@ public class PaymentService : IPaymentService
                     created_at = now
                 };
 
-                var entity = this.dbContext.OrderPayments.Add(cardPaymentLine).Entity;
-                this.dbContext.SaveChanges();
+                var entity = this.paymentRepository.Insert(cardPaymentLine);
+                this.paymentRepository.FlushUpdates();
 
                 // create an entity for credit card payment details with FK to order payment
                 OrderPaymentCardModel card = new()
@@ -111,7 +111,7 @@ public class PaymentService : IPaymentService
                     orderPayment = entity
                 };
 
-                this.dbContext.OrderPaymentCards.Add(card);
+                this.paymentRepository.Insert(card);
                 seq++;
             }
 
@@ -157,8 +157,8 @@ public class PaymentService : IPaymentService
             }
 
             if (paymentLines.Count() > 0)
-                this.dbContext.OrderPayments.AddRange(paymentLines);
-            this.dbContext.SaveChanges();
+                this.paymentRepository.InsertAll(paymentLines);
+            this.paymentRepository.FlushUpdates();
             txCtx.Commit();
             if (this.config.Streaming)
             {
@@ -188,9 +188,7 @@ public class PaymentService : IPaymentService
 
     public void Cleanup()
     {
-        this.dbContext.OrderPaymentCards.ExecuteDelete();
-        this.dbContext.OrderPayments.ExecuteDelete();
-        this.dbContext.SaveChanges();
+        this.paymentRepository.Cleanup();
     }
 
 }

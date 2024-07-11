@@ -1,19 +1,20 @@
-﻿namespace PaymentMS.Infra
+﻿namespace PaymentMS.Infra;
+
+public class PaymentConfig
 {
-	public class PaymentConfig
-	{
-		public bool PaymentProvider { get; set; } = false;
-		public string PaymentProviderUrl { get; set; } = "";
+	public bool PaymentProvider { get; set; } = false;
+	public string PaymentProviderUrl { get; set; } = "";
 
-		public bool Streaming { get; set; } = false;
+	public bool Streaming { get; set; } = false;
 
-		public bool PostgresEmbed { get; set; } = false;
+	public bool InMemoryDb { get; set; } = false;
 
-        public bool Unlogged { get; set; } = false;
+	public bool PostgresEmbed { get; set; } = false;
 
-        public string RamDiskDir { get; set; } = "";
+    public bool Unlogged { get; set; } = false;
 
-		public int Delay { get; set; } = 0;
-    }
+    public string RamDiskDir { get; set; } = "";
+
+	public int Delay { get; set; } = 0;
 }
 

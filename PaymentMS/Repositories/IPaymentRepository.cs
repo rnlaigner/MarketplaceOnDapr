@@ -1,13 +1,18 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Storage;
 using PaymentMS.Models;
 
-namespace PaymentMS.Repositories
+namespace PaymentMS.Repositories;
+
+public interface IPaymentRepository
 {
-	public interface IPaymentRepository
-	{
+    IEnumerable<OrderPaymentModel> GetByOrderId(int customerId, int orderId);
 
-        IEnumerable<OrderPaymentModel> GetByOrderId(int orderId);
+    OrderPaymentCardModel Insert(OrderPaymentCardModel orderPaymentCard);
+    OrderPaymentModel Insert(OrderPaymentModel orderPayment);
 
-    }
+    // APIs for PaymentService
+    IDbContextTransaction BeginTransaction();
+    void FlushUpdates();
+    void Cleanup();
+    void InsertAll(List<OrderPaymentModel> paymentLines);
 }
-
