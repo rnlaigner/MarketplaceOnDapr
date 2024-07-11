@@ -48,7 +48,7 @@ public class CartController : ControllerBase
             }
 
             if (cart is null) {
-                _ = cartRepository.Insert(new()
+                cartRepository.Insert(new()
                 {
                     customer_id = customerId,
                 });

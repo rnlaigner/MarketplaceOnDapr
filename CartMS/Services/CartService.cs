@@ -7,18 +7,15 @@ using Common.Entities;
 using Common.Events;
 using Common.Requests;
 using Dapr.Client;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace CartMS.Services;
 
 public class CartService : ICartService
 {
-
     private const string PUBSUB_NAME = "pubsub";
 
     private readonly DaprClient daprClient;
-    private readonly CartDbContext dbContext;
 
     private readonly ICartRepository cartRepository;
     private readonly IProductReplicaRepository productReplicaRepository;
@@ -26,10 +23,9 @@ public class CartService : ICartService
     private readonly CartConfig config;
     private readonly ILogger<CartService> logger;
 
-    public CartService(DaprClient daprClient, CartDbContext cartDbContext, ICartRepository cartRepository, IProductReplicaRepository productReplicaRepository, IOptions<CartConfig> config, ILogger<CartService> logger)
+    public CartService(DaprClient daprClient, ICartRepository cartRepository, IProductReplicaRepository productReplicaRepository, IOptions<CartConfig> config, ILogger<CartService> logger)
 	{
         this.daprClient = daprClient;
-        this.dbContext = cartDbContext;
         this.cartRepository = cartRepository;
         this.productReplicaRepository = productReplicaRepository;
         this.config = config.Value;
@@ -41,19 +37,17 @@ public class CartService : ICartService
         cart.status = CartStatus.OPEN;
         if (cleanItems)
         {
-            this.cartRepository.DeleteItems(cart.customer_id);
+            this.cartRepository.Delete(cart.customer_id);
         }
         cart.updated_at = DateTime.UtcNow;
         this.cartRepository.Update(cart);   
     }
 
-    private static readonly float[] emptyArray = Array.Empty<float>();
-
     static readonly string checkoutStreamId = new StringBuilder(nameof(TransactionMark)).Append('_').Append(TransactionType.CUSTOMER_SESSION.ToString()).ToString();
 
     public async Task NotifyCheckout(CustomerCheckout customerCheckout)
     {
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.cartRepository.BeginTransaction())
         {
             List<CartItem> cartItems;
             if(config.ControllerChecks){
@@ -81,7 +75,7 @@ public class CartService : ICartService
                 
             } else {
                 IList<CartItemModel> cartItemModels = this.cartRepository.GetItems(customerCheckout.CustomerId);
-                this.cartRepository.DeleteItems(customerCheckout.CustomerId);
+                this.cartRepository.Delete(customerCheckout.CustomerId);
                 cartItems = cartItemModels.Select(i => new CartItem()
                         {
                             SellerId = i.seller_id,
@@ -133,7 +127,7 @@ public class CartService : ICartService
 
     public async Task ProcessPriceUpdate(PriceUpdated priceUpdate)
     {
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.cartRepository.BeginTransaction())
         {
             if(this.productReplicaRepository.Exists(priceUpdate.seller_id, priceUpdate.product_id))
             {
@@ -143,10 +137,6 @@ public class CartService : ICartService
                 {
                     product.price = priceUpdate.price;
                     this.productReplicaRepository.Update(product);
-                }
-                else // outdated update, no longer applies...
-                {
-                    // logger.LogWarning($"Versions not not match for price update. Product {product.version} != {priceUpdate.version}");
                 }
             }
 
@@ -159,6 +149,7 @@ public class CartService : ICartService
             }
             txCtx.Commit();
         }
+
         if (this.config.Streaming)
         {
             await this.daprClient.PublishEventAsync(PUBSUB_NAME, priceUpdateStreamId, new TransactionMark(priceUpdate.instanceId, TransactionType.PRICE_UPDATE, priceUpdate.seller_id, MarkStatus.SUCCESS, "cart"));
@@ -198,18 +189,12 @@ public class CartService : ICartService
 
     public void Cleanup()
     {
-        this.dbContext.Carts.ExecuteDelete();
-        this.dbContext.CartItems.ExecuteDelete();
-        this.dbContext.Products.ExecuteDelete();
-        this.dbContext.SaveChanges();
+        this.cartRepository.Cleanup();
     }
 
     public void Reset()
     {
-        this.dbContext.Carts.ExecuteDelete();
-        this.dbContext.CartItems.ExecuteDelete();
-        this.dbContext.Database.ExecuteSqlRaw("UPDATE replica_products SET active=true");
-        this.dbContext.SaveChanges();
+        this.cartRepository.Reset();
     }
 
 }

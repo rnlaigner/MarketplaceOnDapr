@@ -1,26 +1,30 @@
 ﻿using CartMS.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 
-namespace CartMS.Repositories
+namespace CartMS.Repositories;
+
+public interface ICartRepository
 {
-    public interface ICartRepository
-    {
-        CartModel? GetCart(int customerId);
+    CartModel? GetCart(int customerId);
 
-        IList<CartItemModel> GetItems(int customerId);
+    IList<CartItemModel> GetItems(int customerId);
 
-        IList<CartItemModel> GetItemsByProduct(int sellerId, int productId, string version);
+    IList<CartItemModel> GetItemsByProduct(int sellerId, int productId, string version);
 
-        CartItemModel AddItem(CartItemModel item);
+    CartItemModel AddItem(CartItemModel item);
 
-        CartModel? Delete(int customerId);
+    CartModel? Delete(int customerId);
 
-        CartModel Update(CartModel cart);
+    void Update(CartModel cart);
 
-        CartModel Insert(CartModel cart);
+    void Insert(CartModel cart);
 
-        void DeleteItems(int customerId);
+    CartItemModel UpdateItem(CartItemModel item);
 
-        CartItemModel UpdateItem(CartItemModel item);
-    }
+    // APIs for CartService
+    IDbContextTransaction BeginTransaction();
+    void FlushUpdates();
+    void Cleanup();
+    void Reset();
 }
 

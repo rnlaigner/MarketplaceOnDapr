@@ -16,15 +16,6 @@ namespace CartMS.Repositories
             this.logger = logger;
         }
 
-        public ProductReplicaModel Delete(ProductReplicaModel product)
-        {
-            product.updated_at = DateTime.UtcNow;
-            product.active = false;
-            var track = this.dbContext.Products.Update(product);
-            this.dbContext.SaveChanges();
-            return track.Entity;
-        }
-
         public ProductReplicaModel GetProduct(int sellerId, int productId)
         {
             return this.dbContext.Products.Where(p=> p.seller_id == sellerId && p.product_id == productId).First();
