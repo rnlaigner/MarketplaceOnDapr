@@ -5,33 +5,21 @@ using Microsoft.Extensions.Options;
 using SellerMS.DTO;
 using SellerMS.Infra;
 using SellerMS.Models;
+using SellerMS.Repositories;
 
 namespace SellerMS.Services;
 
 public class SellerService : ISellerService
 {
-    private readonly SellerDbContext dbContext;
+    private readonly ISellerRepository sellerRepository;
     private readonly SellerConfig config;
     private readonly ILogger<SellerService> logger;
 
-    public SellerService(SellerDbContext sellerDbContext, IOptions<SellerConfig> config, ILogger<SellerService> logger)
+    public SellerService(ISellerRepository sellerRepository, IOptions<SellerConfig> config, ILogger<SellerService> logger)
     {
-        this.dbContext = sellerDbContext;
+        this.sellerRepository = sellerRepository;
         this.config = config.Value;
         this.logger = logger;
-    }
-
-    private static int LOCKED = 0;
-
-    // this method allows a natural accumulation of concurrent requests
-    // thus decreasing overall cost of updating seller view
-    public void RefreshSellerViewSafely()
-    {
-        if (0 == Interlocked.CompareExchange(ref LOCKED, 1, 0))
-        {
-            this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
-            Interlocked.Exchange(ref LOCKED, 0);
-        }
     }
 
     /**
@@ -39,7 +27,7 @@ public class SellerService : ISellerService
      */
     public void ProcessInvoiceIssued(InvoiceIssued invoiceIssued)
     {
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.sellerRepository.BeginTransaction())
         {
             foreach (var item in invoiceIssued.items)
             {
@@ -66,24 +54,21 @@ public class SellerService : ISellerService
                     order_status = OrderStatus.INVOICED,
                     natural_key = string.Format($"{invoiceIssued.customer.CustomerId}_{invoiceIssued.orderId}")
                 };
-                this.dbContext.OrderEntries.Add(orderEntry);
+                this.sellerRepository.AddOrderEntry(orderEntry);
             }
-            this.dbContext.SaveChanges();
+            this.sellerRepository.FlushUpdates();
             txCtx.Commit();
         }
-        this.RefreshSellerViewSafely();
+        this.sellerRepository.RefreshSellerViewSafely();
     }
 
     public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
     {
         // create the order if does not exist. if exist, update status. using merge statement
         // https://www.postgresql.org/docs/current/sql-merge.html
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.sellerRepository.BeginTransaction())
         {
-            var entries = this.dbContext.OrderEntries.Where(oe =>
-                oe.customer_id == shipmentNotification.customerId &&
-                oe.order_id == shipmentNotification.orderId).AsNoTracking();
-
+            var entries = this.sellerRepository.GetOrderEntries(shipmentNotification.customerId, shipmentNotification.orderId);
             foreach (var oe in entries)
             {
                 if (shipmentNotification.status == ShipmentStatus.approved)
@@ -91,24 +76,20 @@ public class SellerService : ISellerService
                     oe.order_status = OrderStatus.READY_FOR_SHIPMENT;
                     oe.shipment_date = shipmentNotification.eventDate;
                     oe.delivery_status = PackageStatus.ready_to_ship;
-                    this.dbContext.OrderEntries.Update(oe);
                 } else if (shipmentNotification.status == ShipmentStatus.delivery_in_progress)
                 {
                     oe.order_status = OrderStatus.IN_TRANSIT;
                     oe.delivery_status = PackageStatus.shipped;
-                    this.dbContext.OrderEntries.Update(oe);
                 }
                 else if (shipmentNotification.status == ShipmentStatus.concluded){
                     oe.order_status = OrderStatus.DELIVERED;
                 }
             }
-
-            this.dbContext.OrderEntries.UpdateRange(entries);
-          
-            this.dbContext.SaveChanges();
+            this.sellerRepository.UpdateRange(entries);
+            this.sellerRepository.FlushUpdates();
             txCtx.Commit();
         }
-        this.RefreshSellerViewSafely();
+        this.sellerRepository.RefreshSellerViewSafely();
     }
 
     /**
@@ -116,82 +97,71 @@ public class SellerService : ISellerService
      */
     public void ProcessDeliveryNotification(DeliveryNotification deliveryNotification)
     {
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.sellerRepository.BeginTransaction())
         {
-            OrderEntry? oe = this.dbContext.OrderEntries.Find(deliveryNotification.customerId, deliveryNotification.orderId, deliveryNotification.productId);
+            OrderEntry? oe = this.sellerRepository.Find(
+                deliveryNotification.customerId, 
+                deliveryNotification.orderId,
+                deliveryNotification.sellerId,
+                deliveryNotification.productId);
             if (oe is null) throw new Exception("[ProcessDeliveryNotification] Cannot find respective order entry for order id "+ deliveryNotification.orderId + " and product id "+ deliveryNotification.productId);
 
             oe.package_id = deliveryNotification.packageId;
             oe.delivery_date = deliveryNotification.deliveryDate;
             oe.delivery_status = deliveryNotification.status;
 
-            this.dbContext.OrderEntries.Update(oe);
-            this.dbContext.SaveChanges();
+            this.sellerRepository.Update(oe);
+            this.sellerRepository.FlushUpdates();
             txCtx.Commit();
         }
     }
 
     public void ProcessPaymentConfirmed(PaymentConfirmed paymentConfirmed)
     {
-        Thread.Sleep(1000); // wait for order entry processing
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.sellerRepository.BeginTransaction())
         {
-            var entries = this.dbContext.OrderEntries.Where(oe => oe.order_id == paymentConfirmed.orderId);
+            var entries = this.sellerRepository.GetOrderEntries(paymentConfirmed.customer.CustomerId, paymentConfirmed.orderId);
             foreach (var oe in entries)
             {
                 oe.order_status = OrderStatus.PAYMENT_PROCESSED;
             }
-            this.dbContext.OrderEntries.UpdateRange(entries);
-            this.dbContext.SaveChanges();
+            this.sellerRepository.UpdateRange(entries);
+            this.sellerRepository.FlushUpdates();
             txCtx.Commit();  
         }
     }
 
     public void ProcessPaymentFailed(PaymentFailed paymentFailed)
     {
-        Thread.Sleep(1000);
-        using (var txCtx = this.dbContext.Database.BeginTransaction())
+        using (var txCtx = this.sellerRepository.BeginTransaction())
         {
-            var entries = this.dbContext.OrderEntries.Where(oe => oe.order_id == paymentFailed.orderId);
-
+            var entries = this.sellerRepository.GetOrderEntries(paymentFailed.customer.CustomerId, paymentFailed.orderId);
             foreach (var oe in entries)
             {
                 oe.order_status = OrderStatus.PAYMENT_FAILED;
             }
-
-            this.dbContext.OrderEntries.UpdateRange(entries);
-            this.dbContext.SaveChanges();
+            this.sellerRepository.UpdateRange(entries);
+            this.sellerRepository.FlushUpdates();
             txCtx.Commit();
         }
     }
 
     public SellerDashboard QueryDashboard(int sellerId)
     {
-        using (var txCtx = this.dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Snapshot))
+        using (var txCtx = this.sellerRepository.BeginTransaction())
         {
-            return new SellerDashboard(
-            this.dbContext.OrderSellerView.Where(v => v.seller_id == sellerId).AsEnumerable().FirstOrDefault(new OrderSellerView()),
-            this.dbContext.OrderEntries.Where(oe => oe.seller_id == sellerId && (oe.order_status == OrderStatus.INVOICED || oe.order_status == OrderStatus.READY_FOR_SHIPMENT ||
-                                                            oe.order_status == OrderStatus.IN_TRANSIT || oe.order_status == OrderStatus.PAYMENT_PROCESSED)).ToList()
-            );
+            return this.sellerRepository.QueryDashboard(sellerId);
         }
     }
 
-    // cleanup cleans up the database
     public void Cleanup()
     {
-        this.dbContext.Sellers.ExecuteDelete();
-        this.dbContext.OrderEntries.ExecuteDelete();
-        this.dbContext.SaveChanges();
-        this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
+        this.sellerRepository.Cleanup();
     }
 
-    // reset maintains seller records
     public void Reset()
     {
-        this.dbContext.OrderEntries.ExecuteDelete();
-        this.dbContext.SaveChanges();
-        this.dbContext.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_UPDATE_SQL);
+        this.sellerRepository.Reset();
     }
 
 }

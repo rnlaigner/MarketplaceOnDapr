@@ -38,9 +38,13 @@ if (config.PostgresEmbed)
     waitPgSql = server.StartAsync();
 }
 
-builder.Services.AddDbContextFactory<SellerDbContext>();
+if(config.InMemoryDb){
+    builder.Services.AddSingleton<ISellerRepository, InMemorySellerRepository>();
+} else {
+    builder.Services.AddDbContextFactory<SellerDbContext>();
+    builder.Services.AddScoped<ISellerRepository, SellerRepository>();
+}
 
-builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 builder.Services.AddScoped<ISellerService, SellerService>();
 
 builder.Services.AddDaprClient();
@@ -71,24 +75,26 @@ using (var scope = app.Services.CreateScope())
             throw new Exception("PostgreSQL was not setup correctly!");
     }
 
-    var context = services.GetRequiredService<SellerDbContext>();
-    context.Database.Migrate();
+    if(!config.InMemoryDb){
+        var context = services.GetRequiredService<SellerDbContext>();
+        context.Database.Migrate();
 
-    if (config.Unlogged)
-    {
-        var tableNames = context.Model.GetEntityTypes()
-                            .Select(t => t.GetTableName())
-                            .Distinct()
-                            .ToList();
-        foreach (var table in tableNames)
+        if (config.Unlogged)
         {
-            if(table is null || table.SequenceEqual("")) continue;
-            context.Database.ExecuteSqlRaw($"ALTER TABLE seller.{table} SET unlogged");
+            var tableNames = context.Model.GetEntityTypes()
+                                .Select(t => t.GetTableName())
+                                .Distinct()
+                                .ToList();
+            foreach (var table in tableNames)
+            {
+                if(table is null || table.SequenceEqual("")) continue;
+                context.Database.ExecuteSqlRaw($"ALTER TABLE seller.{table} SET unlogged");
+            }
         }
-    }
 
-    context.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_SQL);
-    context.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_SQL_INDEX);
+        context.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_SQL);
+        context.Database.ExecuteSqlRaw(SellerDbContext.ORDER_SELLER_VIEW_SQL_INDEX);
+    }
 }
 
 app.UseCloudEvents();
