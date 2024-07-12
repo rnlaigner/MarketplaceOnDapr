@@ -9,4 +9,9 @@ dotnet ef migrations add CustomerMigration -c CustomerDbContext
 dapr run --app-port 5007 --app-id customer --app-protocol http --dapr-http-port 3507 --metrics-port 9097 -- dotnet run --urls "http://*:5007" --project CustomerMS.csproj
 
 ### without metrics
+
+#### inside folder
 dapr run --app-port 5007 --app-id customer --app-protocol http --dapr-http-port 3507 -- dotnet run --urls "http://*:5007" --project CustomerMS.csproj
+
+#### root folder
+dapr run --app-port 5007 --app-id customer --app-protocol http --dapr-http-port 3507 -- dotnet run --urls "http://*:5007" --project CustomerMS/CustomerMS.csproj

@@ -6,7 +6,7 @@ namespace StockMS.Repositories;
 
 public class InMemoryStockRepository : IStockRepository
 {
-    private readonly ConcurrentDictionary<(int sellerId, int productId),StockItemModel> stockItems;
+    private readonly ConcurrentDictionary<(int sellerId, int productId), StockItemModel> stockItems;
 
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 

@@ -38,9 +38,13 @@ if (config.PostgresEmbed)
     waitPgSql = server.StartAsync();
 }
 
-builder.Services.AddDbContext<CustomerDbContext>();
+if(config.InMemoryDb){
+    builder.Services.AddSingleton<ICustomerRepository, InMemoryCustomerRepository>();
+} else {
+    builder.Services.AddDbContext<CustomerDbContext>();
+    builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+}
 
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 builder.Services.AddDaprClient();
@@ -71,18 +75,20 @@ using (var scope = app.Services.CreateScope())
             throw new Exception("PostgreSQL was not setup correctly!");
     }
 
-    var context = services.GetRequiredService<CustomerDbContext>();
-    context.Database.Migrate();
+    if(!config.InMemoryDb){
+        var context = services.GetRequiredService<CustomerDbContext>();
+        context.Database.Migrate();
 
-    if (config.Unlogged)
-    {
-        var tableNames = context.Model.GetEntityTypes()
-                            .Select(t => t.GetTableName())
-                            .Distinct()
-                            .ToList();
-        foreach (var table in tableNames)
+        if (config.Unlogged)
         {
-            context.Database.ExecuteSqlRaw($"ALTER TABLE customer.{table} SET unlogged");
+            var tableNames = context.Model.GetEntityTypes()
+                                .Select(t => t.GetTableName())
+                                .Distinct()
+                                .ToList();
+            foreach (var table in tableNames)
+            {
+                context.Database.ExecuteSqlRaw($"ALTER TABLE customer.{table} SET unlogged");
+            }
         }
     }
 }

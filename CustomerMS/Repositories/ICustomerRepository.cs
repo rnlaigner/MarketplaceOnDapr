@@ -2,13 +2,16 @@
 using Common.Events;
 using CustomerMS.Models;
 
-namespace CustomerMS.Repositories
+namespace CustomerMS.Repositories;
+
+public interface ICustomerRepository
 {
-	public interface ICustomerRepository
-	{
-        CustomerModel? GetById(int customerId);
-        CustomerModel Insert(CustomerModel customer);
-        CustomerModel Update(CustomerModel customer);
-    }
+    CustomerModel? GetById(int customerId);
+    CustomerModel Insert(CustomerModel customer);
+    CustomerModel Update(CustomerModel customer);
+
+    void Cleanup();
+    void Reset();
+
 }
 
