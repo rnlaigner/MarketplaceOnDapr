@@ -3,11 +3,11 @@ using Common.Requests;
 
 namespace Common.Events;
 /*
-    * "An invoice acts as a request for payment for the delivery of goods or services."
-    * Source: https://invoice.2go.com/learn/invoices/invoice-vs-purchase-order/
-    * An invoice data structure contains all necessary info for the payment 
-    * actor to process a payment
-    */
+ * "An invoice acts as a request for payment for the delivery of goods or services."
+ * Source: https://invoice.2go.com/learn/invoices/invoice-vs-purchase-order/
+ * An invoice data structure contains all necessary info for the payment 
+ * actor to process a payment
+ */
 public class InvoiceIssued
 {
     public CustomerCheckout customer { get; set; }
@@ -41,4 +41,5 @@ public class InvoiceIssued
     {
         return string.Join(",", items);
     }
+
 }

@@ -199,7 +199,7 @@ public class OrderService : IOrderService
         await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamId, new TransactionMark(stockConfirmed.instanceId, TransactionType.CUSTOMER_SESSION, stockConfirmed.customerCheckout.CustomerId, MarkStatus.ABORT, "order"));
     }
 
-    private OrderItem AsOrderItem(OrderItemModel orderItem, float voucher)
+    private static OrderItem AsOrderItem(OrderItemModel orderItem, float voucher)
     {
         return new()
         {
@@ -218,7 +218,7 @@ public class OrderService : IOrderService
         };
     }
 
-    private Order AsOrder(OrderModel orderModel)
+    private static Order AsOrder(OrderModel orderModel)
     {
         return new()
         {
@@ -296,6 +296,7 @@ public class OrderService : IOrderService
 
     public void ProcessShipmentNotification(ShipmentNotification shipmentNotification)
     {
+        DateTime now = DateTime.UtcNow;
         using (var txCtx = this.orderRepository.BeginTransaction())
         {
             OrderModel? order = this.orderRepository.GetOrder(shipmentNotification.customerId, shipmentNotification.orderId);
@@ -304,11 +305,15 @@ public class OrderService : IOrderService
                 throw new Exception($"Cannot find order {shipmentNotification.customerId}-{shipmentNotification.orderId}");
             }
 
-            DateTime now = DateTime.UtcNow;
-
             OrderStatus orderStatus = OrderStatus.READY_FOR_SHIPMENT;
-            if (shipmentNotification.status == ShipmentStatus.delivery_in_progress) orderStatus = OrderStatus.IN_TRANSIT;
-            if (shipmentNotification.status == ShipmentStatus.concluded) orderStatus = OrderStatus.DELIVERED;
+            if (shipmentNotification.status == ShipmentStatus.delivery_in_progress){
+                orderStatus = OrderStatus.IN_TRANSIT;
+                order.delivered_carrier_date = shipmentNotification.eventDate;
+            }
+            if (shipmentNotification.status == ShipmentStatus.concluded){
+                orderStatus = OrderStatus.DELIVERED;
+                order.delivered_customer_date = shipmentNotification.eventDate;
+            }
 
             OrderHistoryModel orderHistory = new()
             {
@@ -320,11 +325,6 @@ public class OrderService : IOrderService
 
             order.status = orderStatus;
             order.updated_at = now;
-
-            if (order.status == OrderStatus.DELIVERED)
-            {
-                order.delivered_customer_date = shipmentNotification.eventDate;
-            }
 
             this.orderRepository.UpdateOrder(order);
             this.orderRepository.InsertOrderHistory(orderHistory);
