@@ -34,7 +34,7 @@ public class StockService : IStockService
             StockItemModel stockItem = this.stockRepository.FindForUpdate(productUpdated.seller_id, productUpdated.product_id);
             if (stockItem is null)
             {
-                throw new ApplicationException("Stock item not found "+productUpdated.seller_id +"-" + productUpdated.product_id);
+                throw new ApplicationException($"Stock item not found {productUpdated.seller_id}-{productUpdated.product_id}");
             }
 
             stockItem.version = productUpdated.version;
@@ -65,7 +65,8 @@ public class StockService : IStockService
             IEnumerable<StockItemModel> items = this.stockRepository.GetItems(ids);
             if (!items.Any())
             {
-                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.NOT_ACCEPTED, "stock"));
+                this.logger.LogCritical($"No items in checkout were retrieved from Stock state: \n{checkout}");
+                await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamUpdateId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.ERROR, "stock"));
                 return;
             }
 
@@ -129,6 +130,7 @@ public class StockService : IStockService
                     // corner case: no items reserved
                     if (cartItemsReserved.Count() == 0)
                     {
+                        this.logger.LogWarning($"No items in checkout were reserved: \n{checkout}");
                         await this.daprClient.PublishEventAsync(PUBSUB_NAME, streamReserveId, new TransactionMark(checkout.instanceId, TransactionType.CUSTOMER_SESSION, checkout.customerCheckout.CustomerId, MarkStatus.NOT_ACCEPTED, "stock"));
                     }
 

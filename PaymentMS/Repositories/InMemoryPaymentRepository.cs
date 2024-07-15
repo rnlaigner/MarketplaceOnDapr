@@ -1,7 +1,5 @@
 ﻿
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using Common.Entities;
 using Microsoft.EntityFrameworkCore.Storage;
 using PaymentMS.Models;
 
@@ -32,6 +30,19 @@ public class InMemoryPaymentRepository : IPaymentRepository
         return orderPayment;
     }
 
+    public IEnumerable<OrderPaymentModel> GetByOrderId(int customerId, int orderId)
+    {
+        return this.orderPayments.Values.Where(o=>o.customer_id == customerId && o.order_id == orderId);
+    }
+
+    public void InsertAll(List<OrderPaymentModel> orderPayments)
+    {
+        foreach(var orderPayment in orderPayments)
+        {
+            this.orderPayments.TryAdd((orderPayment.customer_id, orderPayment.order_id, orderPayment.sequential), orderPayment);
+        }
+    }
+
     public IDbContextTransaction BeginTransaction()
     {
         return DEFAULT_DB_TX;
@@ -46,16 +57,6 @@ public class InMemoryPaymentRepository : IPaymentRepository
     public void FlushUpdates()
     {
         // do nothing
-    }
-
-    public IEnumerable<OrderPaymentModel> GetByOrderId(int customerId, int orderId)
-    {
-        return this.orderPayments.Values.Where(o=>o.customer_id == customerId && o.order_id == orderId);
-    }
-
-    public void InsertAll(List<OrderPaymentModel> paymentLines)
-    {
-        throw new NotImplementedException();
     }
 
     public class NoTransactionScope : IDbContextTransaction

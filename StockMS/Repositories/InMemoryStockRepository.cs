@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Common.Entities;
 using Microsoft.EntityFrameworkCore.Storage;
 using StockMS.Models;
 
@@ -54,15 +55,18 @@ public class InMemoryStockRepository : IStockRepository
     public IEnumerable<StockItemModel> GetItems(List<(int SellerId, int ProductId)> ids)
     {
         List<StockItemModel> list = new List<StockItemModel>();
-        foreach(var i in ids)
+        foreach(var (SellerId, ProductId) in ids)
         {
-            list.Add( this.stockItems[(i.SellerId,i.ProductId)] );
+            list.Add( this.stockItems[(SellerId,ProductId)] );
         }
         return list;
     }
 
     public StockItemModel Insert(StockItemModel item)
     {
+        item.active = true;
+        item.created_at = DateTime.Now;
+        item.updated_at = item.created_at;
         this.stockItems.TryAdd((item.seller_id, item.product_id), item);
         return item;
     }

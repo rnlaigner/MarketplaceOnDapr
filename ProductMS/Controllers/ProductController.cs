@@ -78,11 +78,6 @@ public class ProductController : ControllerBase
         {
             return NotFound("Product is null");
         }
-
-        if (!product.active)
-        {
-            return NotFound("Product is not active anymore");
-        }
         
         this.logger.LogInformation("[GetById] returning product {0}", productId);
         return Ok(new Product()

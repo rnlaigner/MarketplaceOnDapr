@@ -8,7 +8,6 @@ namespace StockMS.Repositories;
 
 public class StockRepository : IStockRepository
 {
-
     private readonly StockDbContext dbContext;
     private readonly ILogger<StockRepository> logger;
 
@@ -18,12 +17,12 @@ public class StockRepository : IStockRepository
         this.logger = logger;
 	}
 
-    public StockItemModel Insert(StockItemModel product)
+    public StockItemModel Insert(StockItemModel item)
     {
-        product.active = true;
-        product.created_at = DateTime.Now;
-        product.updated_at = product.created_at;
-        return this.dbContext.StockItems.Add(product).Entity;
+        item.active = true;
+        item.created_at = DateTime.Now;
+        item.updated_at = item.created_at;
+        return this.dbContext.StockItems.Add(item).Entity;
     }
 
     public void Update(StockItemModel item)
