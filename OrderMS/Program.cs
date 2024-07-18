@@ -15,6 +15,7 @@ using System.Linq;
 using MysticMind.PostgresEmbed;
 using Common.Utils;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,25 +31,24 @@ if (config.PostgresEmbed)
 {
     PgServer server;
     var instanceId = Utils.GetGuid("OrderDb");
-    if (config.Unlogged)
+    // https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-NAMES-VALUES
+    var serverParams = new Dictionary<string, string>
     {
-        // https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-NAMES-VALUES
-        var serverParams = new Dictionary<string, string>
-        {
-            // switch off synchronous commit
-            { "synchronous_commit", "off" },
-            // set max connections
-            { "max_connections", "10000" },
-            // The default value is localhost, which allows only local TCP/IP "loopback" connections to be made.
-            { "listen_addresses", "*" }
-        };
-        // serverParams.Add("shared_buffers", X);
-        server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams, instanceId: instanceId);
-    }
-    else
+        // switch off synchronous commit
+        { "synchronous_commit", "off" },
+        // set max connections
+        { "max_connections", "10000" },
+        // The default value is localhost, which allows only local TCP/IP "loopback" connections to be made.
+        { "listen_addresses", "*" }
+    };
+    // serverParams.Add("shared_buffers", X);
+    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
-        server = new PgServer("15.3.0", port: 5432, instanceId: instanceId);
+        serverParams.Add( "unix_socket_directories", "/tmp");
+        serverParams.Add( "unix_socket_group", "" );
+        serverParams.Add( "unix_socket_permissions", "0777");
     }
+    server = new PgServer("15.3.0", port: 5432, pgServerParams: serverParams, instanceId: instanceId);
     waitPgSql = server.StartAsync();
 }
 

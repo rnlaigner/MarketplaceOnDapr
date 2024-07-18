@@ -5,6 +5,7 @@ using ShipmentMS.Repositories.Impl;
 using ShipmentMS.Service;
 using MysticMind.PostgresEmbed;
 using Common.Utils;
+using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,21 +22,20 @@ if (config.PostgresEmbed)
 {
     PgServer server;
     var instanceId = Utils.GetGuid("ShipmentDb");
-    if (config.Unlogged)
+    var serverParams = new Dictionary<string, string>
     {
-        var serverParams = new Dictionary<string, string>
-        {
-            { "synchronous_commit", "off" },
-            { "max_connections", "10000" },
-            { "listen_addresses", "*" }
-        };
-        // serverParams.Add("shared_buffers", X);
-        server = new PgServer("15.3.0", port: 5435, pgServerParams: serverParams, instanceId: instanceId);
-    }
-    else
+        { "synchronous_commit", "off" },
+        { "max_connections", "10000" },
+        { "listen_addresses", "*" }
+    };
+    // serverParams.Add("shared_buffers", X);
+    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
-        server = new PgServer("15.3.0", port: 5435, instanceId: instanceId);
+        serverParams.Add( "unix_socket_directories", "/tmp");
+        serverParams.Add( "unix_socket_group", "" );
+        serverParams.Add( "unix_socket_permissions", "0777");
     }
+    server = new PgServer("15.3.0", port: 5435, pgServerParams: serverParams, instanceId: instanceId);
     waitPgSql = server.StartAsync();
 }
 

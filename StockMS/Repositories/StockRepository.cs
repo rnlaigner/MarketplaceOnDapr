@@ -106,7 +106,7 @@ public class StockRepository : IStockRepository
 
     public void Reset(int qty)
     {
-        this.dbContext.Database.ExecuteSqlRaw(string.Format("UPDATE stock_items SET active=true, version='0', qty_reserved=0, qty_available={0}",qty));
+        this.dbContext.Database.ExecuteSqlRaw(string.Format("UPDATE stock.stock_items SET active=true, version='0', qty_reserved=0, qty_available={0}", qty));
         this.dbContext.SaveChanges();
     }
 
