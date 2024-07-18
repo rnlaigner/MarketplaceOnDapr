@@ -24,9 +24,11 @@ if (config.PostgresEmbed)
     {
         { "synchronous_commit", "off" },
         { "max_connections", "10000" },
-        { "listen_addresses", "*" }
+        { "listen_addresses", "*" },
+        { "shared_buffers", "3GB" },
+        { "work_mem", "128MB" }
     };
-    // serverParams.Add("shared_buffers", X);
+    
     if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
         serverParams.Add( "unix_socket_directories", "/tmp");

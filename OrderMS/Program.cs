@@ -39,9 +39,11 @@ if (config.PostgresEmbed)
         // set max connections
         { "max_connections", "10000" },
         // The default value is localhost, which allows only local TCP/IP "loopback" connections to be made.
-        { "listen_addresses", "*" }
+        { "listen_addresses", "*" },
+        { "shared_buffers", "3GB" },
+        { "work_mem", "128MB" }
     };
-    // serverParams.Add("shared_buffers", X);
+    
     if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
         serverParams.Add( "unix_socket_directories", "/tmp");

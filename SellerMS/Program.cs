@@ -25,7 +25,9 @@ if (config.PostgresEmbed)
     {
         { "synchronous_commit", "off" },
         { "max_connections", "10000" },
-        { "listen_addresses", "*" }
+        { "listen_addresses", "*" },
+        { "shared_buffers", "3GB" },
+        { "work_mem", "128MB" }
     };
     if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
@@ -33,7 +35,7 @@ if (config.PostgresEmbed)
         serverParams.Add( "unix_socket_group", "" );
         serverParams.Add( "unix_socket_permissions", "0777");
     }
-    // serverParams.Add("shared_buffers", X);
+    
     server = new PgServer("15.3.0", port: 5436, pgServerParams: serverParams, instanceId: instanceId);
     waitPgSql = server.StartAsync();
 }
