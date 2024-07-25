@@ -1,19 +1,24 @@
 ﻿using System.Collections.Concurrent;
-using Common.Entities;
+using Common.Infra;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
+using StockMS.Infra;
 using StockMS.Models;
 
 namespace StockMS.Repositories;
 
-public class InMemoryStockRepository : IStockRepository
+public sealed class InMemoryStockRepository : IStockRepository
 {
-    private readonly ConcurrentDictionary<(int sellerId, int productId), StockItemModel> stockItems;
+    private readonly IDictionary<(int sellerId, int productId), StockItemModel> stockItems;
+
+    private readonly ILogging<StockItemModel> logging;
 
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 
-	public InMemoryStockRepository()
+	public InMemoryStockRepository(IOptions<StockConfig> config) : base()
 	{
-        this.stockItems = new();
+        this.stockItems = new ConcurrentDictionary<(int sellerId, int productId), StockItemModel>();
+        this.logging = LoggingHelper<StockItemModel>.Init(config.Value.Logging, config.Value.LoggingDelay);
 	}
 
     public IDbContextTransaction BeginTransaction()
@@ -33,8 +38,7 @@ public class InMemoryStockRepository : IStockRepository
     public StockItemModel FindForUpdate(int sellerId, int productId)
     {
         var item = this.Find(sellerId, productId);
-        if(item is null) throw new ApplicationException($"Cannot find stock item {sellerId}-{productId}");
-        return item;
+        return item is null ? throw new ApplicationException($"Cannot find stock item {sellerId}-{productId}") : item;
     }
 
     public void FlushUpdates()
@@ -68,6 +72,7 @@ public class InMemoryStockRepository : IStockRepository
         item.created_at = DateTime.Now;
         item.updated_at = item.created_at;
         this.stockItems.TryAdd((item.seller_id, item.product_id), item);
+        this.logging.Append(item);
         return item;
     }
 
@@ -75,6 +80,7 @@ public class InMemoryStockRepository : IStockRepository
     {
          item.updated_at = DateTime.UtcNow;
          this.stockItems[(item.seller_id, item.product_id)] = item;
+         this.logging.Append(item);
     }
 
     public void UpdateRange(List<StockItemModel> stockItemsReserved)
@@ -88,6 +94,7 @@ public class InMemoryStockRepository : IStockRepository
     public void Cleanup()
     {
         this.stockItems.Clear();
+        this.logging.Clear();
     }
 
     public void Reset(int qty)
@@ -98,6 +105,7 @@ public class InMemoryStockRepository : IStockRepository
             item.version = "0";
             item.qty_reserved = 0;
         }
+        this.logging.Clear();
     }
 
     public class NoTransactionScope : IDbContextTransaction

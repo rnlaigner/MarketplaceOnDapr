@@ -109,7 +109,7 @@ using (var scope = app.Services.CreateScope())
             Console.WriteLine("will migrate");
             context.Database.Migrate();
   
-            if (config.Unlogged)
+            if (!config.Logging)
             {
                 Console.WriteLine("will set unlogged");
                 var tableNames = context.Model.GetEntityTypes()

@@ -70,7 +70,7 @@ public class InMemoryPackageRepository : IPackageRepository
         // do nothing
     }
 
-    public IDbContextTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.Snapshot)
+    public IDbContextTransaction BeginTransaction(IsolationLevel isolationLevel)
     {
         return DEFAULT_DB_TX;
     }

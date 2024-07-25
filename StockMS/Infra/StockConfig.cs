@@ -12,7 +12,9 @@ public sealed class StockConfig
 
     public bool PostgresEmbed { get; set; } = false;
 
-    public bool Unlogged { get; set; } = false;
+    public bool Logging { get; set; } = false;
+
+    public int LoggingDelay { get; set; } = 10000;
 
     public string RamDiskDir { get; set; } = "";
 

@@ -87,7 +87,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<StockDbContext>();
         context.Database.Migrate();
 
-        if (config.Unlogged)
+        if (!config.Logging)
         {
             var tableNames = context.Model.GetEntityTypes()
                                 .Select(t => t.GetTableName())
