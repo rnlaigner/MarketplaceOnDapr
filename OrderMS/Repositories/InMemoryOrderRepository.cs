@@ -31,7 +31,7 @@ public class InMemoryOrderRepository : IOrderRepository
         this.customerOrders = new();
         this.orderItems = new();
         this.orderHistory = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "order");
 	}
 
     public IEnumerable<OrderModel> GetAll()

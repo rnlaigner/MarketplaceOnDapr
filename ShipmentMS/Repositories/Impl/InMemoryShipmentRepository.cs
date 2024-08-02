@@ -19,7 +19,7 @@ public class InMemoryShipmentRepository : IShipmentRepository
 	public InMemoryShipmentRepository(IOptions<ShipmentConfig> config)
 	{
         this.shipments = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "shipment");
 	}
 
     public void Insert(ShipmentModel item)

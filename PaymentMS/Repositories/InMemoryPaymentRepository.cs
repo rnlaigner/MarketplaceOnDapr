@@ -21,7 +21,7 @@ public class InMemoryPaymentRepository : IPaymentRepository
 	{
         this.orderPayments = new();
         this.orderPaymentCards = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "payment");
 	}
 
     public OrderPaymentCardModel Insert(OrderPaymentCardModel orderPaymentCard)

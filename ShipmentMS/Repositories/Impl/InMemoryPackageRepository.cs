@@ -20,7 +20,7 @@ public class InMemoryPackageRepository : IPackageRepository
 	public InMemoryPackageRepository(IOptions<ShipmentConfig> config)
     { 
         this.packages = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "package");
 	}
 
     public void Insert(PackageModel item)

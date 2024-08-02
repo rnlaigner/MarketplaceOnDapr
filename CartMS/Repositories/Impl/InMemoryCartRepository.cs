@@ -18,7 +18,7 @@ public class InMemoryCartRepository : ICartRepository
 	public InMemoryCartRepository(IOptions<CartConfig> config)
 	{
         this.cartItems = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "cart");
 	}
 
     // CART

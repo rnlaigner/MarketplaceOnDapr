@@ -18,7 +18,7 @@ public class InMemoryProductRepository : IProductRepository
 	public InMemoryProductRepository(IOptions<ProductConfig> config)
 	{
         this.products = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "product");
 	}
 
     public IEnumerable<ProductModel> GetBySeller(int sellerId)

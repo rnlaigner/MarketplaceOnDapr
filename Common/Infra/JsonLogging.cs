@@ -3,12 +3,13 @@ using System.Text.Json;
 
 namespace Common.Infra;
 
-public sealed class JsonLogging : ILogging, IDisposable
+public sealed class JsonLogging : ILogging
 {
     private readonly ConcurrentQueue<object> recordsToLog;
     private readonly Thread loggingTask;
     private readonly StreamWriter outputFile;
     private readonly int delay;
+    private readonly CancellationTokenSource cts;
 
     public JsonLogging(StreamWriter outputFile, int delay)
     {
@@ -16,6 +17,7 @@ public sealed class JsonLogging : ILogging, IDisposable
         this.recordsToLog = new ConcurrentQueue<object>();
         this.loggingTask = new Thread(LoggingTask);
         this.delay = delay;
+        this.cts = new CancellationTokenSource();
     }
 
     public void InitLoggingTask()
@@ -39,7 +41,8 @@ public sealed class JsonLogging : ILogging, IDisposable
                 }
             }
             Console.WriteLine($"Logging thread ({Environment.CurrentManagedThreadId}) task finished.");
-        } while (true);
+        } while (!this.cts.IsCancellationRequested);
+        this.outputFile.Close();
     }
 
     public void Append(object item)
@@ -54,8 +57,8 @@ public sealed class JsonLogging : ILogging, IDisposable
 
     public void Dispose()
     {
-        this.loggingTask.Interrupt();
-        this.outputFile.Close();
+        this.cts.Cancel();
+        this.recordsToLog.Clear();
     }
 }
 

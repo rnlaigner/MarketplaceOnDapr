@@ -18,7 +18,7 @@ public sealed class InMemoryStockRepository : IStockRepository
 	public InMemoryStockRepository(IOptions<StockConfig> config)
 	{
         this.stockItems = new ConcurrentDictionary<(int sellerId, int productId), StockItemModel>();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "stock");
 	}
 
     public IDbContextTransaction BeginTransaction()

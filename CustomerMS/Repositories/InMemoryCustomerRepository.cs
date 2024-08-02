@@ -15,7 +15,7 @@ public class InMemoryCustomerRepository : ICustomerRepository
     public InMemoryCustomerRepository(IOptions<CustomerConfig> config)
     {
         this.customers = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "customer");
     }
 
     public CustomerModel Insert(CustomerModel customer)

@@ -22,7 +22,7 @@ public class InMemorySellerRepository : ISellerRepository
     {
         this.sellers = new();
         this.orderEntries = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "seller");
     }
 
     public SellerModel Insert(SellerModel seller)

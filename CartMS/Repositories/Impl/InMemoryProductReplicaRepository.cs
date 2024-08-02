@@ -15,7 +15,7 @@ public class InMemoryProductReplicaRepository : IProductReplicaRepository
 	public InMemoryProductReplicaRepository(IOptions<CartConfig> config)
 	{
         this.productReplicas = new();
-        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay, "product_replica");
 	}
 
     public bool Exists(int sellerId, int productId)
