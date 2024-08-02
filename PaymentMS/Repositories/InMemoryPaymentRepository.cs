@@ -1,6 +1,9 @@
 ﻿
 using System.Collections.Concurrent;
+using Common.Infra;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
+using PaymentMS.Infra;
 using PaymentMS.Models;
 
 namespace PaymentMS.Repositories;
@@ -10,23 +13,28 @@ public class InMemoryPaymentRepository : IPaymentRepository
     private readonly ConcurrentDictionary<(int customerId, int orderId, int packageId),OrderPaymentModel> orderPayments;
     private readonly ConcurrentDictionary<(int customerId, int orderId, int packageId),OrderPaymentCardModel> orderPaymentCards;
 
+    private readonly ILogging logging;
+
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 
-	public InMemoryPaymentRepository()
+	public InMemoryPaymentRepository(IOptions<PaymentConfig> config)
 	{
         this.orderPayments = new();
         this.orderPaymentCards = new();
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
 	}
 
     public OrderPaymentCardModel Insert(OrderPaymentCardModel orderPaymentCard)
     {
         this.orderPaymentCards.TryAdd((orderPaymentCard.customer_id, orderPaymentCard.order_id, orderPaymentCard.sequential), orderPaymentCard);
+        this.logging.Append(orderPaymentCard);
         return orderPaymentCard;
     }
 
     public OrderPaymentModel Insert(OrderPaymentModel orderPayment)
     {
         this.orderPayments.TryAdd((orderPayment.customer_id, orderPayment.order_id, orderPayment.sequential), orderPayment);
+        this.logging.Append(orderPayment);
         return orderPayment;
     }
 
@@ -52,6 +60,7 @@ public class InMemoryPaymentRepository : IPaymentRepository
     {
         this.orderPaymentCards.Clear();
         this.orderPayments.Clear();
+        this.logging.Clear();
     }
 
     public void FlushUpdates()

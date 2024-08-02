@@ -1,5 +1,7 @@
+using Common.Infra;
 using CustomerMS.Infra;
 using CustomerMS.Models;
+using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 
 namespace CustomerMS.Repositories;
@@ -8,9 +10,12 @@ public class InMemoryCustomerRepository : ICustomerRepository
 {
     private readonly ConcurrentDictionary<int, CustomerModel> customers;
 
-    public InMemoryCustomerRepository()
+    private readonly ILogging logging;
+
+    public InMemoryCustomerRepository(IOptions<CustomerConfig> config)
     {
         this.customers = new();
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
     }
 
     public CustomerModel Insert(CustomerModel customer)
@@ -18,6 +23,7 @@ public class InMemoryCustomerRepository : ICustomerRepository
         customer.created_at = DateTime.UtcNow;
         customer.updated_at = customer.created_at;
         this.customers.TryAdd(customer.id, customer);
+        this.logging.Append(customer);
         return customer;
     }
 
@@ -25,6 +31,7 @@ public class InMemoryCustomerRepository : ICustomerRepository
     {
         customer.updated_at = DateTime.UtcNow;
         this.customers[customer.id] = customer;
+        this.logging.Append(customer);
         return customer;
     }
 
@@ -36,6 +43,7 @@ public class InMemoryCustomerRepository : ICustomerRepository
     public void Cleanup()
     {
         this.customers.Clear();
+        this.logging.Clear();
     }
 
     public void Reset()
@@ -45,6 +53,7 @@ public class InMemoryCustomerRepository : ICustomerRepository
             cust.failed_payment_count = 0;
             cust.success_payment_count = 0;
         }
+        this.logging.Clear();
     }
 
 }

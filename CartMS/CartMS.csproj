@@ -26,6 +26,7 @@
     <None Remove="Services\" />
     <None Remove="Models\" />
     <None Remove="Migrations\" />
+    <None Remove="Repositories\Impl\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Repositories\" />
@@ -33,6 +34,7 @@
     <Folder Include="Services\" />
     <Folder Include="Models\" />
     <Folder Include="Migrations\" />
+    <Folder Include="Repositories\Impl\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

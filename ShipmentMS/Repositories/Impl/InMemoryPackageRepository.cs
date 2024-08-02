@@ -1,8 +1,10 @@
-﻿
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Data;
 using Common.Entities;
+using Common.Infra;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
+using ShipmentMS.Infra;
 using ShipmentMS.Models;
 
 namespace ShipmentMS.Repositories.Impl;
@@ -11,16 +13,20 @@ public class InMemoryPackageRepository : IPackageRepository
 {
     private readonly ConcurrentDictionary<(int customerId, int orderId, int packageId),PackageModel> packages;
 
+    private readonly ILogging logging;
+
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 
-	public InMemoryPackageRepository()
+	public InMemoryPackageRepository(IOptions<ShipmentConfig> config)
     { 
         this.packages = new();
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
 	}
 
-    public void Insert(PackageModel value)
+    public void Insert(PackageModel item)
     {
-        this.packages.TryAdd((value.customer_id,value.order_id, value.package_id), value);
+        this.packages.TryAdd((item.customer_id,item.order_id, item.package_id), item);
+        this.logging.Append(item);
     }
 
     public void InsertAll(List<PackageModel> values)
@@ -34,11 +40,14 @@ public class InMemoryPackageRepository : IPackageRepository
     public void Update(PackageModel newValue)
     {
         this.packages[(newValue.customer_id,newValue.order_id, newValue.package_id)] = newValue;
+        this.logging.Append(newValue);
     }
 
     public void Delete((int, int, int) id)
     {
-        this.packages.Remove(id, out _);
+        this.packages.Remove(id, out var item);
+        if(item is not null)
+            this.logging.Append(item);
     }
 
     public PackageModel? GetById((int, int, int) id)
@@ -52,7 +61,10 @@ public class InMemoryPackageRepository : IPackageRepository
                 .Where(x => x.status.Equals(PackageStatus.shipped))
                 .GroupBy(x => x.seller_id)
                 .Select(g => new { key = g.Key, Sort = g.Min(x => x.GetOrderIdAsString()) }).Take(10)
-                .ToDictionary(g => g.key, g => g.Sort.Split("|"));
+                .ToDictionary(g => g.key, g => {
+                    if(g.Sort is null) return Array.Empty<string>();
+                    return g.Sort.Split("|");
+                });
 }
 
     public IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(int customerId, int orderId, int sellerId)
@@ -78,6 +90,7 @@ public class InMemoryPackageRepository : IPackageRepository
     public void Cleanup()
     {
         this.packages.Clear();
+        this.logging.Clear();
     }
 
     public void Dispose()

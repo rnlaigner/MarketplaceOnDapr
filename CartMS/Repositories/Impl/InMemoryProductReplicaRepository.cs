@@ -1,15 +1,21 @@
 ﻿using System.Collections.Concurrent;
+using CartMS.Infra;
 using CartMS.Models;
+using Common.Infra;
+using Microsoft.Extensions.Options;
 
-namespace CartMS.Repositories;
+namespace CartMS.Repositories.Impl;
 
 public class InMemoryProductReplicaRepository : IProductReplicaRepository
 {
     private readonly ConcurrentDictionary<(int sellerId, int productId),ProductReplicaModel> productReplicas;
 
-	public InMemoryProductReplicaRepository()
+    private readonly ILogging logging;
+
+	public InMemoryProductReplicaRepository(IOptions<CartConfig> config)
 	{
         this.productReplicas = new();
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
 	}
 
     public bool Exists(int sellerId, int productId)
@@ -40,13 +46,31 @@ public class InMemoryProductReplicaRepository : IProductReplicaRepository
     public ProductReplicaModel Insert(ProductReplicaModel product)
     {
         this.productReplicas.TryAdd((product.seller_id, product.product_id), product);
+        this.logging.Append(product);
         return product;
     }
 
     public ProductReplicaModel Update(ProductReplicaModel product)
     {
         this.productReplicas[(product.seller_id, product.product_id)] = product;
+        this.logging.Append(product);
         return product;
+    }
+
+    public void Reset()
+    {
+        foreach(var item in this.productReplicas.Values)
+        {
+            item.active = true;
+            item.version = "0";
+        }
+        this.logging.Clear();
+    }
+
+    public void Cleanup()
+    {
+        this.productReplicas.Clear();
+        this.logging.Clear();
     }
 
 }

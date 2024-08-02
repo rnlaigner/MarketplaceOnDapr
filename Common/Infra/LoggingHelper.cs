@@ -1,9 +1,8 @@
 ﻿namespace Common.Infra;
 
-public sealed class LoggingHelper<T>
+public sealed class LoggingHelper
 {
-
-    public static ILogging<T> Init(bool logging, int delay)
+    public static ILogging Init(bool logging, int delay)
     { 
         if(logging)
         {
@@ -18,19 +17,19 @@ public sealed class LoggingHelper<T>
             StreamWriter outputFile = new StreamWriter(path);
             // disable write to disk on every append
             outputFile.AutoFlush = false;
-            // outputFile.WriteLine("TEST");
-        
-            var loggingInstance = new JsonLogging<T>(outputFile, delay);
+            var loggingInstance = new JsonLogging(outputFile, delay);
             loggingInstance.InitLoggingTask();
             return loggingInstance;
-        } else
+        }
+        else
         {
-            return new DefaultNoLogging<T>();
+            return DEFAULT_NO_LOGGING;
         }
     }
 
-    private class DefaultNoLogging<A> : ILogging<A> { }
+    private class DefaultNoLogging : ILogging { }
 
+    private static readonly DefaultNoLogging DEFAULT_NO_LOGGING = new(); 
 }
 
 

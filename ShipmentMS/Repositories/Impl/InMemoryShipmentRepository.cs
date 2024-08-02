@@ -1,6 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Data;
+using Common.Infra;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
+using ShipmentMS.Infra;
 using ShipmentMS.Models;
 
 namespace ShipmentMS.Repositories.Impl;
@@ -9,21 +12,25 @@ public class InMemoryShipmentRepository : IShipmentRepository
 {
     private readonly ConcurrentDictionary<(int customerId, int orderId),ShipmentModel> shipments;
 
+    private readonly ILogging logging;
+
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 
-	public InMemoryShipmentRepository()
+	public InMemoryShipmentRepository(IOptions<ShipmentConfig> config)
 	{
         this.shipments = new();
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
 	}
 
-    public void Insert(ShipmentModel value)
+    public void Insert(ShipmentModel item)
     {
-        this.shipments.TryAdd((value.customer_id,value.order_id), value);
+        this.shipments.TryAdd((item.customer_id,item.order_id), item);
+        this.logging.Append(item);
     }
 
-    public void InsertAll(List<ShipmentModel> values)
+    public void InsertAll(List<ShipmentModel> shipments)
     {
-        foreach(var ship in values)
+        foreach(var ship in shipments)
         {
             this.Insert(ship);
         }
@@ -32,11 +39,14 @@ public class InMemoryShipmentRepository : IShipmentRepository
     public void Update(ShipmentModel newValue)
     {
         this.shipments[(newValue.customer_id,newValue.order_id)] = newValue;
+        this.logging.Append(newValue);
     }
 
     public void Delete((int,int) id)
     {
-        this.shipments.Remove(id, out _);
+        this.shipments.Remove(id, out var item);
+        if(item is not null)
+            this.logging.Append(item);
     }
 
     public ShipmentModel? GetById((int,int) id)
@@ -57,6 +67,7 @@ public class InMemoryShipmentRepository : IShipmentRepository
     public void Cleanup()
     {
         this.shipments.Clear();
+        this.logging.Clear();
     }
 
     public void Dispose()

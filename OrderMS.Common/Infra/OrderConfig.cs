@@ -1,17 +1,18 @@
-﻿namespace OrderMS.Common.Infra
+﻿namespace OrderMS.Common.Infra;
+
+public sealed class OrderConfig
 {
-	public sealed class OrderConfig
-	{
-        public bool Streaming { get; set; } = false;
+    public bool Streaming { get; set; } = false;
 
-        public bool InMemoryDb { get; set; } = false;
+    public bool InMemoryDb { get; set; } = false;
 
-        public bool PostgresEmbed { get; set; } = false;
+    public bool PostgresEmbed { get; set; } = false;
 
-        public bool Logging { get; set; } = false;
+    public bool Logging { get; set; } = false;
 
-        public string RamDiskDir { get; set; } = "";
+    public int LoggingDelay { get; set; } = 10000;
 
-    }
+    public string RamDiskDir { get; set; } = "";
+
 }
 

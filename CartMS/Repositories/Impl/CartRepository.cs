@@ -3,7 +3,7 @@ using CartMS.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace CartMS.Repositories;
+namespace CartMS.Repositories.Impl;
 
 public class CartRepository : ICartRepository
 {

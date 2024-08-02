@@ -3,9 +3,9 @@ using System.Text.Json;
 
 namespace Common.Infra;
 
-public sealed class JsonLogging<T> : ILogging<T>, IDisposable
+public sealed class JsonLogging : ILogging, IDisposable
 {
-    private readonly ConcurrentQueue<T> recordsToLog;
+    private readonly ConcurrentQueue<object> recordsToLog;
     private readonly Thread loggingTask;
     private readonly StreamWriter outputFile;
     private readonly int delay;
@@ -13,7 +13,7 @@ public sealed class JsonLogging<T> : ILogging<T>, IDisposable
     public JsonLogging(StreamWriter outputFile, int delay)
     {
         this.outputFile = outputFile;
-        this.recordsToLog = new ConcurrentQueue<T>();
+        this.recordsToLog = new ConcurrentQueue<object>();
         this.loggingTask = new Thread(LoggingTask);
         this.delay = delay;
     }
@@ -25,10 +25,10 @@ public sealed class JsonLogging<T> : ILogging<T>, IDisposable
 
     private void LoggingTask()
     {
-        Console.WriteLine("Logging Thread Spawned.");
+        Console.WriteLine($"Logging thread ({Environment.CurrentManagedThreadId}) spawned.");
         do {
             Thread.Sleep(this.delay);
-            Console.WriteLine("Logging task started.");
+            Console.WriteLine($"Logging thread ({Environment.CurrentManagedThreadId}) task started.");
             int numRecords = this.recordsToLog.Count;
             while(numRecords > 0)
             {
@@ -38,11 +38,11 @@ public sealed class JsonLogging<T> : ILogging<T>, IDisposable
                     numRecords--;
                 }
             }
-            Console.WriteLine("Logging task finished.");
+            Console.WriteLine($"Logging thread ({Environment.CurrentManagedThreadId}) task finished.");
         } while (true);
     }
 
-    public void Append(T item)
+    public void Append(object item)
     {
         this.recordsToLog.Enqueue(item);
     }

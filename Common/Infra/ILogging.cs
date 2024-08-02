@@ -1,10 +1,10 @@
 ﻿namespace Common.Infra;
 
-public interface ILogging<T>
+public interface ILogging
 {
     void Clear() { }
 
-    void Append(T item) { }
+    void Append(object item) { }
 
 }
 

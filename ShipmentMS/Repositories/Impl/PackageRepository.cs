@@ -18,7 +18,10 @@ public class PackageRepository : GenericRepository<(int,int,int), PackageModel>,
                         .Where(x => x.status.Equals(PackageStatus.shipped))
                         .GroupBy(x => x.seller_id)
                         .Select(g => new { key = g.Key, Sort = g.Min(x => x.GetOrderIdAsString()) }).Take(10)
-                        .ToDictionary(g => g.key, g => g.Sort.Split("|"));
+                        .ToDictionary(g => g.key, g => {
+                            if(g.Sort is null) return Array.Empty<string>();
+                            return g.Sort.Split("|");
+                        });
     }
 
     public IEnumerable<PackageModel> GetShippedPackagesByOrderAndSeller(int customerId, int orderId, int sellerId)

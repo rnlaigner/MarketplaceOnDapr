@@ -10,6 +10,8 @@ public class ShipmentConfig
 
     public bool Logging { get; set; } = false;
 
+    public int LoggingDelay { get; set; } = 10000;
+
     public string RamDiskDir { get; set; } = "";
 }
 

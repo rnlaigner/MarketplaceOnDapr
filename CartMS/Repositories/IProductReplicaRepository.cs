@@ -18,5 +18,9 @@ public interface IProductReplicaRepository
     ProductReplicaModel GetProduct(int sellerId, int productId);
 
 	ProductReplicaModel GetProductForUpdate(int sellerId, int productId);
+
+	void Cleanup();
+	void Reset();
+
 }
 

@@ -1,23 +1,27 @@
 ﻿using System.Collections.Concurrent;
+using CartMS.Infra;
 using CartMS.Models;
+using Common.Infra;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
 
-namespace CartMS.Repositories;
+namespace CartMS.Repositories.Impl;
 
 public class InMemoryCartRepository : ICartRepository
 {
-
     private readonly ConcurrentDictionary<(int customerId, int sellerId, int productId),CartItemModel> cartItems;
+
+    private readonly ILogging logging;
 
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 
-	public InMemoryCartRepository()
+	public InMemoryCartRepository(IOptions<CartConfig> config)
 	{
         this.cartItems = new();
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
 	}
 
     // CART
-
     public void Insert(CartModel cart)
     {
         // do nothing
@@ -35,7 +39,9 @@ public class InMemoryCartRepository : ICartRepository
         var items = this.GetItems(customerId);
         foreach(var item in items)
         {
-            this.cartItems.Remove( (item.customer_id, item.seller_id, item.product_id), out _ );
+            this.cartItems.Remove( (item.customer_id, item.seller_id, item.product_id), out var deletedItem );
+            if(deletedItem is not null)
+                this.logging.Append(deletedItem);
         }
         return null;
     }
@@ -70,7 +76,6 @@ public class InMemoryCartRepository : ICartRepository
     }
 
     // DB
-
     public IDbContextTransaction BeginTransaction()
     {
         return DEFAULT_DB_TX;
@@ -84,11 +89,13 @@ public class InMemoryCartRepository : ICartRepository
     public void Cleanup()
     {
         this.cartItems.Clear();
+        this.logging.Clear();
     }
 
     public void Reset()
     {
         this.cartItems.Clear();
+        this.logging.Clear();
     }
 
     public class NoTransactionScope : IDbContextTransaction

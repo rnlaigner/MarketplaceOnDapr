@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MysticMind.PostgresEmbed;
 using Common.Utils;
 using System.Runtime.InteropServices;
+using CartMS.Repositories.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 

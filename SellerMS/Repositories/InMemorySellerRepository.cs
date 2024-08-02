@@ -1,10 +1,11 @@
 using Common.Entities;
-using Common.Events;
 using SellerMS.DTO;
 using SellerMS.Infra;
 using SellerMS.Models;
 using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
+using Common.Infra;
 
 namespace SellerMS.Repositories;
 
@@ -13,17 +14,21 @@ public class InMemorySellerRepository : ISellerRepository
     private readonly ConcurrentDictionary<int, SellerModel> sellers;
     private readonly ConcurrentDictionary<(int customerId, int orderId, int sellerId, int productId), OrderEntry> orderEntries;
 
+    private readonly ILogging logging;
+
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 
-    public InMemorySellerRepository()
+    public InMemorySellerRepository(IOptions<SellerConfig> config)
     {
         this.sellers = new();
         this.orderEntries = new();
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
     }
 
     public SellerModel Insert(SellerModel seller)
     {
         this.sellers.TryAdd(seller.id, seller);
+        this.logging.Append(seller);
         return seller;
     }
 
@@ -60,11 +65,13 @@ public class InMemorySellerRepository : ISellerRepository
 	public void AddOrderEntry(OrderEntry orderEntry)
     {
         this.orderEntries.TryAdd((orderEntry.customer_id, orderEntry.order_id, orderEntry.seller_id, orderEntry.product_id), orderEntry);
+        this.logging.Append(orderEntry);
     }
 
 	public void Update(OrderEntry orderEntry)
     {
         this.orderEntries[(orderEntry.customer_id, orderEntry.order_id, orderEntry.seller_id, orderEntry.product_id)] = orderEntry;
+        this.logging.Append(orderEntry);
     }
 
 	public void UpdateRange(IEnumerable<OrderEntry> orderEntries)
@@ -98,15 +105,18 @@ public class InMemorySellerRepository : ISellerRepository
     {
         // do nothing
     }
+
     public void Reset()
     {
         this.orderEntries.Clear();
+        this.logging.Clear();
     }
 
     public void Cleanup()
     {
         this.sellers.Clear();
         this.orderEntries.Clear();
+        this.logging.Clear();
     }
 
     public class NoTransactionScope : IDbContextTransaction

@@ -11,14 +11,14 @@ public sealed class InMemoryStockRepository : IStockRepository
 {
     private readonly IDictionary<(int sellerId, int productId), StockItemModel> stockItems;
 
-    private readonly ILogging<StockItemModel> logging;
+    private readonly ILogging logging;
 
     private static readonly IDbContextTransaction DEFAULT_DB_TX = new NoTransactionScope();
 
-	public InMemoryStockRepository(IOptions<StockConfig> config) : base()
+	public InMemoryStockRepository(IOptions<StockConfig> config)
 	{
         this.stockItems = new ConcurrentDictionary<(int sellerId, int productId), StockItemModel>();
-        this.logging = LoggingHelper<StockItemModel>.Init(config.Value.Logging, config.Value.LoggingDelay);
+        this.logging = LoggingHelper.Init(config.Value.Logging, config.Value.LoggingDelay);
 	}
 
     public IDbContextTransaction BeginTransaction()

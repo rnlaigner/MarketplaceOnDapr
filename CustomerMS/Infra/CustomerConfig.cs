@@ -8,7 +8,9 @@ public class CustomerConfig
     
     public bool Logging { get; set; } = false;
 
-     public string RamDiskDir { get; set; } = "";
+    public int LoggingDelay { get; set; } = 10000;
+
+    public string RamDiskDir { get; set; } = "";
 	
 }
 

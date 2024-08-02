@@ -190,11 +190,13 @@ public class CartService : ICartService
     public void Cleanup()
     {
         this.cartRepository.Cleanup();
+        this.productReplicaRepository.Cleanup();
     }
 
     public void Reset()
     {
         this.cartRepository.Reset();
+        this.productReplicaRepository.Reset();
     }
 
 }
