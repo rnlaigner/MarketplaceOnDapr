@@ -78,9 +78,11 @@ public sealed class InMemoryStockRepository : IStockRepository
 
     public void Update(StockItemModel item)
     {
-         item.updated_at = DateTime.UtcNow;
-         this.stockItems[(item.seller_id, item.product_id)] = item;
-         this.logging.Append(item);
+        item.active = true;
+        item.created_at = this.stockItems[(item.seller_id, item.product_id)].created_at;
+        item.updated_at = DateTime.UtcNow;
+        this.stockItems[(item.seller_id, item.product_id)] = item;
+        this.logging.Append(item);
     }
 
     public void UpdateRange(List<StockItemModel> stockItemsReserved)

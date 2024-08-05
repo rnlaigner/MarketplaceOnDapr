@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Common.Entities;
 using Common.Infra;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
@@ -53,7 +54,10 @@ public class InMemoryProductRepository : IProductRepository
 
     public void Update(ProductModel product)
     {
+        // keep the old
+        product.created_at = this.products[(product.seller_id, product.product_id)].created_at;
         product.updated_at = DateTime.UtcNow;
+        product.active = true;
         this.products[(product.seller_id, product.product_id)] = product;
         this.logging.Append(product);
     }

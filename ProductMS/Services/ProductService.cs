@@ -95,8 +95,6 @@ public class ProductService : IProductService
             }
             ProductModel input = Utils.AsProductModel(product);
 
-            // keep the old
-            input.created_at = oldProduct.created_at;
             this.productRepository.Update(input);
 
             txCtx.Commit();
